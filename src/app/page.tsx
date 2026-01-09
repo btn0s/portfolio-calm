@@ -1,5 +1,21 @@
 import Link from 'next/link'
 import { BlogPosts } from '@/components/blog-posts'
+import { baseUrl } from '@/app/sitemap'
+import type { Metadata } from 'next'
+
+export const metadata: Metadata = {
+  title: 'bt norris, design engineer',
+  description: 'Product designer, coder, and tinkerer. Portfolio of work, artifacts, and thoughts on design, engineering, and game development.',
+  openGraph: {
+    title: 'bt norris, design engineer',
+    description: 'Product designer, coder, and tinkerer. Portfolio of work, artifacts, and thoughts on design, engineering, and game development.',
+    url: baseUrl,
+    type: 'website',
+  },
+  alternates: {
+    canonical: baseUrl,
+  },
+}
 
 const CAREER_ITEMS: {
   title: string;
@@ -51,15 +67,33 @@ const PROJECTS = [
 
 export default function Page() {
   return (
-    <main className="flex flex-col gap-8 [&>section>h2]:font-mono [&>section>h2]:tracking-tighter [&>section>h2]:text-base [&>section>h2]:font-semibold [&>section>h2]:mb-3">
-      <section className="prose prose-sm">
-        <h1>Hello World</h1>
-        <p>
-          I&apos;m bt norris—product designer, coder, tinkerer... This is my
-          personal website, where I share things I&apos;m working on and
-          thinking about.
-        </p>
-      </section>
+    <>
+      <script
+        type="application/ld+json"
+        suppressHydrationWarning
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'Person',
+            name: 'bt norris',
+            jobTitle: 'Design Engineer',
+            description: 'Product designer, coder, and tinkerer',
+            url: baseUrl,
+            sameAs: [
+              'https://github.com/btn0s',
+            ],
+          }),
+        }}
+      />
+      <main className="flex flex-col gap-8 [&>section>h2]:font-mono [&>section>h2]:tracking-tighter [&>section>h2]:text-base [&>section>h2]:font-semibold [&>section>h2]:mb-3">
+        <section className="prose prose-sm">
+          <h1>Hello World</h1>
+          <p>
+            I&apos;m bt norris—product designer, coder, tinkerer... This is my
+            personal website, where I share things I&apos;m working on and
+            thinking about.
+          </p>
+        </section>
 
       <section>
         <h2>Career</h2>
@@ -136,5 +170,6 @@ export default function Page() {
         </Link>
       </section>
     </main>
+    </>
   );
 }

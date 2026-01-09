@@ -1,9 +1,32 @@
 import type { Metadata } from 'next'
+import { baseUrl } from '@/app/sitemap'
 
 export const metadata: Metadata = {
   title: 'Strella',
   description:
     'The first IDE for design engineers - a Visual Development Environment where layout, logic, and state come together',
+  openGraph: {
+    title: 'Strella — IDE for Design Engineers',
+    description: 'The first IDE for design engineers - a Visual Development Environment where layout, logic, and state come together',
+    url: `${baseUrl}/artifacts/strella`,
+    type: 'website',
+    images: [
+      {
+        url: `${baseUrl}/og?title=${encodeURIComponent('Strella')}`,
+        width: 1200,
+        height: 630,
+        alt: 'Strella IDE',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Strella — IDE for Design Engineers',
+    description: 'The first IDE for design engineers - a Visual Development Environment',
+  },
+  alternates: {
+    canonical: `${baseUrl}/artifacts/strella`,
+  },
 }
 
 export default function StrellaPage() {

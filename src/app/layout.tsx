@@ -47,17 +47,34 @@ const departureMono = localFont({
 export const metadata: Metadata = {
   metadataBase: new URL(baseUrl),
   title: {
-    default: 'Portfolio',
-    template: '%s | Portfolio',
+    default: 'bt norris, design engineer',
+    template: '%s | bt norris',
   },
-  description: 'Personal portfolio and thoughts.',
+  description: 'Product designer, coder, and tinkerer. Portfolio of work, artifacts, and thoughts on design, engineering, and game development.',
+  keywords: ['product design', 'design engineer', 'game development', 'portfolio', 'design systems', 'frontend development'],
+  authors: [{ name: 'bt norris' }],
+  creator: 'bt norris',
   openGraph: {
-    title: 'Portfolio',
-    description: 'Personal portfolio and thoughts.',
+    title: 'bt norris, design engineer',
+    description: 'Product designer, coder, and tinkerer. Portfolio of work, artifacts, and thoughts on design, engineering, and game development.',
     url: baseUrl,
-    siteName: 'Portfolio',
+    siteName: 'bt norris',
     locale: 'en_US',
     type: 'website',
+    images: [
+      {
+        url: `${baseUrl}/og?title=${encodeURIComponent('bt norris, design engineer')}`,
+        width: 1200,
+        height: 630,
+        alt: 'bt norris portfolio',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'bt norris, design engineer',
+    description: 'Product designer, coder, and tinkerer. Portfolio of work, artifacts, and thoughts.',
+    images: [`${baseUrl}/og?title=${encodeURIComponent('bt norris, design engineer')}`],
   },
   robots: {
     index: true,
@@ -69,6 +86,11 @@ export const metadata: Metadata = {
       'max-image-preview': 'large',
       'max-snippet': -1,
     },
+  },
+  icons: {
+    icon: '/favicon.ico',
+    shortcut: '/favicon.ico',
+    apple: '/favicon.ico',
   },
 };
 

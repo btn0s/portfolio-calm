@@ -45,6 +45,9 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
       images: [
         {
           url: ogImage,
+          width: 1200,
+          height: 630,
+          alt: title,
         },
       ],
     },
@@ -53,6 +56,9 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
       title,
       description,
       images: [ogImage],
+    },
+    alternates: {
+      canonical: `${baseUrl}/thoughts/${post.slug}`,
     },
   }
 }
@@ -84,7 +90,11 @@ export default async function Post({ params }: { params: Promise<{ slug: string 
             url: `${baseUrl}/thoughts/${post.slug}`,
             author: {
               '@type': 'Person',
-              name: 'Portfolio',
+              name: 'bt norris',
+            },
+            publisher: {
+              '@type': 'Person',
+              name: 'bt norris',
             },
           }),
         }}

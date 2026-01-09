@@ -1,8 +1,31 @@
 import type { Metadata } from 'next'
+import { baseUrl } from '@/app/sitemap'
 
 export const metadata: Metadata = {
   title: 'Game Dev Prototypes',
-  description: 'Collection of game development experiments and prototypes',
+  description: 'Collection of game development experiments and prototypes built in Unreal Engine Blueprints',
+  openGraph: {
+    title: 'Game Dev Prototypes',
+    description: 'Collection of game development experiments and prototypes built in Unreal Engine Blueprints',
+    url: `${baseUrl}/artifacts/game-dev-prototypes`,
+    type: 'website',
+    images: [
+      {
+        url: `${baseUrl}/og?title=${encodeURIComponent('Game Dev Prototypes')}`,
+        width: 1200,
+        height: 630,
+        alt: 'Game development prototypes',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Game Dev Prototypes',
+    description: 'Collection of game development experiments and prototypes',
+  },
+  alternates: {
+    canonical: `${baseUrl}/artifacts/game-dev-prototypes`,
+  },
 }
 
 export default function GameDevPrototypesPage() {

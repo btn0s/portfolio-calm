@@ -1,8 +1,31 @@
 import type { Metadata } from 'next'
+import { baseUrl } from '@/app/sitemap'
 
 export const metadata: Metadata = {
   title: 'Tldraw RTS',
   description: 'A real-time strategy game prototype built with Tldraw SDK',
+  openGraph: {
+    title: 'Tldraw RTS — Game Prototype',
+    description: 'A real-time strategy game prototype built with Tldraw SDK',
+    url: `${baseUrl}/artifacts/tldraw-rts`,
+    type: 'website',
+    images: [
+      {
+        url: `${baseUrl}/og?title=${encodeURIComponent('Tldraw RTS')}`,
+        width: 1200,
+        height: 630,
+        alt: 'Tldraw RTS game prototype',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Tldraw RTS — Game Prototype',
+    description: 'A real-time strategy game prototype built with Tldraw SDK',
+  },
+  alternates: {
+    canonical: `${baseUrl}/artifacts/tldraw-rts`,
+  },
 }
 
 export default function TldrawRTSPage() {
