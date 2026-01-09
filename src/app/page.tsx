@@ -84,7 +84,7 @@ export default function Page() {
         }}
       />
       <main className="flex flex-col gap-8 [&>section>h2]:font-mono [&>section>h2]:tracking-tighter [&>section>h2]:text-base [&>section>h2]:font-semibold [&>section>h2]:mb-3">
-        <section className="text-foreground">
+        <section className="text-foreground mb-6">
           <p>
             I&apos;m bt norris—product designer, coder, tinkerer... This is my
             personal website, where I share things I&apos;m working on and

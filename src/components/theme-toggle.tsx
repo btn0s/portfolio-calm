@@ -13,7 +13,6 @@ export function ThemeToggle() {
     const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
     const initialTheme = stored || (prefersDark ? 'dark' : 'light')
     setTheme(initialTheme)
-    updateTheme(initialTheme)
   }, [])
 
   const updateTheme = (newTheme: 'light' | 'dark') => {
