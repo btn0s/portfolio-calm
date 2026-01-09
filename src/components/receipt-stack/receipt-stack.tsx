@@ -111,9 +111,9 @@ export function ReceiptStack({
   };
 
   return (
-    <div className="py-20 flex flex-col items-center justify-center overflow-visible">
+    <div className="py-10 flex flex-col items-center justify-center overflow-visible">
       <div
-        className="relative w-full max-w-xl flex items-center justify-center mt-10"
+        className="relative w-full max-w-xl flex items-center justify-center mt-4"
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >

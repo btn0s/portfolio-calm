@@ -105,7 +105,7 @@ export default function RootLayout({
       className={`${abcOracle.variable} ${abcDiatype.variable} ${departureMono.variable}`}
       suppressHydrationWarning
     >
-      <body className="antialiased max-w-xl mx-4 mt-8 lg:mx-auto">
+      <body className="antialiased max-w-xl mx-4 mt-4 lg:mx-auto">
         <script
           dangerouslySetInnerHTML={{
             __html: `
@@ -120,7 +120,7 @@ export default function RootLayout({
             `,
           }}
         />
-        <main className="flex-auto min-w-0 mt-6 flex flex-col">
+        <main className="flex-auto min-w-0 mt-2 flex flex-col">
           <Navbar />
           {children}
           <Footer />

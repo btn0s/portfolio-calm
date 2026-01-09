@@ -1,4 +1,4 @@
-import { ProjectCard } from '@/components/project-card'
+import Link from 'next/link'
 import { ReceiptShell } from "@/components/receipt/receipt-shell";
 import { Barcode } from "@/components/barcode";
 
@@ -84,9 +84,30 @@ export function ArtifactsReceipt() {
           <h2 className="border-b border-(--paper-foreground) border-dashed pb-1 mb-4 uppercase font-bold tracking-tighter">
             collection
           </h2>
-          <div className="flex flex-col gap-2">
+          <div className="space-y-4">
             {ARTIFACTS.map((artifact) => (
-              <ProjectCard key={artifact.href} project={artifact} />
+              <Link
+                key={artifact.title}
+                href={artifact.href}
+                className="group block"
+              >
+                <div className="flex justify-between items-baseline mb-1">
+                  <h3 className="font-bold uppercase text-xs underline decoration-dotted underline-offset-2 group-hover:decoration-solid">
+                    {artifact.title}
+                  </h3>
+                  {artifact.date && (
+                    <span className="text-[9px] opacity-50 font-mono">
+                      {artifact.date}
+                    </span>
+                  )}
+                </div>
+                <p className="text-[10px] leading-tight opacity-70 mb-1">
+                  {artifact.description}
+                </p>
+                <span className="text-[9px] opacity-50 block truncate">
+                  {artifact.href.replace(/^\//, '')}
+                </span>
+              </Link>
             ))}
           </div>
         </section>
