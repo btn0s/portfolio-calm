@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { motion, PanInfo } from "framer-motion";
 import { Barcode } from "@/components/barcode";
 import { PixelPattern } from "@/components/pixel-pattern";
@@ -68,6 +68,9 @@ export default function CardStackPage() {
   const [isHovered, setIsHovered] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
 
+  const dragActiveRef = useRef(false);
+  const dragJustShuffledRef = useRef(false);
+
   const shuffle = () => {
     setIndex((prev) => (prev + 1) % CARDS.length);
   };
@@ -81,9 +84,10 @@ export default function CardStackPage() {
       Math.abs(info.offset.x) > 80 ||
       Math.abs(info.offset.y) > 80;
     
-    if (shouldShuffle) {
-      shuffle();
-    }
+    dragActiveRef.current = false;
+    dragJustShuffledRef.current = shouldShuffle;
+
+    if (shouldShuffle) shuffle();
   };
   
   const showSpread = isHovered && !isDragging;
@@ -115,9 +119,25 @@ export default function CardStackPage() {
               drag={isFront}
               dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
               dragElastic={0.6}
-              onDragStart={() => setIsDragging(true)}
+              onDragStart={() => {
+                dragActiveRef.current = true;
+                dragJustShuffledRef.current = false;
+                setIsDragging(true);
+              }}
               onDragEnd={handleDragEnd}
-              onClick={isFront ? shuffle : undefined}
+              onClick={
+                isFront
+                  ? () => {
+                      if (dragActiveRef.current) return;
+                      if (dragJustShuffledRef.current) {
+                        dragJustShuffledRef.current = false;
+                        return;
+                      }
+
+                      shuffle();
+                    }
+                  : undefined
+              }
               whileHover={isFront ? { y: -55 } : undefined}
               whileTap={isFront ? { scale: 0.98 } : undefined}
               className={cn(
