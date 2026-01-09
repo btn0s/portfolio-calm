@@ -32,6 +32,18 @@ export const metadata: Metadata = {
 
 const ARTIFACTS = [
   {
+    title: 'Card Stack',
+    description: 'Shufflable receipt stack interaction (drag or click)',
+    href: '/artifacts/card-stack',
+    date: '2026',
+  },
+  {
+    title: 'Card Stack (Click)',
+    description: 'Click a card behind to bring it forward (3 cards)',
+    href: '/artifacts/card-stack-click',
+    date: '2026',
+  },
+  {
     title: 'Echelon',
     description: 'Asymmetric multiplayer stealth game prototype in Unreal Engine',
     href: '/artifacts/echelon',
