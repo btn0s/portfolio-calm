@@ -2,20 +2,23 @@ import Link from 'next/link'
 import { BlogPosts } from '@/components/blog-posts'
 import { baseUrl } from '@/app/sitemap'
 import type { Metadata } from 'next'
+import { ArrowUpRight } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: 'bt norris, design engineer',
-  description: 'Product designer, coder, and tinkerer. Portfolio of work, artifacts, and thoughts on design, engineering, and game development.',
+  title: "bt norris, design engineer",
+  description:
+    "Product designer, coder, and tinkerer. Portfolio of work, artifacts, and thoughts on design, engineering, and game development.",
   openGraph: {
-    title: 'bt norris, design engineer',
-    description: 'Product designer, coder, and tinkerer. Portfolio of work, artifacts, and thoughts on design, engineering, and game development.',
+    title: "bt norris, design engineer",
+    description:
+      "Product designer, coder, and tinkerer. Portfolio of work, artifacts, and thoughts on design, engineering, and game development.",
     url: baseUrl,
-    type: 'website',
+    type: "website",
   },
   alternates: {
     canonical: baseUrl,
   },
-}
+};
 
 const CAREER_ITEMS: {
   title: string;
@@ -83,7 +86,7 @@ export default function Page() {
           }),
         }}
       />
-      <main className="flex flex-col gap-8 [&>section>h2]:font-mono [&>section>h2]:tracking-tighter [&>section>h2]:text-base [&>section>h2]:font-semibold [&>section>h2]:mb-3">
+      <main className="flex flex-col gap-8 [&>section>h2]:font-mono [&>section>h2]:tracking-tighter [&>section>h2]:text-sm [&>section>h2]:font-semibold [&>section>h2]:mb-4">
         <section className="text-foreground mb-6">
           <p>
             I&apos;m bt norris—product designer, coder, tinkerer... This is my
@@ -93,7 +96,7 @@ export default function Page() {
         </section>
 
         <section>
-          <h2>Career</h2>
+          <h2>career</h2>
           <ul className="flex flex-col gap-1.5">
             {CAREER_ITEMS.map((item) => (
               <li
@@ -121,14 +124,15 @@ export default function Page() {
           </ul>
           <Link
             href="/resume"
-            className="text-muted-foreground hover:text-foreground text-sm hover:underline mt-2 block"
+            className="text-muted-foreground hover:text-foreground text-sm hover:underline mt-4 block"
           >
-            View resume
+            view resume
+            <ArrowUpRight className="size-3 inline-block ml-1" />
           </Link>
         </section>
 
         <section>
-          <h2>Projects</h2>
+          <h2>projects</h2>
           <div className="flex flex-col gap-2">
             {PROJECTS.map((project) => (
               <a
@@ -157,13 +161,14 @@ export default function Page() {
         </section>
 
         <section>
-          <h2>Recent Thoughts</h2>
+          <h2>thoughts</h2>
           <BlogPosts />
           <Link
             href="/thoughts"
-            className="text-muted-foreground hover:text-foreground text-sm hover:underline mt-2 block"
+            className="text-muted-foreground hover:text-foreground text-sm hover:underline mt-4 block"
           >
-            View all
+            view all
+            <ArrowUpRight className="size-3 inline-block ml-1" />
           </Link>
         </section>
       </main>
