@@ -113,7 +113,7 @@ export function ReceiptStack({
   return (
     <div className="py-20 flex flex-col items-center justify-center overflow-visible">
       <div
-        className="relative w-full max-w-[420px] h-[600px] flex items-center justify-center mt-10"
+        className="relative w-full max-w-[420px] flex items-center justify-center mt-10"
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
@@ -135,7 +135,7 @@ export function ReceiptStack({
               transition={{ type: "spring", stiffness: 200, damping: 25 }}
               onClick={() => handleCardClick(routeId, position)}
               className={cn(
-                "absolute inset-0",
+                "absolute top-0 left-0 w-full",
                 isFront ? "cursor-default" : "cursor-pointer"
               )}
             >

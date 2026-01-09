@@ -17,7 +17,7 @@ export function ThoughtsReceipt() {
   });
 
   return (
-    <ReceiptShell className="h-full flex flex-col overflow-y-auto">
+    <ReceiptShell className="flex flex-col">
       <div className="flex flex-col items-center text-center mb-8 gap-1">
         <h1 className="text-3xl font-bold uppercase tracking-widest mb-2">
           THOUGHTS
