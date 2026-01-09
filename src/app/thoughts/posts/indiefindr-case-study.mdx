@@ -1,0 +1,189 @@
+---
+title: "Building an AI-Powered Indie Game Discovery Engine"
+publishedAt: "2026-01-09"
+summary: "How I built a game recommendation system that understands vibe, not just tags—and what I learned about adaptive AI systems."
+---
+
+## The Problem
+
+Steam's discovery system surfaces the same popular titles over and over. Search for a stylish indie shooter and you'll get Call of Duty. Try to find games "like" something you love and you'll get genre matches that miss the entire vibe.
+
+**The core issue:** Traditional similarity (tags, genres, embeddings over store metadata) does a poor job of capturing _why_ a player likes a specific game. It's not just about mechanics—it's about art style, pacing, tone, and "feel."
+
+For indie developers, this meant limited organic exposure. Their games were buried under a flood of releases, invisible to players who would genuinely love them.
+
+## What I Built
+
+[IndieFindr](https://indiefindr.gg) is a web app that finds indie games similar to ones you already like. Instead of relying on Steam's metadata, it uses AI and web search to surface what real players recommend—Reddit threads, Steam discussions, blogs—grounded in community voices rather than algorithmic engagement metrics.
+
+**Key differentiator:** The system explicitly prioritizes indie games and captures _aesthetic and experiential similarity_, not just genre overlap. A game described as "gigantic crustacean festooned with cannons" should match whimsical adventure games, not shooters.
+
+## Technical Approach
+
+### Stack
+
+- **Framework**: Next.js 16 (App Router, React Server Components)
+- **Database**: Supabase (PostgreSQL)
+- **AI**: Perplexity Sonar for web search, OpenAI gpt-4o-mini for type detection and curation
+- **Styling**: Tailwind CSS v4 with shadcn/ui
+- **License**: MIT (open source at [github.com/btn0s/indiefindr](https://github.com/btn0s/indiefindr))
+
+### The Pipeline
+
+Rather than throwing everything into one big LLM tool-calling prompt, I designed an explicit multi-step pipeline. This trades some latency (~10-20 seconds) for significantly higher quality and debuggability.
+
+**1. Game Profiling**
+
+When a user searches for a game, I fetch it from Steam and build a structured profile:
+
+- Is this mainstream or indie?
+- Importance of: art style, narrative, mechanics, atmosphere, action level
+- High-level description of _why someone would like this game_
+
+**2. Type Detection**
+
+The system classifies games into types, each with different matching philosophies:
+
+| Type          | Description             | Vibe | Aesthetic | Theme | Mechanics |
+| ------------- | ----------------------- | ---- | --------- | ----- | --------- |
+| `avant-garde` | Art/experimental games  | 45%  | 30%       | 20%   | 5%        |
+| `cozy`        | Relaxation-focused      | 40%  | 35%       | 15%   | 10%       |
+| `action`      | Combat is core loop     | 30%  | 15%       | 15%   | 40%       |
+| `narrative`   | Story IS the gameplay   | 30%  | 20%       | 35%   | 15%       |
+| `competitive` | Skill/challenge-focused | 15%  | 10%       | 10%   | 65%       |
+| `mainstream`  | Balanced approach       | 25%  | 25%       | 25%   | 25%       |
+
+There's also a fast-path for known art-game developers (thecatamites, Tale of Tales, kittyhorrorshow, etc.) that automatically classifies them as avant-garde.
+
+**3. Multi-Strategy Search**
+
+Three parallel search strategies run simultaneously, each adapted to the game type:
+
+| Strategy              | Focus                  | What It Captures                |
+| --------------------- | ---------------------- | ------------------------------- |
+| **Vibe-focused**      | Emotional tone         | Atmosphere, aesthetic, feeling  |
+| **Mechanics-focused** | Gameplay systems       | Core loop, interaction patterns |
+| **Community-focused** | Player recommendations | What fans actually suggest      |
+
+Each strategy generates 12 candidate games with explanations.
+
+**4. Consensus Detection**
+
+Games appearing in multiple strategies are weighted higher. This cross-checking catches AI mistakes—one strategy's misinterpretation gets outvoted by the others.
+
+**5. Validation**
+
+All candidates are validated against Steam's API to ensure they're real, fetchable games (not hallucinations).
+
+**6. Type-Aware Curation**
+
+A final AI pass ranks and curates the top ~10 recommendations, using the game type to guide selection. High-consensus games (2-3 strategy mentions) are strongly preferred.
+
+## Key Design Decisions
+
+**Pipeline over tool-calling**
+
+Separate LLM steps make the system:
+
+- More deterministic and testable
+- Easier to tweak (adjust indie threshold, weight art vs. mechanics)
+- Easier to debug when results are off
+
+**Quality retry mechanisms**
+
+- If a strategy returns < 3 results, retry it
+- If high-consensus count is too low, retry entire pipeline
+- If AI hallucinates games during curation, fill from top consensus candidates
+
+**Community-first signal**
+
+Trust player conversations more than store metadata. This means the system reads tone and context, not just keywords.
+
+## Edge Cases I Solved
+
+**DuneCrawl ("gigantic crustacean festooned with cannons")**
+
+Initial system classified it as "action" and suggested shooters like Void Bastards. Updated type detection to emphasize reading the _tone_ of the writing, not just keywords. "Cannons" doesn't automatically mean shooter—could be whimsical pirates. Now matches Sable, Ship of Fools, Lovers in Dangerous Spacetime.
+
+**PIGFACE ("guns-blazing, tactical")**
+
+Classified as "narrative" because of its dark story and got suggestions like Disco Elysium instead of shooters. Added explicit rule: "A game with story BUT guns-blazing gameplay = action, NOT narrative." Now matches ULTRAKILL, Cruelty Squad, Trepang2.
+
+**Eating Nature (avant-garde from "the water museum")**
+
+Getting nature-themed cozy games instead of weird experimental games. Created `KNOWN_ARTGAME_DEVS` list for fast-path detection. Now matches Yume Nikki, Cruelty Squad, Salad Fields—weird art games.
+
+## Experiments: Could It Be Simpler?
+
+I tested whether a simpler approach could match the baseline quality:
+
+| Approach                      | Avg Time | Validation Rate | Quality                      |
+| ----------------------------- | -------- | --------------- | ---------------------------- |
+| **Baseline** (multi-strategy) | 18.7s    | 100%            | ✅ Excellent                 |
+| Smart single prompt           | 10.3s    | 96.7%           | ⚠️ Over-indexes on keywords  |
+| Type + single strategy        | 9.9s     | 93.3%           | ⚠️ Loses subcategory nuance  |
+| Examples in prompt            | 10.3s    | 95.0%           | ⚠️ Confuses genre boundaries |
+
+**Conclusion:** Speed savings (45-50%) weren't worth the quality degradation. Single prompts are brittle—one misinterpretation cascades. Multi-strategy consensus provides redundancy and cross-checking that catches mistakes.
+
+## Current State & Results
+
+**Qualitative:**
+
+- Recommendations "feel right" to human gamers
+- Captures aesthetic + vibe similarity (art style, atmosphere), not just tags
+- Users discover games they had genuinely never heard of
+- Fewer AAA intrusions compared to Steam's discovery
+
+**The system works because:**
+
+1. Different strategies catch different aspects
+2. Consensus filtering surfaces better matches
+3. Type-aware weights adapt to what matters for each game category
+4. Community text is a powerful signal when filtered properly
+
+## What I Learned
+
+**Pure metadata/vector similarity struggles with "vibe"**
+
+Embeddings over store descriptions can't capture why a player likes something. You need qualitative, community-driven signals.
+
+**Explicit pipelines beat opaque LLM tool-calling**
+
+A multi-step approach with clear responsibilities is significantly more controllable and transparent than "one prompt, many tools."
+
+**Edge cases drive system design**
+
+The type detection system and matching weights emerged from debugging failures, not upfront planning. Real-world edge cases (weird art games, dark action games, cozy co-op) shaped the architecture.
+
+**Community text is powerful but needs opinionated filtering**
+
+Reddit threads and Steam discussions contain great recommendations, but you need consensus detection and validation to avoid noise.
+
+## What's Next
+
+### Near-term
+
+**User accounts & lists**  
+Save games, create custom recommendations, and share lists with others.
+
+**Better caching & background jobs**  
+Precompute similarities for popular seeds to reduce cold-start latency.
+
+**Reduce cold-start latency**  
+Get below 10 seconds for first-time searches through optimization and caching.
+
+### Longer-term
+
+**Collaborative filtering**  
+Build taste profiles across multiple liked games for more personalized recommendations.
+
+**Creator tools for indie devs**  
+Help developers answer "Where should I market my game?" based on similar game communities.
+
+**Hybrid vector + LLM approach**  
+Combine embedding-based similarity with LLM analysis for better matching on some dimensions.
+
+---
+
+The full source code is on [GitHub](https://github.com/btn0s/indiefindr). If you're interested in AI recommendation systems or game discovery, check it out.

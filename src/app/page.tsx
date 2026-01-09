@@ -4,6 +4,7 @@ import { baseUrl } from '@/app/sitemap'
 import type { Metadata } from 'next'
 import { ArrowUpRight } from "lucide-react";
 import { PixelPattern } from "@/components/pixel-pattern";
+import { Barcode } from "@/components/barcode";
 
 export const metadata: Metadata = {
   title: "bt norris, design engineer",
@@ -70,6 +71,18 @@ const PROJECTS = [
 ];
 
 export default function Page() {
+  const today = new Date().toLocaleDateString('en-US', {
+    weekday: 'short',
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+  });
+  const time = new Date().toLocaleTimeString('en-US', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: true,
+  });
+
   return (
     <>
       <script
@@ -87,108 +100,147 @@ export default function Page() {
           }),
         }}
       />
-      <main className="flex flex-col gap-8 [&>section>h2]:font-mono [&>section>h2]:tracking-tighter [&>section>h2]:text-sm [&>section>h2]:font-semibold [&>section>h2]:mb-4">
-        <section className="bg-(--paper) text-(--paper-foreground) p-6 sm:p-8 pb-10 torn-paper -mx-4 sm:mx-0">
-          <div className="grid grid-cols-12 gap-4 sm:gap-6 items-start mb-6">
-            <div className="col-span-8">
-              <h1 className="text-3xl sm:text-5xl font-mono leading-[0.8] tracking-tighter uppercase mb-0">
-                i'm a <br /> design engineer
+      <main className="flex flex-col gap-0 font-mono text-sm">
+        <div className="bg-(--paper) text-(--paper-foreground) p-6 sm:p-8 pt-12 pb-12 receipt-edge-top receipt-edge-bottom -mx-4 sm:mx-0 shadow-2xl relative overflow-hidden">
+          <div className="absolute inset-0 paper-texture" />
+          
+          <div className="relative z-10">
+            <div className="flex flex-col items-center text-center mb-8 gap-1">
+              <h1 className="text-2xl font-bold uppercase tracking-widest mb-2">
+                BT NORRIS
               </h1>
+            <p className="text-[10px] leading-none opacity-70">DESIGN ENGINEER // 2026</p>
+            <p className="text-[10px] leading-none opacity-70">PHOENIX, AZ</p>
+            <div className="mt-4 border-y border-(--paper-foreground) border-dashed py-2 w-full flex justify-between px-2 text-[10px]">
+                <span>{today.toUpperCase()}</span>
+                <span>{time}</span>
+              </div>
             </div>
-            <div className="col-span-4 aspect-square">
-              <PixelPattern size={28} />
-            </div>
-          </div>
 
-          <hr className="border-(--paper-foreground) opacity-30 mb-6" />
-
-          <div className="max-w-md space-y-4">
-            <p className="font-mono text-xs sm:text-sm leading-tight opacity-90">
-              I&apos;m bt norris—product designer, coder, tinkerer. I specialize
-              in building interfaces that bridge the gap between design and
-              engineering.
-            </p>
-          </div>
-        </section>
-
-        <section>
-          <h2>career</h2>
-          <ul className="flex flex-col gap-1.5">
-            {CAREER_ITEMS.map((item) => (
-              <li
-                key={`${item.date}-${item.title}`}
-                className="flex items-center gap-4 text-sm"
-              >
-                <span className="text-muted-foreground font-mono text-xs w-12">
-                  {item.date}
-                </span>
-                <span className="font-medium">{item.title}</span>
-                {item.href ? (
-                  <Link
-                    href={item.href}
-                    className="text-muted-foreground flex-1 text-right hover:text-foreground transition-colors font-mono text-xs"
-                  >
-                    @{item.company.toLowerCase()}
-                  </Link>
-                ) : (
-                  <span className="text-muted-foreground flex-1 text-right font-mono text-xs">
-                    @{item.company.toLowerCase()}
-                  </span>
-                )}
-              </li>
-            ))}
-          </ul>
-          <a
-            href="/resume.pdf"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-muted-foreground hover:text-foreground text-sm hover:underline mt-4 block"
-          >
-            view resume
-            <ArrowUpRight className="size-3 inline-block ml-1" />
-          </a>
-        </section>
-
-        <section>
-          <h2>projects</h2>
-          <div className="flex flex-col gap-2">
-            {PROJECTS.map((project) => (
-              <a
-                key={project.title}
-                href={project.href}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="group -mx-2 px-2 py-0.5 rounded-sm hover:bg-muted/50 transition-colors"
-              >
-                <div className="flex flex-col">
-                  <div className="flex items-baseline gap-2 mb-1">
-                    <h3 className="font-medium text-sm text-foreground">
-                      {project.title}
-                    </h3>
-                    <span className="text-xs text-muted-foreground font-mono">
-                      {project.href.split("//")[1]}
-                    </span>
+            <div className="space-y-8">
+              <section>
+                <h2 className="border-b border-(--paper-foreground) border-dashed pb-1 mb-4 uppercase font-bold tracking-tighter">
+                  personal_summary
+                </h2>
+                <div className="grid grid-cols-12 gap-4 items-start">
+                  <div className="col-span-8">
+                    <p className="text-xs leading-relaxed opacity-90">
+                      I&apos;m bt norris—product designer, coder, tinkerer. I specialize
+                      in building interfaces that bridge the gap between design and
+                      engineering.
+                    </p>
                   </div>
-                  <p className="text-sm text-muted-foreground">
-                    {project.description}
-                  </p>
+                  <div className="col-span-4 aspect-square opacity-80 mix-blend-multiply">
+                    <PixelPattern size={28} />
+                  </div>
                 </div>
-              </a>
-            ))}
-          </div>
-        </section>
+              </section>
 
-        <section>
-          <h2>thoughts</h2>
-          <BlogPosts />
-          <Link
-            href="/thoughts"
-            className="text-muted-foreground hover:text-foreground text-sm hover:underline mt-4 block"
-          >
-            view all
-            <ArrowUpRight className="size-3 inline-block ml-1" />
-          </Link>
-        </section>
+              <section>
+                <h2 className="border-b border-(--paper-foreground) border-dashed pb-1 mb-4 uppercase font-bold tracking-tighter">
+                  career_history
+                </h2>
+                <div className="space-y-2">
+                  {CAREER_ITEMS.map((item) => (
+                    <div
+                      key={`${item.date}-${item.title}`}
+                      className="flex justify-between items-baseline gap-2 text-[11px]"
+                    >
+                      <div className="flex flex-col">
+                        <span className="font-bold uppercase">{item.title}</span>
+                        <span className="opacity-70">@{item.company.toLowerCase()}</span>
+                      </div>
+                      <span className="shrink-0">{item.date}</span>
+                    </div>
+                  ))}
+                </div>
+                <a
+                  href="/resume.pdf"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-block border border-(--paper-foreground) px-3 py-1 text-[10px] uppercase mt-4 hover:bg-(--paper-foreground) hover:text-(--paper) transition-colors"
+                >
+                  view_resume.pdf
+                </a>
+              </section>
+
+            <section>
+              <h2 className="border-b border-(--paper-foreground) border-dashed pb-1 mb-4 uppercase font-bold tracking-tighter">
+                selected_projects
+              </h2>
+              <div className="space-y-4">
+                {PROJECTS.map((project) => (
+                  <a
+                    key={project.title}
+                    href={project.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="group block"
+                  >
+                    <div className="flex justify-between items-baseline mb-1">
+                      <h3 className="font-bold uppercase text-xs underline decoration-dotted underline-offset-2 group-hover:decoration-solid">
+                        {project.title}
+                      </h3>
+                    </div>
+                    <p className="text-[10px] leading-tight opacity-70 mb-1">
+                      {project.description}
+                    </p>
+                    <span className="text-[9px] opacity-50 block truncate">
+                      {project.href.replace(/^https?:\/\//, '')}
+                    </span>
+                  </a>
+                ))}
+              </div>
+            </section>
+
+            <section>
+              <h2 className="border-b border-(--paper-foreground) border-dashed pb-1 mb-4 uppercase font-bold tracking-tighter">
+                itemized_skills
+              </h2>
+              <div className="grid grid-cols-2 gap-x-8 gap-y-1 text-[10px] uppercase opacity-80">
+                <div className="flex justify-between"><span>TypeScript</span><span>1.0</span></div>
+                <div className="flex justify-between"><span>React</span><span>1.0</span></div>
+                <div className="flex justify-between"><span>Next.js</span><span>1.0</span></div>
+                <div className="flex justify-between"><span>Tailwind</span><span>1.0</span></div>
+                <div className="flex justify-between"><span>Design</span><span>1.0</span></div>
+                <div className="flex justify-between"><span>Product</span><span>1.0</span></div>
+              </div>
+              <div className="mt-4 border-t border-(--paper-foreground) border-dashed pt-2 flex justify-between font-bold text-xs uppercase">
+                <span>Total_Capabilities</span>
+                <span>6.0</span>
+              </div>
+            </section>
+
+            <section>
+              <h2 className="border-b border-(--paper-foreground) border-dashed pb-1 mb-4 uppercase font-bold tracking-tighter">
+                recent_thoughts
+              </h2>
+                <div className="receipt-thoughts">
+                  <BlogPosts />
+                </div>
+                <Link
+                  href="/thoughts"
+                  className="inline-block border border-(--paper-foreground) px-3 py-1 text-[10px] uppercase mt-4 hover:bg-(--paper-foreground) hover:text-(--paper) transition-colors"
+                >
+                  view_all_posts
+                </Link>
+              </section>
+
+              <div className="border-t border-(--paper-foreground) border-dashed pt-8 flex flex-col items-center gap-4">
+                <div className="text-center">
+                  <p className="uppercase font-bold text-xs tracking-[0.2em]">Thank you</p>
+                  <p className="text-[10px] opacity-70">FOR VISITING MY PORTFOLIO</p>
+                </div>
+                
+                <Barcode className="opacity-80 mix-blend-multiply" />
+                
+                <div className="text-[8px] opacity-40 text-center uppercase tracking-widest">
+                  01001010 01001111 01001001 01001110
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </main>
     </>
   );
