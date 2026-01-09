@@ -122,13 +122,15 @@ export default function Page() {
               </li>
             ))}
           </ul>
-          <Link
-            href="/resume"
+          <a
+            href="/resume.pdf"
+            target="_blank"
+            rel="noopener noreferrer"
             className="text-muted-foreground hover:text-foreground text-sm hover:underline mt-4 block"
           >
             view resume
             <ArrowUpRight className="size-3 inline-block ml-1" />
-          </Link>
+          </a>
         </section>
 
         <section>
