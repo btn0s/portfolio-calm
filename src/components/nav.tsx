@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import Image from "next/image";
-import logo from "@/assets/images/logo.svg";
+import logo from "@/assets/images/logo-pixel.svg";
 import { ThemeToggle } from "@/components/theme-toggle";
 
 const navItems = {
@@ -26,12 +26,12 @@ export function Navbar() {
           <div className="flex flex-row items-center">
             <Link
               href="/"
-              className="flex items-center gap-2 mr-6 text-foreground"
+              className="flex items-center gap-1 mr-6 text-foreground"
             >
               <Image
                 src={logo}
                 alt="bt norris"
-                className="size-3 dark:invert"
+                className="size-3 dark:invert relative top-px"
                 priority
               />
               <span className="font-bold">bt norris</span>
