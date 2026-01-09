@@ -69,11 +69,11 @@ export function ArtifactsReceipt() {
   return (
     <ReceiptShell className="flex flex-col">
       <div className="flex flex-col items-center text-center mb-8 gap-1">
-        <h1 className="text-3xl font-bold uppercase tracking-widest mb-2">
+        <h1 className="text-2xl font-bold uppercase tracking-widest mb-2">
           ARTIFACTS
         </h1>
-        <p className="text-xs leading-none opacity-70">EXPERIMENTS // 2026</p>
-        <div className="mt-4 border-y border-(--paper-foreground) border-dashed py-2 w-full flex justify-between px-2 text-xs">
+        <p className="text-[10px] leading-none opacity-70">EXPERIMENTS // 2026</p>
+        <div className="mt-4 border-y border-(--paper-foreground) border-dashed py-2 w-full flex justify-between px-2 text-[10px]">
           <span>{today.toUpperCase()}</span>
           <span>{time}</span>
         </div>
@@ -81,7 +81,7 @@ export function ArtifactsReceipt() {
 
       <div className="space-y-8 flex-1">
         <section>
-          <h2 className="border-b border-(--paper-foreground) border-dashed pb-1 mb-4 uppercase font-bold tracking-tighter text-sm">
+          <h2 className="border-b border-(--paper-foreground) border-dashed pb-1 mb-4 uppercase font-bold tracking-tighter">
             collection
           </h2>
           <div className="flex flex-col gap-2">
@@ -93,7 +93,7 @@ export function ArtifactsReceipt() {
 
         <div className="border-t border-(--paper-foreground) border-dashed pt-8 flex flex-col items-center gap-4 mt-auto">
           <Barcode className="opacity-80 mix-blend-multiply" />
-          <div className="text-[10px] opacity-40 text-center uppercase tracking-widest">
+          <div className="text-[8px] opacity-40 text-center uppercase tracking-widest">
             REF_ARTIFACTS_001
           </div>
         </div>

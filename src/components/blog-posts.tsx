@@ -16,7 +16,7 @@ export function BlogPosts() {
       {sortedBlogs.map((post) => (
         <Link
           key={post.slug}
-          className="flex justify-between items-baseline gap-2 text-sm group transition-none"
+          className="flex justify-between items-baseline gap-2 text-[11px] group transition-none"
           href={`/thoughts/${post.slug}`}
         >
           <span className="font-bold uppercase underline decoration-dotted underline-offset-2 group-hover:decoration-solid max-w-1/2 text-pretty">
