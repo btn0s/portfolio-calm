@@ -142,3 +142,7 @@
     font-family: var(--font-sans-header);
   }
 }
+
+.prose {
+  @apply prose-sm prose-neutral;
+}
