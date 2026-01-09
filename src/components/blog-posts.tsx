@@ -12,18 +12,26 @@ export function BlogPosts() {
   });
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-4">
       {sortedBlogs.map((post) => (
         <Link
           key={post.slug}
-          className="flex justify-between items-baseline gap-2 text-[11px] group transition-none"
+          className="group block transition-none"
           href={`/thoughts/${post.slug}`}
         >
-          <span className="font-bold uppercase underline decoration-dotted underline-offset-2 group-hover:decoration-solid max-w-1/2 text-pretty">
-            {post.metadata.title}
-          </span>
-          <span className="shrink-0 opacity-70">
-            {formatDate(post.metadata.publishedAt, false)}
+          <div className="flex justify-between items-baseline mb-1">
+            <span className="font-bold uppercase text-xs underline decoration-dotted underline-offset-2 group-hover:decoration-solid text-pretty">
+              {post.metadata.title}
+            </span>
+            <span className="shrink-0 opacity-70 text-[9px] font-mono">
+              {formatDate(post.metadata.publishedAt, false)}
+            </span>
+          </div>
+          <p className="text-[10px] leading-tight opacity-70 mb-1">
+            {post.metadata.summary}
+          </p>
+          <span className="text-[9px] opacity-50 block truncate">
+            thoughts/{post.slug}
           </span>
         </Link>
       ))}
