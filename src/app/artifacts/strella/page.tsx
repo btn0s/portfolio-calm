@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import Image from 'next/image'
 import { baseUrl } from '@/app/sitemap'
 
 export const metadata: Metadata = {
@@ -40,7 +41,7 @@ export default function StrellaPage() {
         React · TypeScript · Node Graph · Visual Scripting
       </p>
 
-      <div className="mb-8 flex flex-col gap-4 text-sm">
+      <div className="mb-6 flex flex-col gap-4 text-sm">
         <p>
           Strella is a Visual Development Environment where layout, logic, and
           state come together in a single canvas. Inspired by Unreal
@@ -65,6 +66,56 @@ export default function StrellaPage() {
         >
           View site →
         </a>
+      </div>
+
+      <div className="mb-6">
+        <Image
+          src="/images/artifacts/strella/cover.png"
+          alt="Strella IDE"
+          width={1200}
+          height={675}
+          className="w-full h-auto"
+        />
+      </div>
+
+      <div className="mb-6">
+        <Image
+          src="/images/artifacts/strella/page-view-graph-w-preview.png"
+          alt="Strella graph view with live preview"
+          width={1200}
+          height={675}
+          className="w-full h-auto"
+        />
+      </div>
+
+      <div className="mb-6">
+        <Image
+          src="/images/artifacts/strella/page-view-graph.png"
+          alt="Strella graph view"
+          width={1200}
+          height={675}
+          className="w-full h-auto"
+        />
+      </div>
+
+      <div className="mb-6">
+        <Image
+          src="/images/artifacts/strella/page-view-design.png"
+          alt="Strella design view"
+          width={1200}
+          height={675}
+          className="w-full h-auto"
+        />
+      </div>
+
+      <div className="mb-6">
+        <Image
+          src="/images/artifacts/strella/project-view-design.png"
+          alt="Strella project view"
+          width={1200}
+          height={675}
+          className="w-full h-auto"
+        />
       </div>
     </section>
   )

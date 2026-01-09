@@ -35,11 +35,22 @@ export default function PortfolioV1Page() {
         Portfolio v1
       </h1>
 
-      <div className="mb-8 flex flex-col gap-4 text-sm">
+      <div className="mb-6 flex flex-col gap-4 text-sm">
         <p>
           The previous iteration of my portfolio, showcasing an earlier approach
           to presenting work and projects.
         </p>
+      </div>
+
+      <div className="mb-6">
+        <video
+          src="/assets/videos/portfolio.mp4"
+          controls
+          className="w-full h-auto"
+          playsInline
+        >
+          Your browser does not support the video tag.
+        </video>
       </div>
     </section>
   )

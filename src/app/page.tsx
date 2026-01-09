@@ -3,6 +3,7 @@ import { BlogPosts } from '@/components/blog-posts'
 import { baseUrl } from '@/app/sitemap'
 import type { Metadata } from 'next'
 import { ArrowUpRight } from "lucide-react";
+import { PixelPattern } from "@/components/pixel-pattern";
 
 export const metadata: Metadata = {
   title: "bt norris, design engineer",
@@ -87,12 +88,27 @@ export default function Page() {
         }}
       />
       <main className="flex flex-col gap-8 [&>section>h2]:font-mono [&>section>h2]:tracking-tighter [&>section>h2]:text-sm [&>section>h2]:font-semibold [&>section>h2]:mb-4">
-        <section className="text-foreground mb-6">
-          <p>
-            I&apos;m bt norris—product designer, coder, tinkerer... This is my
-            personal website, where I share things I&apos;m working on and
-            thinking about.
-          </p>
+        <section className="bg-(--paper) text-(--paper-foreground) p-6 sm:p-8 pb-10 torn-paper -mx-4 sm:mx-0">
+          <div className="grid grid-cols-12 gap-4 sm:gap-6 items-start mb-6">
+            <div className="col-span-8">
+              <h1 className="text-3xl sm:text-5xl font-mono leading-[0.8] tracking-tighter uppercase mb-0">
+                i'm a <br /> design engineer
+              </h1>
+            </div>
+            <div className="col-span-4 aspect-square">
+              <PixelPattern size={28} />
+            </div>
+          </div>
+
+          <hr className="border-(--paper-foreground) opacity-30 mb-6" />
+
+          <div className="max-w-md space-y-4">
+            <p className="font-mono text-xs sm:text-sm leading-tight opacity-90">
+              I&apos;m bt norris—product designer, coder, tinkerer. I specialize
+              in building interfaces that bridge the gap between design and
+              engineering.
+            </p>
+          </div>
         </section>
 
         <section>

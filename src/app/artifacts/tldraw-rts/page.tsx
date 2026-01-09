@@ -39,14 +39,27 @@ export default function TldrawRTSPage() {
         React · TypeScript · Tldraw SDK · Game Design
       </p>
 
-      <div className="mb-8 flex flex-col gap-4 text-sm">
+      <div className="mb-6 flex flex-col gap-4 text-sm">
         <p>
           I was building a canvas tool using the Tldraw SDK when I noticed they
           had a tick function. I decided to prototype a real-time strategy game
           using this tick function, and built out animations and an AI-driven
           RTS system prototype.
         </p>
+      </div>
 
+      <div className="mb-6">
+        <video
+          src="/assets/videos/rts01.mp4"
+          controls
+          className="w-full h-auto"
+          playsInline
+        >
+          Your browser does not support the video tag.
+        </video>
+      </div>
+
+      <div className="mb-6 flex flex-col gap-4 text-sm">
         <p>
           Tldraw themselves responded and reposted my tweet, recognizing the
           creative use of their SDK for game development.

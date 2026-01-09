@@ -36,12 +36,14 @@ const ARTIFACTS = [
     description: 'Asymmetric multiplayer stealth game prototype in Unreal Engine',
     href: '/artifacts/echelon',
     date: '2024',
+    thumbnail: '/images/artifacts/echelon/cover.png',
   },
   {
     title: 'Strella',
     description: 'IDE designed for design engineers - Visual Development Environment',
     href: '/artifacts/strella',
     date: '2024',
+    thumbnail: '/images/artifacts/strella/cover.png',
   },
   {
     title: 'Tldraw RTS',
@@ -54,6 +56,7 @@ const ARTIFACTS = [
     description: 'Collection of game development experiments and prototypes',
     href: '/artifacts/game-dev-prototypes',
     date: '2023-2024',
+    thumbnail: '/images/artifacts/game-dev-prototypes/cover.png',
   },
   {
     title: 'Delphi Falling Chips',

@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import Image from 'next/image'
 import { baseUrl } from '@/app/sitemap'
 
 export const metadata: Metadata = {
@@ -32,10 +33,6 @@ export default function GameDevPrototypesPage() {
   return (
     <section>
       <h1 className="font-semibold text-2xl mb-6 tracking-tighter">
-        Game Dev Prototypes
-      </h1>
-
-      <h1 className="font-semibold text-2xl mb-6 tracking-tighter">
         A collection of gameplay prototypes built in Unreal Engine Blueprints.
       </h1>
 
@@ -43,7 +40,7 @@ export default function GameDevPrototypesPage() {
         Unreal Engine · Blueprints · Level Design · Animation
       </p>
 
-      <div className="mb-8 flex flex-col gap-4 text-sm">
+      <div className="mb-6 flex flex-col gap-4 text-sm">
         <p>
           This is a collection of game design prototypes I build in Unreal
           Engine Blueprints. Each one combines concepts and ideas I&apos;ve
@@ -56,6 +53,16 @@ export default function GameDevPrototypesPage() {
           an idea I want to explore. Then I break it down into components and
           build each piece in isolation before wiring them together.
         </p>
+      </div>
+
+      <div className="mb-6">
+        <Image
+          src="/images/artifacts/game-dev-prototypes/cover.png"
+          alt="Game development prototypes"
+          width={1200}
+          height={675}
+          className="w-full h-auto"
+        />
       </div>
     </section>
   )

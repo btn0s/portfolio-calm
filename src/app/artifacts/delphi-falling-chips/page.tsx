@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { ArrowUpRight } from 'lucide-react'
 import { baseUrl } from '@/app/sitemap'
 
 export const metadata: Metadata = {
@@ -35,8 +36,34 @@ export default function DelphiFallingChipsPage() {
         Delphi Falling Chips
       </h1>
 
-      <div className="mb-8 flex flex-col gap-4 text-sm">
-        <p>An interactive visual experiment exploring particle systems and physics.</p>
+      <p className="mb-4 text-sm text-muted-foreground">
+        React · Framer Motion · Animation
+      </p>
+
+      <div className="mb-6 flex flex-col gap-4 text-sm">
+        <p>
+          I was going through the Delphi onboarding and loved the chip falling
+          animation, so I decided to try and rebuild it!
+        </p>
+        <a
+          href="https://delphi-chips-falling.vercel.app/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1 w-fit"
+        >
+          View live <ArrowUpRight className="size-3" />
+        </a>
+      </div>
+
+      <div className="mb-6">
+        <video
+          src="/assets/videos/delphi-falling-chips.mp4"
+          controls
+          className="w-full h-auto"
+          playsInline
+        >
+          Your browser does not support the video tag.
+        </video>
       </div>
     </section>
   )
