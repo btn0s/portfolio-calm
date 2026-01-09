@@ -132,18 +132,18 @@ export default function Page() {
 
       <section>
         <h2>Projects</h2>
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-2">
           {PROJECTS.map((project) => (
             <a
               key={project.title}
               href={project.href}
               target="_blank"
               rel="noopener noreferrer"
-              className="group"
+              className="group -mx-2 px-2 py-0.5 rounded-sm hover:bg-muted/50 transition-colors"
             >
-              <div className="flex flex-col gap-1">
-                <div className="flex items-baseline gap-2">
-                  <h3 className="font-medium text-sm text-foreground group-hover:text-muted-foreground transition-colors">
+              <div className="flex flex-col">
+                <div className="flex items-baseline gap-2 mb-1">
+                  <h3 className="font-medium text-sm text-foreground">
                     {project.title}
                   </h3>
                   <span className="text-xs text-muted-foreground font-mono">

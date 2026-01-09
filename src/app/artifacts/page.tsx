@@ -74,7 +74,7 @@ export default function ArtifactsPage() {
     <section>
       <h1 className="font-semibold text-xl mb-6 tracking-tighter font-mono">Artifacts</h1>
 
-      <div className="flex flex-col gap-3">
+      <div className="flex flex-col gap-2">
         {ARTIFACTS.map((artifact) => (
           <ProjectCard key={artifact.href} project={artifact} />
         ))}

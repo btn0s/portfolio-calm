@@ -18,7 +18,7 @@ export function BlogPosts() {
         .map((post) => (
           <Link
             key={post.slug}
-            className="flex items-center gap-4"
+            className="flex items-center gap-4 -mx-2 px-2 py-0.5 rounded-sm hover:bg-muted/50 transition-colors"
             href={`/thoughts/${post.slug}`}
           >
             <p className="text-foreground tracking-tight text-sm">

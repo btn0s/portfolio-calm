@@ -18,11 +18,11 @@ export function ProjectCard({ project, className = '' }: ProjectCardProps) {
   return (
     <Link
       href={project.href}
-      className={`group flex flex-col gap-2 ${className}`}
+      className={`group flex flex-col -mx-2 px-2 py-0.5 rounded-sm hover:bg-muted/50 transition-colors ${className}`}
     >
-      <div className="flex flex-col gap-1">
-        <div className="flex items-baseline gap-2">
-          <h3 className="font-medium text-sm text-foreground group-hover:text-muted-foreground transition-colors">
+      <div className="flex flex-col">
+        <div className="flex items-baseline gap-2 mb-1">
+          <h3 className="font-medium text-sm text-foreground">
             {project.title}
           </h3>
           {project.date && (
