@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { motion, PanInfo } from "framer-motion";
 import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
@@ -21,6 +21,7 @@ const ROUTE_HREFS: Record<RouteId, string> = {
 
 // Gesture tuning constants
 const FLICK_VELOCITY_THRESHOLD = 300; // velocity needed to change page
+const INTENT_THRESHOLD = 8; // pixels to travel before locking direction
 
 // Animation constants
 const SPRING_CONFIG = { type: "spring" as const, stiffness: 200, damping: 25 };
@@ -58,6 +59,62 @@ export function ReceiptStack({
   const router = useRouter();
   const [isHovered, setIsHovered] = useState(false);
   const isNavigatingRef = useRef(false);
+
+  // "Intent Gatekeeper" - only unlock drag after confirming horizontal intent
+  const [dragUnlocked, setDragUnlocked] = useState(false);
+  const gestureStartRef = useRef<{ x: number; y: number } | null>(null);
+
+  const handlePointerDown = useCallback((e: React.PointerEvent) => {
+    gestureStartRef.current = { x: e.clientX, y: e.clientY };
+    setDragUnlocked(false);
+    console.log('[Gatekeeper] ⬇️ Pointer down', {
+      start: gestureStartRef.current,
+      pointerType: e.pointerType,
+    });
+  }, []);
+
+  const handlePointerMove = useCallback((e: React.PointerEvent) => {
+    if (!gestureStartRef.current) {
+      return;
+    }
+    if (dragUnlocked) {
+      // Already unlocked, Framer Motion handles it
+      return;
+    }
+
+    const dx = Math.abs(e.clientX - gestureStartRef.current.x);
+    const dy = Math.abs(e.clientY - gestureStartRef.current.y);
+
+    console.log('[Gatekeeper] 👆 Pointer move', {
+      dx: dx.toFixed(1),
+      dy: dy.toFixed(1),
+      threshold: INTENT_THRESHOLD,
+      ratio: dx > 0 ? (dy / dx).toFixed(2) : 'N/A',
+    });
+
+    // Only decide after moving past the threshold
+    if (dx > INTENT_THRESHOLD || dy > INTENT_THRESHOLD) {
+      if (dx > dy) {
+        // Horizontal intent confirmed - unlock the drag
+        console.log('[Gatekeeper] ✅ HORIZONTAL intent → unlocking drag', { dx, dy });
+        setDragUnlocked(true);
+      } else {
+        // Vertical intent - clear start point to let native scroll take over
+        console.log('[Gatekeeper] ⛔ VERTICAL intent → allowing native scroll', { dx, dy });
+        gestureStartRef.current = null;
+      }
+    }
+  }, [dragUnlocked]);
+
+  const handlePointerUp = useCallback(() => {
+    console.log('[Gatekeeper] ⬆️ Pointer up', { wasUnlocked: dragUnlocked });
+    gestureStartRef.current = null;
+    // Small delay to let Framer Motion's dragEnd fire first
+    setTimeout(() => {
+      console.log('[Gatekeeper] 🔒 Resetting dragUnlocked to false');
+      setDragUnlocked(false);
+    }, 50);
+  }, [dragUnlocked]);
 
   const getInitialOrder = (
     currentPath: string
@@ -153,11 +210,16 @@ export function ReceiptStack({
               layout
               style={{
                 zIndex: 3 - position,
-                touchAction: isFront ? "none" : undefined,
+                // Allow vertical scroll until horizontal intent is confirmed
+                touchAction: isFront ? (dragUnlocked ? "none" : "pan-y") : undefined,
               }}
-              drag={isFront}
+              drag={isFront && dragUnlocked}
               dragSnapToOrigin
               dragElastic={0.5}
+              onPointerDown={isFront ? handlePointerDown : undefined}
+              onPointerMove={isFront ? handlePointerMove : undefined}
+              onPointerUp={isFront ? handlePointerUp : undefined}
+              onPointerCancel={isFront ? handlePointerUp : undefined}
               onDragEnd={isFront ? handleDragEnd : undefined}
               animate={
                 isFront
