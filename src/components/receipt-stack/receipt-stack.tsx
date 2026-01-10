@@ -72,6 +72,7 @@ export function ReceiptStack({
   const gestureStartRef = useRef<{ x: number; y: number } | null>(null);
   const dragControls = useDragControls();
   const pendingEventRef = useRef<React.PointerEvent | null>(null);
+  const dragConstraintsRef = useRef<HTMLDivElement>(null);
 
   const handlePointerDown = useCallback((e: React.PointerEvent) => {
     gestureStartRef.current = { x: e.clientX, y: e.clientY };
@@ -228,7 +229,13 @@ export function ReceiptStack({
   };
 
   return (
-    <div className="relative flex flex-col items-center justify-center overflow-y-clip isolate z-0">
+    <>
+      {/* Fixed drag constraints area */}
+      <div
+        ref={dragConstraintsRef}
+        className="fixed inset-6 pointer-events-none"
+      />
+      <div className="relative flex flex-col items-center justify-center overflow-y-clip isolate z-0">
       {/* inner gradient mask for bottom of container */}
       <div className="absolute -inset-x-6 bottom-0 h-12 bg-linear-to-b from-transparent to-background z-10" />
       <div
@@ -253,18 +260,9 @@ export function ReceiptStack({
               drag={isFront ? (verticalLocked ? "y" : true) : false}
               dragControls={isFront ? dragControls : undefined}
               dragListener={false} // We manually start drag via dragControls
-              dragSnapToOrigin
+              dragSnapToOrigin={!verticalLocked} // Don't snap in vertical mode
               dragElastic={DRAG_ELASTICITY}
-              dragConstraints={
-                isFront && verticalLocked
-                  ? {
-                      left: 0,
-                      right: 0,
-                      top: -window.innerHeight,
-                      bottom: window.innerHeight,
-                    }
-                  : undefined
-              }
+              dragConstraints={isFront && verticalLocked ? dragConstraintsRef : undefined}
               onPointerDown={isFront ? handlePointerDown : undefined}
               onPointerMove={isFront ? handlePointerMove : undefined}
               onPointerUp={isFront ? handlePointerUp : undefined}
@@ -312,6 +310,7 @@ export function ReceiptStack({
           );
         })}
       </div>
-    </div>
+      </div>
+    </>
   );
 }
