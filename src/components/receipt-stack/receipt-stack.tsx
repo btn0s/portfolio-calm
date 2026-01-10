@@ -289,7 +289,7 @@ export function ReceiptStack({
         )}
         style={{ clipPath: "inset(-100vh -100vw 0 -100vw)", contain: "layout" }}
         animate={{
-          y: isSubpage ? (isCollapsedHovered ? "80%" : "90%") : 0,
+          y: isSubpage ? (isCollapsedHovered ? "85%" : "90%") : 0,
         }}
         transition={SPRING_CONFIG}
         onMouseEnter={() => isSubpage && setIsCollapsedHovered(true)}
