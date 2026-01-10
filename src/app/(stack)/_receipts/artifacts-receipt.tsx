@@ -1,6 +1,6 @@
-import Link from 'next/link'
 import { ReceiptShell } from "@/components/receipt/receipt-shell";
 import { Barcode } from "@/components/barcode";
+import { ListItem } from "@/components/list-item";
 
 const ARTIFACTS = [
   {
@@ -89,28 +89,14 @@ export function ArtifactsReceipt() {
           </div>
           <div className="space-y-4">
             {ARTIFACTS.map((artifact) => (
-              <Link
+              <ListItem
                 key={artifact.title}
+                title={artifact.title}
+                description={artifact.description}
                 href={artifact.href}
-                className="group block border-l-2 border-transparent hover:border-black/5 hover:pl-2 transition-all"
-              >
-                <div className="flex justify-between items-baseline mb-1">
-                  <h3 className="font-bold uppercase text-xs underline decoration-dotted underline-offset-2 group-hover:decoration-solid">
-                    {artifact.title}
-                  </h3>
-                  {artifact.date && (
-                    <span className="text-[9px] opacity-40 font-mono italic">
-                      {artifact.date}
-                    </span>
-                  )}
-                </div>
-                <p className="text-[10px] leading-tight opacity-70 mb-1">
-                  {artifact.description}
-                </p>
-                <span className="text-[9px] opacity-30 block truncate font-mono">
-                  artifacts/{artifact.href.split('/').pop()?.toLowerCase()}
-                </span>
-              </Link>
+                date={artifact.date}
+                subtext={`artifacts/${artifact.href.split('/').pop()?.toLowerCase()}`}
+              />
             ))}
           </div>
         </section>

@@ -1,8 +1,7 @@
-import Link from 'next/link'
-import { BlogPosts } from '@/components/blog-posts'
 import { PixelPattern } from "@/components/pixel-pattern";
 import { Barcode } from "@/components/barcode";
 import { ReceiptShell } from "@/components/receipt/receipt-shell";
+import { ListItem } from "@/components/list-item";
 
 const CAREER_ITEMS: {
   title: string;
@@ -108,16 +107,13 @@ export function HomeReceipt() {
           </div>
           <div className="space-y-3">
             {CAREER_ITEMS.map((item) => (
-              <div
+              <ListItem
                 key={`${item.date}-${item.title}`}
-                className="flex justify-between items-baseline gap-2 text-sm"
-              >
-                <div className="flex flex-col">
-                  <span className="font-bold uppercase tracking-tight text-[11px]">{item.title}</span>
-                  <span className="opacity-60 text-[9px] font-mono">@{item.company.toLowerCase()}</span>
-                </div>
-                <span className="shrink-0 font-mono text-[10px] opacity-40 italic">{item.date}</span>
-              </div>
+                title={item.title}
+                subtext={`@${item.company.toLowerCase()}`}
+                date={item.date}
+                href={item.href}
+              />
             ))}
           </div>
           <a
@@ -139,25 +135,15 @@ export function HomeReceipt() {
           </div>
           <div className="space-y-4">
             {PROJECTS.map((project) => (
-              <a
+              <ListItem
                 key={project.title}
+                title={project.title}
+                description={project.description}
                 href={project.href}
+                subtext={project.href.replace(/^https?:\/\//, '').toLowerCase()}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="group block border-l-2 border-transparent hover:border-black/5 hover:pl-2 transition-all"
-              >
-                <div className="flex justify-between items-baseline mb-1">
-                  <h3 className="font-bold uppercase text-xs underline decoration-dotted underline-offset-2 group-hover:decoration-solid">
-                    {project.title}
-                  </h3>
-                </div>
-                <p className="text-[10px] leading-tight opacity-70 mb-1">
-                  {project.description}
-                </p>
-                <span className="text-[9px] opacity-30 block truncate font-mono">
-                  {project.href.replace(/^https?:\/\//, '').toLowerCase()}
-                </span>
-              </a>
+              />
             ))}
           </div>
         </section>
