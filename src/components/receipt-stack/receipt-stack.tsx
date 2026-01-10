@@ -96,7 +96,7 @@ export function ReceiptStack({
   const showSpread = isHovered;
 
   const handleDragEnd = (_: unknown, info: PanInfo) => {
-    const velocityThreshold = 500;
+    const velocityThreshold = 300;
     const velocity = Math.sqrt(info.velocity.x ** 2 + info.velocity.y ** 2);
 
     if (velocity > velocityThreshold) {
@@ -115,11 +115,16 @@ export function ReceiptStack({
       isNavigatingRef.current = true;
       router.push(ROUTE_HREFS[nextRoute]);
     } else {
-      // Stay where dropped
+      // Stay where dropped temporarily
       setFrontPosition({
         x: frontPosition.x + info.offset.x,
         y: frontPosition.y + info.offset.y,
       });
+
+      // Snap back to center after 500ms
+      setTimeout(() => {
+        setFrontPosition({ x: 0, y: -40 });
+      }, 500);
     }
   };
 
