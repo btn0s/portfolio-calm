@@ -209,7 +209,7 @@ export function ReceiptStack({
   };
 
   return (
-    <div className="relative py-10 flex flex-col items-center justify-center overflow-y-clip isolate z-0">
+    <div className="relative flex flex-col items-center justify-center overflow-y-clip isolate z-0">
       {/* inner gradient mask for bottom of container */}
       <div className="absolute -inset-x-6 bottom-0 h-12 bg-linear-to-b from-transparent to-background z-10" />
       <div
