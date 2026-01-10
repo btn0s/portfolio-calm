@@ -1,4 +1,7 @@
+"use client";
+
 import { cn } from "@/lib/utils";
+import { useRef, useState, useEffect } from "react";
 
 interface ReceiptShellProps {
   children: React.ReactNode;
@@ -7,75 +10,63 @@ interface ReceiptShellProps {
 
 const RIP_HEIGHT = 8;
 
-// Generate the clip-path polygon (straight top, ripped bottom)
-const generateClipPath = () => {
-  const points: string[] = [];
+export function ReceiptShell({ children, className }: ReceiptShellProps) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [size, setSize] = useState({ width: 0, height: 0 });
 
-  // Top edge (straight)
-  points.push('0% 0%', '100% 0%');
+  useEffect(() => {
+    if (!containerRef.current) return;
+    const observer = new ResizeObserver(([entry]) => {
+      setSize({
+        width: entry.contentRect.width,
+        height: entry.contentRect.height,
+      });
+    });
+    observer.observe(containerRef.current);
+    return () => observer.disconnect();
+  }, []);
 
-  // Right edge down
-  points.push(`100% calc(100% - ${RIP_HEIGHT}px)`);
+  // Generate SVG path with fixed 8px rip at bottom
+  const generatePath = () => {
+    const { width, height } = size;
+    if (width === 0 || height === 0) return '';
 
-  // Bottom edge (right to left): zigzag between 100%-RIP_HEIGHT and 100%
-  for (let i = 50; i >= 0; i--) {
-    const x = i * 2;
-    const y = i % 2 === 0 ? `calc(100% - ${RIP_HEIGHT}px)` : '100%';
-    points.push(`${x}% ${y}`);
-  }
+    const points: string[] = [
+      `M 0,0`,
+      `L ${width},0`,
+      `L ${width},${height - RIP_HEIGHT}`,
+    ];
 
-  // Left edge up (close path)
-  points.push('0% 0%');
-
-  return `polygon(${points.join(', ')})`;
-};
-
-// SVG border for bottom ripped edge
-function RippedEdgeBorder() {
-  const generateBottomPath = () => {
-    const points: string[] = [];
-    for (let i = 0; i <= 50; i++) {
-      const x = i * 2;
-      const y = i % 2 === 0 ? 0 : RIP_HEIGHT;
-      points.push(`${x}%,${y}`);
+    // Bottom zigzag (right to left)
+    for (let i = 50; i >= 0; i--) {
+      const x = (i * 2 / 100) * width;
+      const y = i % 2 === 0 ? height - RIP_HEIGHT : height;
+      points.push(`L ${x},${y}`);
     }
-    return `M${points.join(' L')}`;
+
+    points.push(`Z`);
+    return points.join(' ');
   };
 
   return (
-    <>
-      {/* Straight borders for top, left, right */}
-      <div className="absolute inset-0 border border-black/5 border-b-0 pointer-events-none z-20" />
-      {/* Ripped border for bottom */}
-      <svg
-        className="absolute bottom-0 left-0 w-full pointer-events-none z-20"
-        style={{ height: RIP_HEIGHT }}
-        preserveAspectRatio="none"
-        fill="none"
-      >
-        <path
-          d={generateBottomPath()}
-          stroke="rgba(0,0,0,0.05)"
-          strokeWidth="1"
-          vectorEffect="non-scaling-stroke"
-        />
-      </svg>
-    </>
-  );
-}
-
-export function ReceiptShell({ children, className }: ReceiptShellProps) {
-  return (
-    <div
-      className={cn(
-        "bg-(--paper) text-(--paper-foreground) p-6 sm:p-8 pt-12 pb-12 relative font-mono text-sm",
-        className
+    <div ref={containerRef} className={cn("relative font-mono text-sm", className)}>
+      {size.width > 0 && size.height > 0 && (
+        <svg
+          className="absolute inset-0 w-full h-full pointer-events-none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d={generatePath()}
+            fill="var(--paper)"
+            stroke="rgba(0,0,0,0.05)"
+            strokeWidth="1"
+          />
+        </svg>
       )}
-      style={{ clipPath: generateClipPath() }}
-    >
-      <RippedEdgeBorder />
-      <div className="absolute inset-0 paper-texture" />
-      <div className="relative z-10 flex flex-col min-h-[100svh]">{children}</div>
+      <div className="absolute inset-0 paper-texture" style={{ clipPath: `inset(0 0 ${RIP_HEIGHT}px 0)` }} />
+      <div className="relative z-10 p-6 sm:p-8 pt-12 pb-12 flex flex-col min-h-[100svh] text-(--paper-foreground)">
+        {children}
+      </div>
     </div>
   );
 }
