@@ -160,3 +160,9 @@
 .prose {
   @apply prose-sm prose-neutral;
 }
+
+.dark {
+  .prose {
+    @apply prose-invert;
+  }
+}
