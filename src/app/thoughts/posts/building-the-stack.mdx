@@ -1,0 +1,180 @@
+---
+title: 'Building the Receipt Stack'
+publishedAt: '2026-01-10'
+summary: 'How I built a swipeable card navigation system that coexists with scroll'
+---
+
+## The Problem
+
+I wanted navigation to feel physical. Clicking links is fine, but I was drawn to the idea of **swiping through pages like shuffling a deck of cards**. The challenge: this portfolio has scrollable content on each page. A horizontal swipe to navigate and a vertical scroll to read need to coexist without fighting each other.
+
+This led to building what I call the "Receipt Stack"—three cards you can flick through, each representing a section of the site. Getting here took two prototypes and a lot of gesture tuning.
+
+## Prototype 1: Click to Shuffle
+
+The first version was intentionally simple. No dragging, just clicks. I wanted to nail the card positioning and animation before adding complexity.
+
+```tsx
+// Click a non-front card to bring it forward
+onClick={!isFront ? () => {
+  setOrder((prev) => {
+    return [cardIndex, ...prev.filter((i) => i !== cardIndex)];
+  });
+} : undefined}
+```
+
+Each card gets a deterministic offset based on its position in the stack. I used a seeded random function so the offsets feel organic but stay consistent across renders:
+
+```tsx
+const seededRandom = (seed: number) => {
+  const x = Math.sin(seed * 9999) * 10000;
+  return x - Math.floor(x);
+};
+
+const getOffset = (position: number) => {
+  const direction = position % 2 === 0 ? -1 : 1;
+  const baseX = direction * (30 + position * 15);
+  return {
+    x: baseX + (seededRandom(position * 1.1) - 0.5) * 20,
+    y: (seededRandom(position * 2.2) - 0.5) * 20 + position * 5,
+    rotate: direction * (3 + seededRandom(position * 3.3) * 5),
+  };
+};
+```
+
+The click prototype worked. Cards fanned out on hover, clicking a back card brought it forward with a satisfying spring animation. But it felt passive—I was clicking, not *handling* the cards.
+
+You can still play with this version at [/artifacts/card-stack-click](/artifacts/card-stack-click).
+
+## Prototype 2: Drag to Shuffle
+
+The second prototype added dragging. Flick the front card hard enough (velocity > 300) or drag it far enough (offset > 80px), and it shuffles to the back.
+
+```tsx
+const handleDragEnd = (_, info: PanInfo) => {
+  const shouldShuffle =
+    Math.abs(info.velocity.x) > 300 ||
+    Math.abs(info.velocity.y) > 300 ||
+    Math.abs(info.offset.x) > 80 ||
+    Math.abs(info.offset.y) > 80;
+
+  if (shouldShuffle) shuffle();
+};
+```
+
+This version lives at [/artifacts/card-stack](/artifacts/card-stack). It felt great in isolation—but I couldn't use it for real navigation. The moment you try to scroll the content inside a card, the drag handler steals the gesture.
+
+## The Intent Gatekeeper
+
+The final system needed to answer a question every time you touch the screen: **are you trying to scroll or swipe?**
+
+I call the solution the "Intent Gatekeeper." It works in three phases:
+
+### Phase 1: Wait for Movement
+
+When a pointer goes down, I don't start the drag immediately. I just record the starting position and wait:
+
+```tsx
+const handlePointerDown = (e: React.PointerEvent) => {
+  gestureStartRef.current = { x: e.clientX, y: e.clientY };
+  setDragUnlocked(false);
+  setVerticalLocked(false);
+};
+```
+
+### Phase 2: Detect Intent
+
+As the pointer moves, I calculate how far it's traveled in each direction. After 8 pixels of movement (`INTENT_THRESHOLD`), I make the call:
+
+```tsx
+const dx = Math.abs(e.clientX - gestureStartRef.current.x);
+const dy = Math.abs(e.clientY - gestureStartRef.current.y);
+
+if (dx > INTENT_THRESHOLD || dy > INTENT_THRESHOLD) {
+  const isNearlyPureVertical = dy > dx * VERTICAL_CONE_RATIO;
+
+  if (isNearlyPureVertical) {
+    setVerticalLocked(true); // Lock to Y-axis only
+  }
+  setDragUnlocked(true);
+  dragControls.start(e, { snapToCursor: false });
+}
+```
+
+The key insight is the **vertical cone**. Rather than a simple "more horizontal than vertical" check, I define a cone of 15 degrees from pure vertical. Any movement within that cone is considered scrolling intent. This makes vertical scrolling feel natural even when your finger drifts slightly left or right.
+
+```tsx
+const VERTICAL_CONE_DEGREES = 15;
+const VERTICAL_CONE_RATIO = 1 / Math.tan((VERTICAL_CONE_DEGREES * Math.PI) / 180);
+```
+
+### Phase 3: Handle the Gesture
+
+If the intent was horizontal, the drag proceeds normally. A velocity above 150 triggers navigation:
+
+```tsx
+const handleDragEnd = (_, info: PanInfo) => {
+  const velocity = Math.sqrt(info.velocity.x ** 2 + info.velocity.y ** 2);
+  const isHorizontalEnough =
+    Math.abs(info.velocity.x) > Math.abs(info.velocity.y) * 0.5;
+
+  if (velocity > 150 && isHorizontalEnough) {
+    // Rotate cards and navigate
+    setOrder((prev) => {
+      const [front, ...rest] = prev;
+      return [...rest, front];
+    });
+    router.push(ROUTE_HREFS[order[1]]);
+  }
+};
+```
+
+If the intent was vertical, the card locks to Y-axis dragging only. It can move up and down within constraints, but Lenis (the smooth scroll library) handles the actual content scrolling. The card snaps back when released.
+
+## Navigation Sync
+
+The stack needs to stay in sync with the URL. When you click a navbar link or use browser back/forward, the cards should reorder to match:
+
+```tsx
+useEffect(() => {
+  if (isNavigatingRef.current) {
+    isNavigatingRef.current = false;
+    return; // We triggered this navigation, ignore
+  }
+
+  const currentRoute = ROUTE_MAP[pathname] || "home";
+  if (order[0] !== currentRoute) {
+    setOrder(getInitialOrder(pathname));
+  }
+}, [pathname]);
+```
+
+The `isNavigatingRef` flag prevents a double-update when *we* trigger navigation via swipe. Otherwise the URL change would cause the effect to run again.
+
+## Tuning Constants
+
+Getting gestures to feel right required a lot of iteration. I extracted all the magic numbers into constants at the top of the file:
+
+```tsx
+const FLICK_VELOCITY_THRESHOLD = 150;
+const INTENT_THRESHOLD = 8;
+const VERTICAL_CONE_DEGREES = 15;
+const HORIZONTAL_VELOCITY_RATIO = 0.5;
+const DRAG_UNLOCK_RESET_DELAY = 50;
+const DRAG_ELASTICITY = 1;
+const HOVER_SPREAD_MULTIPLIER = 1.5;
+```
+
+Each one was tuned through testing. The velocity threshold started at 300 (from prototype 2) but felt too heavy. 150 hits the sweet spot where a casual flick works but accidental taps don't trigger navigation.
+
+The vertical cone started at 10 degrees and moved to 15 after testing on touch devices—fingers naturally wobble a bit when scrolling.
+
+## What I Learned
+
+**Start with constraints removed.** The click-only prototype let me focus on positioning and animation without worrying about gesture conflicts. The drag prototype confirmed the interaction model. Only then did I tackle the hard problem of distinguishing scroll from swipe.
+
+**Intent detection beats mode switching.** Early attempts used a "scroll mode" toggle. It felt clunky. The intent gatekeeper reacts to what you're actually doing, not what mode you've selected.
+
+**Extract your magic numbers.** Having all the tuning constants in one place made iteration fast. When something felt off on mobile, I knew exactly where to look.
+
+The receipt stack now powers the main navigation of this site. Swipe through the cards or click the ones behind. Scroll the content naturally. The two gestures coexist because the system decides what you meant before committing to either.
