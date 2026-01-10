@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { motion } from "framer-motion";
+import { motion, PanInfo } from "framer-motion";
 import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 
@@ -66,6 +66,7 @@ export function ReceiptStack({
   const [order, setOrder] = useState<[RouteId, RouteId, RouteId]>(() =>
     getInitialOrder(pathname)
   );
+  const [frontPosition, setFrontPosition] = useState({ x: 0, y: -40 });
 
   // Sync order when pathname changes (from navbar clicks, back/forward, etc.)
   useEffect(() => {
@@ -77,6 +78,7 @@ export function ReceiptStack({
     if (order[0] !== currentRoute) {
       const routes: RouteId[] = ["home", "thoughts", "artifacts"];
       const currentIndex = routes.indexOf(currentRoute);
+      setFrontPosition({ x: 0, y: -40 });
       setOrder([
         routes[currentIndex],
         routes[(currentIndex + 1) % 3],
@@ -93,8 +95,39 @@ export function ReceiptStack({
 
   const showSpread = isHovered;
 
+  const handleDragEnd = (_: unknown, info: PanInfo) => {
+    const velocityThreshold = 500;
+    const velocity = Math.sqrt(info.velocity.x ** 2 + info.velocity.y ** 2);
+
+    if (velocity > velocityThreshold) {
+      // Reset position for next front card
+      setFrontPosition({ x: 0, y: -40 });
+
+      // Send front card to back, bring next card forward
+      setOrder((prev) => {
+        const [front, ...rest] = prev;
+        const next = [...rest, front] as [RouteId, RouteId, RouteId];
+        return next;
+      });
+
+      // Navigate to the new front card's route
+      const nextRoute = order[1];
+      isNavigatingRef.current = true;
+      router.push(ROUTE_HREFS[nextRoute]);
+    } else {
+      // Stay where dropped
+      setFrontPosition({
+        x: frontPosition.x + info.offset.x,
+        y: frontPosition.y + info.offset.y,
+      });
+    }
+  };
+
   const handleCardClick = (routeId: RouteId, position: number) => {
     if (position === 0) return; // Front card is not clickable
+
+    // Reset position for new front card
+    setFrontPosition({ x: 0, y: -40 });
 
     // Update order to bring clicked card to front
     setOrder((prev) => {
@@ -128,10 +161,14 @@ export function ReceiptStack({
               style={{
                 zIndex: 3 - position,
                 willChange: "transform",
+                touchAction: isFront ? "none" : undefined,
               }}
+              drag={isFront}
+              dragMomentum={false}
+              onDragEnd={isFront ? handleDragEnd : undefined}
               animate={{
-                x: isFront ? 0 : offset.x * breathe,
-                y: isFront ? -40 : offset.y * breathe,
+                x: isFront ? frontPosition.x : offset.x * breathe,
+                y: isFront ? frontPosition.y : offset.y * breathe,
                 rotate: isFront ? 0 : offset.rotate * breathe,
                 scale: 1 - position * 0.01,
               }}
@@ -139,7 +176,7 @@ export function ReceiptStack({
               onClick={() => handleCardClick(routeId, position)}
               className={cn(
                 "absolute top-0 left-0 w-full",
-                isFront ? "cursor-default" : "cursor-pointer"
+                isFront ? "cursor-grab active:cursor-grabbing" : "cursor-pointer"
               )}
             >
               {/* Shadow element behind content */}
