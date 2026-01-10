@@ -6,7 +6,6 @@ import Footer from "@/components/footer";
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { baseUrl } from "./sitemap";
-import { LenisProvider } from "@/components/lenis-provider";
 
 const abcOracle = localFont({
   src: "../assets/fonts/ABC-Stefan/ABCOracleVariable-Trial.ttf",
@@ -123,10 +122,10 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${abcOracle.variable} ${abcDiatype.variable} ${departureMono.variable} overflow-hidden w-screen h-screen`}
+      className={`${abcOracle.variable} ${abcDiatype.variable} ${departureMono.variable}`}
       suppressHydrationWarning
     >
-      <body className="antialiased overflow-hidden w-screen h-screen">
+      <body className="antialiased">
         <script
           dangerouslySetInnerHTML={{
             __html: `
@@ -141,15 +140,13 @@ export default function RootLayout({
             `,
           }}
         />
-        <LenisProvider>
-          <main className="flex-auto min-w-0 pt-4 flex flex-col px-4 max-w-full md:max-w-xl overflow-x-clip overflow-y-visible md:overflow-visible min-h-[200svh] md:min-h-0 md:h-auto lg:mx-auto">
-            <Navbar />
-            {children}
-            <Footer />
-            <Analytics />
-            <SpeedInsights />
-          </main>
-        </LenisProvider>
+        <main className="flex-auto min-w-0 pt-4 flex flex-col px-4 max-w-full md:max-w-xl overflow-x-clip overflow-y-visible md:overflow-visible min-h-[200svh] md:min-h-0 md:h-auto lg:mx-auto">
+          <Navbar />
+          {children}
+          <Footer />
+          <Analytics />
+          <SpeedInsights />
+        </main>
       </body>
     </html>
   );
