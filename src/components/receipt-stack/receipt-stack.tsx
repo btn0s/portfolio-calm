@@ -22,7 +22,9 @@ const ROUTE_HREFS: Record<RouteId, string> = {
 // Gesture tuning constants
 const FLICK_VELOCITY_THRESHOLD = 300; // velocity needed to change page
 const INTENT_THRESHOLD = 8; // pixels to travel before locking direction
-const VERTICAL_CONE_RATIO = 6; // dy must be 6x dx for vertical intent (~10° cone)
+const VERTICAL_CONE_DEGREES = 5; // degrees from pure vertical that counts as "vertical"
+const VERTICAL_CONE_RATIO =
+  1 / Math.tan((VERTICAL_CONE_DEGREES * Math.PI) / 180);
 const HORIZONTAL_VELOCITY_RATIO = 0.5; // vx must be > vy * this for flick
 const DRAG_UNLOCK_RESET_DELAY = 50; // ms to wait before resetting drag state
 const DRAG_ELASTICITY = 0.5; // drag resistance (0 = stiff, 1 = loose)
