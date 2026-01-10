@@ -70,8 +70,12 @@ export function HomeReceipt() {
         <h1 className="text-2xl font-bold uppercase tracking-[0.2em] mb-1">
           BT NORRIS
         </h1>
-        <p className="text-[10px] leading-none opacity-60 font-mono">DESIGN ENGINEER // 2026</p>
-        <p className="text-[10px] leading-none opacity-60 font-mono">PHOENIX, AZ</p>
+        <p className="text-[10px] leading-none opacity-60 font-mono">
+          DESIGN ENGINEER // 2026
+        </p>
+        <p className="text-[10px] leading-none opacity-60 font-mono">
+          PHOENIX, AZ
+        </p>
 
         <div className="mt-6 border-y border-(--paper-foreground) border-dashed py-2 w-full flex justify-between px-2 text-[10px] font-mono">
           <span>{today.toUpperCase()}</span>
@@ -89,7 +93,7 @@ export function HomeReceipt() {
           <div className="grid grid-cols-12 gap-4 items-start">
             <div className="col-span-8">
               <p className="text-xs leading-relaxed opacity-90">
-                Product designer, coder, tinkerer. Specialized in building 
+                Product designer, coder, tinkerer. Specialized in building
                 interfaces that bridge the gap between design and engineering.
               </p>
             </div>
@@ -140,7 +144,7 @@ export function HomeReceipt() {
                 title={project.title}
                 description={project.description}
                 href={project.href}
-                subtext={project.href.replace(/^https?:\/\//, '').toLowerCase()}
+                subtext={project.href.replace(/^https?:\/\//, "").toLowerCase()}
                 target="_blank"
                 rel="noopener noreferrer"
               />
@@ -155,20 +159,38 @@ export function HomeReceipt() {
             </h2>
           </div>
           <div className="grid grid-cols-2 gap-x-8 gap-y-2 text-[10px] uppercase opacity-80 font-mono">
-            <div className="flex justify-between border-b border-black/5 pb-1"><span>TypeScript</span><span>★★★★★</span></div>
-            <div className="flex justify-between border-b border-black/5 pb-1"><span>React</span><span>★★★★★</span></div>
-            <div className="flex justify-between border-b border-black/5 pb-1"><span>Next.js</span><span>★★★★☆</span></div>
-            <div className="flex justify-between border-b border-black/5 pb-1"><span>Tailwind</span><span>★★★★★</span></div>
-            <div className="flex justify-between border-b border-black/5 pb-1"><span>Design</span><span>★★★★★</span></div>
-            <div className="flex justify-between border-b border-black/5 pb-1"><span>Product</span><span>★★★★☆</span></div>
+            <div className="flex justify-between border-b border-black/5 pb-1">
+              <span>TypeScript</span>
+              <span>★★★★★</span>
+            </div>
+            <div className="flex justify-between border-b border-black/5 pb-1">
+              <span>React</span>
+              <span>★★★★★</span>
+            </div>
+            <div className="flex justify-between border-b border-black/5 pb-1">
+              <span>Next.js</span>
+              <span>★★★★☆</span>
+            </div>
+            <div className="flex justify-between border-b border-black/5 pb-1">
+              <span>Tailwind</span>
+              <span>★★★★★</span>
+            </div>
+            <div className="flex justify-between border-b border-black/5 pb-1">
+              <span>Design</span>
+              <span>★★★★★</span>
+            </div>
+            <div className="flex justify-between border-b border-black/5 pb-1">
+              <span>Product</span>
+              <span>★★★★☆</span>
+            </div>
           </div>
-          <div className="mt-6 border-t border-(--paper-foreground) border-dashed pt-4 flex justify-between items-baseline font-bold uppercase">
+          <div className="mt-6 border-t border-(--paper-foreground) border-dashed pt-4 flex justify-between items-end font-bold uppercase">
             <div className="flex flex-col">
               <span className="text-[8px] opacity-40 font-mono">XP_PTS</span>
               <span className="text-xs tracking-tight">Total_Experience</span>
             </div>
-            <div className="flex items-baseline gap-2">
-              <div className="text-[10px] leading-[0.8] opacity-60 font-mono whitespace-pre select-none">
+            <div className="flex items-end gap-1">
+              <div className="text-[10px] leading-[0.8] opacity-60 font-mono whitespace-pre select-none pb-1">
                 {` _  _ 
 / |/ |
 | || |
@@ -181,15 +203,16 @@ export function HomeReceipt() {
 
         <div className="border-t border-(--paper-foreground) border-dashed pt-12 flex flex-col items-center gap-6 mt-auto">
           <div className="text-center relative">
-            <div className="absolute -top-6 left-1/2 -translate-x-1/2 text-[9px] opacity-10 font-bold whitespace-nowrap tracking-[1.5em] pointer-events-none select-none italic">
-              CUSTOMER COPY
-            </div>
-            <p className="uppercase font-bold text-xs tracking-[0.3em] mb-1">Thank you</p>
-            <p className="text-[9px] opacity-50 font-mono">PORTFOLIO SESSION ENDED</p>
+            <p className="uppercase font-bold text-xs tracking-[0.3em] mb-1">
+              Thank you
+            </p>
+            <p className="text-[9px] opacity-50 font-mono">
+              PORTFOLIO SESSION ENDED
+            </p>
           </div>
-          
+
           <Barcode className="opacity-40 mix-blend-multiply h-6" />
-          
+
           <div className="text-[8px] opacity-20 text-center uppercase tracking-[0.5em] font-mono">
             *** 01001010 01001111 01001001 01001110 ***
           </div>
