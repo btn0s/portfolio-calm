@@ -140,7 +140,7 @@ export default function RootLayout({
             `,
           }}
         />
-        <main className="flex-auto min-w-0 pt-4 flex flex-col px-4 max-w-full md:max-w-xl overflow-x-clip overflow-y-visible md:overflow-visible min-h-[200svh] md:min-h-0 md:h-auto lg:mx-auto">
+        <main className="flex-auto min-w-0 pt-4 flex flex-col px-4 max-w-full md:max-w-xl overflow-x-clip overflow-y-visible md:overflow-visible min-h-0 lg:mx-auto">
           <Navbar />
           {children}
           <Footer />

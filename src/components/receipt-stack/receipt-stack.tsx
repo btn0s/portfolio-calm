@@ -237,7 +237,7 @@ export function ReceiptStack({
       />
       <div
         className="relative flex flex-col items-center justify-center isolate z-0 pb-12"
-        style={{ clipPath: "inset(-100vh -100vw 0 -100vw)" }}
+        style={{ clipPath: "inset(-100vh -100vw 0 -100vw)", contain: "layout" }}
       >
         <div
           className="relative w-full max-w-xl flex items-center justify-center mt-4"
