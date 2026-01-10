@@ -5,22 +5,6 @@ import { motion } from "framer-motion";
 import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 
-// SVG filter for performant drop shadows that follow clip-path
-function ReceiptShadowFilter() {
-  return (
-    <svg width="0" height="0" style={{ position: 'absolute' }}>
-      <defs>
-        <filter id="receipt-shadow-front" x="-50%" y="-50%" width="200%" height="200%">
-          <feDropShadow dx="0" dy="4" stdDeviation="8" floodColor="black" floodOpacity="0.15" />
-        </filter>
-        <filter id="receipt-shadow-back" x="-50%" y="-50%" width="200%" height="200%">
-          <feDropShadow dx="0" dy="2" stdDeviation="4" floodColor="black" floodOpacity="0.1" />
-        </filter>
-      </defs>
-    </svg>
-  );
-}
-
 type RouteId = "home" | "thoughts" | "artifacts";
 
 const ROUTE_MAP: Record<string, RouteId> = {
@@ -128,7 +112,6 @@ export function ReceiptStack({
 
   return (
     <div className="py-10 flex flex-col items-center justify-center overflow-visible">
-      <ReceiptShadowFilter />
       <div
         className="relative w-full max-w-xl flex items-center justify-center mt-4"
         onMouseEnter={() => setIsHovered(true)}
@@ -144,7 +127,7 @@ export function ReceiptStack({
               key={routeId}
               style={{
                 zIndex: 3 - position,
-                filter: `url(#receipt-shadow-${isFront ? 'front' : 'back'})`,
+                willChange: "transform",
               }}
               animate={{
                 x: isFront ? 0 : offset.x * breathe,
@@ -159,9 +142,19 @@ export function ReceiptStack({
                 isFront ? "cursor-default" : "cursor-pointer"
               )}
             >
+              {/* Shadow element behind content */}
               <div
                 className={cn(
-                  "h-full w-full",
+                  "absolute inset-4 rounded-sm bg-black/0",
+                  isFront
+                    ? "shadow-[0_8px_24px_rgba(0,0,0,0.25)]"
+                    : "shadow-[0_2px_8px_rgba(0,0,0,0.1)]"
+                )}
+                style={{ transform: "translateZ(0)" }}
+              />
+              <div
+                className={cn(
+                  "relative h-full w-full",
                   !isFront && "pointer-events-none"
                 )}
                 aria-hidden={!isFront}
