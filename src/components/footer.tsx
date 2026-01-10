@@ -1,6 +1,6 @@
 export default function Footer() {
   return (
-    <footer className="mb-12 mt-8">
+    <footer className="mb-12 mt-8 isolate z-10 bg-background">
       <div className="flex items-center gap-4 text-xs text-muted-foreground">
         <span>© {new Date().getFullYear()}</span>
         <a href="/rss" className="hover:text-foreground transition-colors">

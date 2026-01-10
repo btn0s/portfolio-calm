@@ -22,6 +22,10 @@ const ROUTE_HREFS: Record<RouteId, string> = {
 // Gesture tuning constants
 const FLICK_VELOCITY_THRESHOLD = 300; // velocity needed to change page
 const INTENT_THRESHOLD = 8; // pixels to travel before locking direction
+const VERTICAL_CONE_RATIO = 6; // dy must be 6x dx for vertical intent (~10° cone)
+const HORIZONTAL_VELOCITY_RATIO = 0.5; // vx must be > vy * this for flick
+const DRAG_UNLOCK_RESET_DELAY = 50; // ms to wait before resetting drag state
+const DRAG_ELASTICITY = 0.5; // drag resistance (0 = stiff, 1 = loose)
 
 // Animation constants
 const SPRING_CONFIG = { type: "spring" as const, stiffness: 200, damping: 25 };
@@ -97,17 +101,20 @@ export function ReceiptStack({
 
     // Only decide after moving past the threshold
     if (dx > INTENT_THRESHOLD || dy > INTENT_THRESHOLD) {
-      if (dx >= dy) {
+      // Vertical cone is ~10deg from pure vertical
+      const isNearlyPureVertical = dy > dx * VERTICAL_CONE_RATIO;
+
+      if (isNearlyPureVertical) {
+        // Vertical intent - clear start point to let native scroll take over
+        console.log('[Gatekeeper] ⛔ VERTICAL intent → allowing native scroll', { dx, dy, ratio: (dy/dx).toFixed(1) });
+        gestureStartRef.current = null;
+        pendingEventRef.current = null;
+      } else {
         // Horizontal intent confirmed - start drag with the current event
-        console.log('[Gatekeeper] ✅ HORIZONTAL intent → starting drag', { dx, dy });
+        console.log('[Gatekeeper] ✅ HORIZONTAL intent → starting drag', { dx, dy, ratio: (dy/dx).toFixed(1) });
         setDragUnlocked(true);
         // Start drag with the CURRENT move event (not the original down event)
         dragControls.start(e, { snapToCursor: false });
-      } else {
-        // Vertical intent - clear start point to let native scroll take over
-        console.log('[Gatekeeper] ⛔ VERTICAL intent → allowing native scroll', { dx, dy });
-        gestureStartRef.current = null;
-        pendingEventRef.current = null;
       }
     }
   }, [dragUnlocked, dragControls]);
@@ -120,7 +127,7 @@ export function ReceiptStack({
     setTimeout(() => {
       console.log('[Gatekeeper] 🔒 Resetting dragUnlocked to false');
       setDragUnlocked(false);
-    }, 50);
+    }, DRAG_UNLOCK_RESET_DELAY);
   }, [dragUnlocked]);
 
   const getInitialOrder = (
@@ -168,7 +175,7 @@ export function ReceiptStack({
 
   const handleDragEnd = (_: unknown, info: PanInfo) => {
     const velocity = Math.sqrt(info.velocity.x ** 2 + info.velocity.y ** 2);
-    const isHorizontalEnough = Math.abs(info.velocity.x) > Math.abs(info.velocity.y) * 0.5;
+    const isHorizontalEnough = Math.abs(info.velocity.x) > Math.abs(info.velocity.y) * HORIZONTAL_VELOCITY_RATIO;
 
     if (velocity > FLICK_VELOCITY_THRESHOLD && isHorizontalEnough) {
       // Send front card to back, bring next card forward
@@ -200,7 +207,9 @@ export function ReceiptStack({
   };
 
   return (
-    <div className="py-10 flex flex-col items-center justify-center overflow-visible">
+    <div className="relative py-10 flex flex-col items-center justify-center overflow-y-clip isolate z-0">
+      {/* inner gradient mask for bottom of container */}
+      <div className="absolute -inset-x-6 bottom-0 h-12 bg-linear-to-b from-transparent to-background z-10" />
       <div
         className="relative w-full max-w-xl flex items-center justify-center mt-4"
         onMouseEnter={() => setIsHovered(true)}
@@ -217,14 +226,14 @@ export function ReceiptStack({
               layout
               style={{
                 zIndex: 3 - position,
-                // Allow vertical scroll until horizontal intent is confirmed
-                touchAction: isFront ? (dragUnlocked ? "none" : "pan-y") : undefined,
+                // Start with none - we manually handle scroll pass-through
+                touchAction: isFront ? "none" : undefined,
               }}
               drag={isFront}
               dragControls={isFront ? dragControls : undefined}
               dragListener={false} // We manually start drag via dragControls
               dragSnapToOrigin
-              dragElastic={0.5}
+              dragElastic={DRAG_ELASTICITY}
               onPointerDown={isFront ? handlePointerDown : undefined}
               onPointerMove={isFront ? handlePointerMove : undefined}
               onPointerUp={isFront ? handlePointerUp : undefined}
