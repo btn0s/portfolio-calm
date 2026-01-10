@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation'
 import { CustomMDX } from '@/components/mdx'
 import { formatDate, getBlogPosts } from '@/lib/blog'
+import { generatePageMetadata } from '@/lib/metadata'
 import { baseUrl } from '@/app/sitemap'
 import type { Metadata } from 'next'
 
@@ -29,38 +30,15 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     summary: description,
     image,
   } = post.metadata
-  let ogImage = image
-    ? image
-    : `${baseUrl}/og?title=${encodeURIComponent(title)}`
 
-  return {
+  return generatePageMetadata({
     title,
     description,
-    openGraph: {
-      title,
-      description,
-      type: 'article',
-      publishedTime,
-      url: `${baseUrl}/thoughts/${post.slug}`,
-      images: [
-        {
-          url: ogImage,
-          width: 1200,
-          height: 630,
-          alt: title,
-        },
-      ],
-    },
-    twitter: {
-      card: 'summary_large_image',
-      title,
-      description,
-      images: [ogImage],
-    },
-    alternates: {
-      canonical: `${baseUrl}/thoughts/${post.slug}`,
-    },
-  }
+    path: `/thoughts/${post.slug}`,
+    ogImage: image,
+    ogType: 'article',
+    publishedTime,
+  })
 }
 
 export default async function Post({ params }: { params: Promise<{ slug: string }> }) {

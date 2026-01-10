@@ -1,32 +1,11 @@
-import type { Metadata } from 'next'
-import { baseUrl } from '@/app/sitemap'
+import { generatePageMetadata } from '@/lib/metadata'
 
-export const metadata: Metadata = {
-  title: 'Thoughts',
+export const metadata = generatePageMetadata({
+  title: 'thoughts',
   description: 'Thoughts on design, engineering, game development, and building products',
-  openGraph: {
-    title: 'Thoughts — bt norris',
-    description: 'Thoughts on design, engineering, game development, and building products',
-    url: `${baseUrl}/thoughts`,
-    type: 'website',
-    images: [
-      {
-        url: `${baseUrl}/og?title=${encodeURIComponent('Thoughts')}`,
-        width: 1200,
-        height: 630,
-        alt: 'Thoughts blog',
-      },
-    ],
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'Thoughts — bt norris',
-    description: 'Thoughts on design, engineering, game development, and building products',
-  },
-  alternates: {
-    canonical: `${baseUrl}/thoughts`,
-  },
-}
+  path: '/thoughts',
+  keywords: ['blog', 'design', 'engineering', 'game development', 'product development'],
+})
 
 export default function Page() {
   return null;

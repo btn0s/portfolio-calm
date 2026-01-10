@@ -1,20 +1,10 @@
-import { baseUrl } from '@/app/sitemap'
 import type { Metadata } from 'next'
+import { baseUrl } from '@/app/sitemap'
 
+// Use default title from root layout to avoid duplication
 export const metadata: Metadata = {
-  title: "bt norris, design engineer",
-  description:
-    "Product designer, coder, and tinkerer. Portfolio of work, artifacts, and thoughts on design, engineering, and game development.",
-  openGraph: {
-    title: "bt norris, design engineer",
-    description:
-      "Product designer, coder, and tinkerer. Portfolio of work, artifacts, and thoughts on design, engineering, and game development.",
-    url: baseUrl,
-    type: "website",
-  },
-  alternates: {
-    canonical: baseUrl,
-  },
+  description: "Product designer, coder, and tinkerer. Portfolio of work, artifacts, and thoughts on design, engineering, and game development.",
+  keywords: ['product design', 'design engineer', 'game development', 'portfolio', 'design systems', 'frontend development'],
 };
 
 export default function Page() {

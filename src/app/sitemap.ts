@@ -10,6 +10,8 @@ const ARTIFACTS = [
   'game-dev-prototypes',
   'delphi-falling-chips',
   'portfolio-v1',
+  'card-stack',
+  'card-stack-click',
 ]
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
@@ -24,6 +26,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { route: '', priority: 1.0 },
     { route: '/thoughts', priority: 0.9 },
     { route: '/artifacts', priority: 0.9 },
+    { route: '/me', priority: 0.5 },
   ].map(({ route, priority }) => ({
     url: `${baseUrl}${route}`,
     lastModified: new Date().toISOString().split('T')[0],

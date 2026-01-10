@@ -1,34 +1,12 @@
-import type { Metadata } from 'next'
 import Image from 'next/image'
-import { baseUrl } from '@/app/sitemap'
+import { generatePageMetadata } from '@/lib/metadata'
 
-export const metadata: Metadata = {
-  title: 'Echelon',
-  description:
-    'A multiplayer stealth game concept designed and prototyped in Unreal Engine Blueprints',
-  openGraph: {
-    title: 'Echelon — Asymmetric Multiplayer Stealth Game',
-    description: 'A multiplayer stealth game concept designed and prototyped in Unreal Engine Blueprints',
-    url: `${baseUrl}/artifacts/echelon`,
-    type: 'website',
-    images: [
-      {
-        url: `${baseUrl}/og?title=${encodeURIComponent('Echelon')}`,
-        width: 1200,
-        height: 630,
-        alt: 'Echelon game prototype',
-      },
-    ],
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'Echelon — Asymmetric Multiplayer Stealth Game',
-    description: 'A multiplayer stealth game concept designed and prototyped in Unreal Engine Blueprints',
-  },
-  alternates: {
-    canonical: `${baseUrl}/artifacts/echelon`,
-  },
-}
+export const metadata = generatePageMetadata({
+  title: 'echelon',
+  description: 'A multiplayer stealth game concept designed and prototyped in Unreal Engine Blueprints',
+  path: '/artifacts/echelon',
+  keywords: ['game development', 'unreal engine', 'blueprints', 'multiplayer', 'stealth game'],
+})
 
 export default function EchelonPage() {
   return (

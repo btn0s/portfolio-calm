@@ -1,33 +1,12 @@
-import type { Metadata } from 'next'
 import { ArrowUpRight } from 'lucide-react'
-import { baseUrl } from '@/app/sitemap'
+import { generatePageMetadata } from '@/lib/metadata'
 
-export const metadata: Metadata = {
-  title: 'Delphi Falling Chips',
+export const metadata = generatePageMetadata({
+  title: 'delphi falling chips',
   description: 'Interactive visual experiment exploring particle systems and physics',
-  openGraph: {
-    title: 'Delphi Falling Chips — Visual Experiment',
-    description: 'Interactive visual experiment exploring particle systems and physics',
-    url: `${baseUrl}/artifacts/delphi-falling-chips`,
-    type: 'website',
-    images: [
-      {
-        url: `${baseUrl}/og?title=${encodeURIComponent('Delphi Falling Chips')}`,
-        width: 1200,
-        height: 630,
-        alt: 'Delphi Falling Chips visual experiment',
-      },
-    ],
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'Delphi Falling Chips — Visual Experiment',
-    description: 'Interactive visual experiment exploring particle systems and physics',
-  },
-  alternates: {
-    canonical: `${baseUrl}/artifacts/delphi-falling-chips`,
-  },
-}
+  path: '/artifacts/delphi-falling-chips',
+  keywords: ['animation', 'framer motion', 'react', 'visual experiment'],
+})
 
 export default function DelphiFallingChipsPage() {
   return (

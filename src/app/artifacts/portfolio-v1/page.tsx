@@ -1,32 +1,10 @@
-import type { Metadata } from 'next'
-import { baseUrl } from '@/app/sitemap'
+import { generatePageMetadata } from '@/lib/metadata'
 
-export const metadata: Metadata = {
-  title: 'Portfolio v1',
+export const metadata = generatePageMetadata({
+  title: 'portfolio v1',
   description: 'Previous portfolio iteration showcasing an earlier approach to presenting work and projects',
-  openGraph: {
-    title: 'Portfolio v1',
-    description: 'Previous portfolio iteration showcasing an earlier approach to presenting work and projects',
-    url: `${baseUrl}/artifacts/portfolio-v1`,
-    type: 'website',
-    images: [
-      {
-        url: `${baseUrl}/og?title=${encodeURIComponent('Portfolio v1')}`,
-        width: 1200,
-        height: 630,
-        alt: 'Portfolio v1',
-      },
-    ],
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'Portfolio v1',
-    description: 'Previous portfolio iteration',
-  },
-  alternates: {
-    canonical: `${baseUrl}/artifacts/portfolio-v1`,
-  },
-}
+  path: '/artifacts/portfolio-v1',
+})
 
 export default function PortfolioV1Page() {
   return (

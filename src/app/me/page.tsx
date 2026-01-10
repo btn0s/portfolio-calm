@@ -1,5 +1,12 @@
 import Image from "next/image";
 import me from "@/assets/images/me.png";
+import { generatePageMetadata } from '@/lib/metadata'
+
+export const metadata = generatePageMetadata({
+  title: 'me',
+  description: 'Photo of bt norris, design engineer',
+  path: '/me',
+})
 
 const Page = () => {
   return (

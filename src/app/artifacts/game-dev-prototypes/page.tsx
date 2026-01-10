@@ -1,33 +1,12 @@
-import type { Metadata } from 'next'
 import Image from 'next/image'
-import { baseUrl } from '@/app/sitemap'
+import { generatePageMetadata } from '@/lib/metadata'
 
-export const metadata: Metadata = {
-  title: 'Game Dev Prototypes',
+export const metadata = generatePageMetadata({
+  title: 'game dev prototypes',
   description: 'Collection of game development experiments and prototypes built in Unreal Engine Blueprints',
-  openGraph: {
-    title: 'Game Dev Prototypes',
-    description: 'Collection of game development experiments and prototypes built in Unreal Engine Blueprints',
-    url: `${baseUrl}/artifacts/game-dev-prototypes`,
-    type: 'website',
-    images: [
-      {
-        url: `${baseUrl}/og?title=${encodeURIComponent('Game Dev Prototypes')}`,
-        width: 1200,
-        height: 630,
-        alt: 'Game development prototypes',
-      },
-    ],
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'Game Dev Prototypes',
-    description: 'Collection of game development experiments and prototypes',
-  },
-  alternates: {
-    canonical: `${baseUrl}/artifacts/game-dev-prototypes`,
-  },
-}
+  path: '/artifacts/game-dev-prototypes',
+  keywords: ['game development', 'unreal engine', 'blueprints', 'prototypes', 'experiments'],
+})
 
 export default function GameDevPrototypesPage() {
   return (

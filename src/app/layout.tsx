@@ -48,7 +48,7 @@ export const metadata: Metadata = {
   metadataBase: new URL(baseUrl),
   title: {
     default: 'bt norris, design engineer',
-    template: '%s | bt norris',
+    template: '%s — bt norris',
   },
   description: 'Product designer, coder, and tinkerer. Portfolio of work, artifacts, and thoughts on design, engineering, and game development.',
   keywords: ['product design', 'design engineer', 'game development', 'portfolio', 'design systems', 'frontend development'],
