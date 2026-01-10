@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, useCallback } from "react";
-import { motion, PanInfo } from "framer-motion";
+import { motion, PanInfo, useDragControls } from "framer-motion";
 import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 
@@ -63,9 +63,12 @@ export function ReceiptStack({
   // "Intent Gatekeeper" - only unlock drag after confirming horizontal intent
   const [dragUnlocked, setDragUnlocked] = useState(false);
   const gestureStartRef = useRef<{ x: number; y: number } | null>(null);
+  const dragControls = useDragControls();
+  const pendingEventRef = useRef<React.PointerEvent | null>(null);
 
   const handlePointerDown = useCallback((e: React.PointerEvent) => {
     gestureStartRef.current = { x: e.clientX, y: e.clientY };
+    pendingEventRef.current = e;
     setDragUnlocked(false);
     console.log('[Gatekeeper] ⬇️ Pointer down', {
       start: gestureStartRef.current,
@@ -94,21 +97,25 @@ export function ReceiptStack({
 
     // Only decide after moving past the threshold
     if (dx > INTENT_THRESHOLD || dy > INTENT_THRESHOLD) {
-      if (dx > dy) {
-        // Horizontal intent confirmed - unlock the drag
-        console.log('[Gatekeeper] ✅ HORIZONTAL intent → unlocking drag', { dx, dy });
+      if (dx >= dy) {
+        // Horizontal intent confirmed - start drag with the current event
+        console.log('[Gatekeeper] ✅ HORIZONTAL intent → starting drag', { dx, dy });
         setDragUnlocked(true);
+        // Start drag with the CURRENT move event (not the original down event)
+        dragControls.start(e, { snapToCursor: false });
       } else {
         // Vertical intent - clear start point to let native scroll take over
         console.log('[Gatekeeper] ⛔ VERTICAL intent → allowing native scroll', { dx, dy });
         gestureStartRef.current = null;
+        pendingEventRef.current = null;
       }
     }
-  }, [dragUnlocked]);
+  }, [dragUnlocked, dragControls]);
 
   const handlePointerUp = useCallback(() => {
     console.log('[Gatekeeper] ⬆️ Pointer up', { wasUnlocked: dragUnlocked });
     gestureStartRef.current = null;
+    pendingEventRef.current = null;
     // Small delay to let Framer Motion's dragEnd fire first
     setTimeout(() => {
       console.log('[Gatekeeper] 🔒 Resetting dragUnlocked to false');
@@ -213,7 +220,9 @@ export function ReceiptStack({
                 // Allow vertical scroll until horizontal intent is confirmed
                 touchAction: isFront ? (dragUnlocked ? "none" : "pan-y") : undefined,
               }}
-              drag={isFront && dragUnlocked}
+              drag={isFront}
+              dragControls={isFront ? dragControls : undefined}
+              dragListener={false} // We manually start drag via dragControls
               dragSnapToOrigin
               dragElastic={0.5}
               onPointerDown={isFront ? handlePointerDown : undefined}
