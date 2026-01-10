@@ -123,10 +123,10 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${abcOracle.variable} ${abcDiatype.variable} ${departureMono.variable}`}
+      className={`${abcOracle.variable} ${abcDiatype.variable} ${departureMono.variable} overflow-hidden w-screen h-screen`}
       suppressHydrationWarning
     >
-      <body className="antialiased overflow-hidden w-full h-full">
+      <body className="antialiased overflow-hidden w-screen h-screen">
         <script
           dangerouslySetInnerHTML={{
             __html: `
