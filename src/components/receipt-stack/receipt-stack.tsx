@@ -236,81 +236,84 @@ export function ReceiptStack({
         className="fixed top-20 left-6 right-6 bottom-6 pointer-events-none"
       />
       <div
-        className="relative flex flex-col items-center justify-center isolate z-0"
+        className="relative flex flex-col items-center justify-center isolate z-0 pb-12"
         style={{ clipPath: "inset(-100vh -100vw 0 -100vw)" }}
       >
-      <div
-        className="relative w-full max-w-xl flex items-center justify-center mt-4"
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
-      >
-        {order.map((routeId, position) => {
-          const isFront = position === 0;
-          const offset = getOffset(position);
-          const breathe = showSpread && !isFront ? HOVER_SPREAD_MULTIPLIER : 1;
+        <div
+          className="relative w-full max-w-xl flex items-center justify-center mt-4"
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
+        >
+          {order.map((routeId, position) => {
+            const isFront = position === 0;
+            const offset = getOffset(position);
+            const breathe =
+              showSpread && !isFront ? HOVER_SPREAD_MULTIPLIER : 1;
 
-          return (
-            <motion.div
-              key={routeId}
-              layout
-              style={{
-                zIndex: 3 - position,
-                // Start with none - we manually handle scroll pass-through
-                touchAction: isFront ? "none" : undefined,
-              }}
-              drag={isFront ? (verticalLocked ? "y" : true) : false}
-              dragControls={isFront ? dragControls : undefined}
-              dragListener={false} // We manually start drag via dragControls
-              dragSnapToOrigin={!verticalLocked} // Don't snap in vertical mode
-              dragElastic={DRAG_ELASTICITY}
-              dragConstraints={isFront && verticalLocked ? dragConstraintsRef : undefined}
-              onPointerDown={isFront ? handlePointerDown : undefined}
-              onPointerMove={isFront ? handlePointerMove : undefined}
-              onPointerUp={isFront ? handlePointerUp : undefined}
-              onPointerCancel={isFront ? handlePointerUp : undefined}
-              onDragEnd={isFront ? handleDragEnd : undefined}
-              animate={
-                isFront
-                  ? { x: 0, y: 0, rotate: 0, scale: 1 }
-                  : {
-                      x: offset.x * breathe,
-                      y: offset.y * breathe,
-                      rotate: offset.rotate * breathe,
-                      scale: 1 - position * 0.01,
-                    }
-              }
-              transition={SPRING_CONFIG}
-              onClick={() => handleCardClick(routeId, position)}
-              className={cn(
-                "w-full",
-                isFront
-                  ? "relative cursor-grab active:cursor-grabbing"
-                  : "absolute top-0 left-0 cursor-pointer"
-              )}
-            >
-              {/* Shadow element behind content */}
-              <div
-                className={cn(
-                  "absolute inset-4 rounded-sm bg-black/0",
+            return (
+              <motion.div
+                key={routeId}
+                layout
+                style={{
+                  zIndex: 3 - position,
+                  // Start with none - we manually handle scroll pass-through
+                  touchAction: isFront ? "none" : undefined,
+                }}
+                drag={isFront ? (verticalLocked ? "y" : true) : false}
+                dragControls={isFront ? dragControls : undefined}
+                dragListener={false} // We manually start drag via dragControls
+                dragSnapToOrigin={!verticalLocked} // Don't snap in vertical mode
+                dragElastic={DRAG_ELASTICITY}
+                dragConstraints={
+                  isFront && verticalLocked ? dragConstraintsRef : undefined
+                }
+                onPointerDown={isFront ? handlePointerDown : undefined}
+                onPointerMove={isFront ? handlePointerMove : undefined}
+                onPointerUp={isFront ? handlePointerUp : undefined}
+                onPointerCancel={isFront ? handlePointerUp : undefined}
+                onDragEnd={isFront ? handleDragEnd : undefined}
+                animate={
                   isFront
-                    ? "shadow-[0_8px_24px_rgba(0,0,0,0.25)]"
-                    : "shadow-[0_2px_8px_rgba(0,0,0,0.1)]"
-                )}
-                style={{ transform: "translateZ(0)" }}
-              />
-              <div
+                    ? { x: 0, y: 0, rotate: 0, scale: 1 }
+                    : {
+                        x: offset.x * breathe,
+                        y: offset.y * breathe,
+                        rotate: offset.rotate * breathe,
+                        scale: 1 - position * 0.01,
+                      }
+                }
+                transition={SPRING_CONFIG}
+                onClick={() => handleCardClick(routeId, position)}
                 className={cn(
-                  "relative h-full w-full",
-                  !isFront && "pointer-events-none"
+                  "w-full",
+                  isFront
+                    ? "relative cursor-grab active:cursor-grabbing"
+                    : "absolute top-0 left-0 cursor-pointer"
                 )}
-                aria-hidden={!isFront}
               >
-                {receiptMap[routeId]}
-              </div>
-            </motion.div>
-          );
-        })}
-      </div>
+                {/* Shadow element behind content */}
+                <div
+                  className={cn(
+                    "absolute inset-4 rounded-sm bg-black/0",
+                    isFront
+                      ? "shadow-[0_8px_24px_rgba(0,0,0,0.25)]"
+                      : "shadow-[0_2px_8px_rgba(0,0,0,0.1)]"
+                  )}
+                  style={{ transform: "translateZ(0)" }}
+                />
+                <div
+                  className={cn(
+                    "relative h-full w-full",
+                    !isFront && "pointer-events-none"
+                  )}
+                  aria-hidden={!isFront}
+                >
+                  {receiptMap[routeId]}
+                </div>
+              </motion.div>
+            );
+          })}
+        </div>
       </div>
     </>
   );
