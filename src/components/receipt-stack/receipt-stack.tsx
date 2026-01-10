@@ -235,7 +235,10 @@ export function ReceiptStack({
         ref={dragConstraintsRef}
         className="fixed top-20 left-6 right-6 bottom-6 pointer-events-none"
       />
-      <div className="relative flex flex-col items-center justify-center isolate z-0">
+      <div
+        className="relative flex flex-col items-center justify-center isolate z-0"
+        style={{ clipPath: "inset(-100vh -100vw 0 -100vw)" }}
+      >
       <div
         className="relative w-full max-w-xl flex items-center justify-center mt-4"
         onMouseEnter={() => setIsHovered(true)}
