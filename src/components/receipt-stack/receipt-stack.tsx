@@ -5,6 +5,22 @@ import { motion } from "framer-motion";
 import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 
+// SVG filter for performant drop shadows that follow clip-path
+function ReceiptShadowFilter() {
+  return (
+    <svg width="0" height="0" style={{ position: 'absolute' }}>
+      <defs>
+        <filter id="receipt-shadow-front" x="-50%" y="-50%" width="200%" height="200%">
+          <feDropShadow dx="0" dy="4" stdDeviation="8" floodColor="black" floodOpacity="0.15" />
+        </filter>
+        <filter id="receipt-shadow-back" x="-50%" y="-50%" width="200%" height="200%">
+          <feDropShadow dx="0" dy="2" stdDeviation="4" floodColor="black" floodOpacity="0.1" />
+        </filter>
+      </defs>
+    </svg>
+  );
+}
+
 type RouteId = "home" | "thoughts" | "artifacts";
 
 const ROUTE_MAP: Record<string, RouteId> = {
@@ -112,6 +128,7 @@ export function ReceiptStack({
 
   return (
     <div className="py-10 flex flex-col items-center justify-center overflow-visible">
+      <ReceiptShadowFilter />
       <div
         className="relative w-full max-w-xl flex items-center justify-center mt-4"
         onMouseEnter={() => setIsHovered(true)}
@@ -125,7 +142,10 @@ export function ReceiptStack({
           return (
             <motion.div
               key={routeId}
-              style={{ zIndex: 3 - position }}
+              style={{
+                zIndex: 3 - position,
+                filter: `url(#receipt-shadow-${isFront ? 'front' : 'back'})`,
+              }}
               animate={{
                 x: isFront ? 0 : offset.x * breathe,
                 y: isFront ? -40 : offset.y * breathe,
@@ -139,15 +159,6 @@ export function ReceiptStack({
                 isFront ? "cursor-default" : "cursor-pointer"
               )}
             >
-              <div
-                className={cn(
-                  "absolute inset-2 bg-black/20 -z-10 pointer-events-none",
-                  isFront
-                    ? "blur-2xl translate-y-10 scale-95 opacity-50"
-                    : "blur-md translate-y-1 scale-[0.98] opacity-30"
-                )}
-                aria-hidden="true"
-              />
               <div
                 className={cn(
                   "h-full w-full",

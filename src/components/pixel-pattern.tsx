@@ -1,119 +1,170 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useMemo } from "react";
 
-// Seeded random for consistent patterns
-const seededRandom = (seed: number) => {
-  const x = Math.sin(seed * 9999) * 10000;
+// Shader-style utilities
+const hash = (n: number) => {
+  const x = Math.sin(n * 9999) * 10000;
   return x - Math.floor(x);
 };
 
-// Simple noise function for terrain
-const noise = (x: number, y: number, seed: number = 0) => {
-  return seededRandom(x * 12.9898 + y * 78.233 + seed);
-};
+const noise2d = (x: number, y: number, seed: number = 0) =>
+  hash(x * 12.9898 + y * 78.233 + seed);
 
-// Smooth interpolation
+const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
+
 const smoothNoise = (x: number, y: number, seed: number = 0) => {
-  const fx = Math.floor(x);
-  const fy = Math.floor(y);
-  const cx = fx + 1;
-  const cy = fy + 1;
-
-  const a = noise(fx, fy, seed);
-  const b = noise(cx, fy, seed);
-  const c = noise(fx, cy, seed);
-  const d = noise(cx, cy, seed);
-
-  const fracX = x - fx;
-  const fracY = y - fy;
-
-  const i1 = a * (1 - fracX) + b * fracX;
-  const i2 = c * (1 - fracX) + d * fracX;
-
-  return i1 * (1 - fracY) + i2 * fracY;
+  const ix = Math.floor(x), iy = Math.floor(y);
+  const fx = x - ix, fy = y - iy;
+  return lerp(
+    lerp(noise2d(ix, iy, seed), noise2d(ix + 1, iy, seed), fx),
+    lerp(noise2d(ix, iy + 1, seed), noise2d(ix + 1, iy + 1, seed), fx),
+    fy
+  );
 };
 
-// Fractal noise with multiple octaves
-const fractalNoise = (x: number, y: number, time: number = 0) => {
-  const n1 = smoothNoise(x * 3 + time * 0.1, y * 3 + time * 0.08, 0) * 0.5;
-  const n2 = smoothNoise(x * 6 + time * 0.15, y * 6 + time * 0.12, 100) * 0.25;
-  const n3 = smoothNoise(x * 12 + time * 0.2, y * 12 + time * 0.18, 200) * 0.125;
-  const n4 = smoothNoise(x * 24 + time * 0.25, y * 24 + time * 0.22, 300) * 0.0625;
-  
-  // Add ridges for more interesting terrain
-  const ridge = Math.abs(smoothNoise(x * 2 + time * 0.05, y * 2 + time * 0.04, 400)) * 0.15;
-  
-  return n1 + n2 + n3 + n4 - ridge;
+const fbm = (x: number, y: number) => {
+  let v = 0, a = 0.5;
+  for (let i = 0; i < 4; i++) {
+    v += smoothNoise(x * (3 << i), y * (3 << i), i * 100) * a;
+    a *= 0.5;
+  }
+  return v - Math.abs(smoothNoise(x * 2, y * 2, 400)) * 0.15;
 };
+
+interface Cell { type: number; baseOpacity: number; shoreDist: number }
 
 export function PixelPattern({ size = 24 }: { size?: number }) {
-  const [time, setTime] = useState(0);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  // Pre-compute static terrain data
+  const cells = useMemo(() => {
+    const cells: Cell[] = new Array(size * size);
+
+    // First pass: compute terrain types
+    for (let i = 0; i < size * size; i++) {
+      const x = i % size, y = (i / size) | 0;
+      const nx = x / size * 1.2 - 0.1, ny = y / size * 1.2 - 0.1;
+      const dist = Math.hypot(nx - 0.5, ny - 0.5);
+      const h = fbm(nx, ny) + (1 - dist * 1.5) * 0.2;
+
+      // type: 0=water, 1=shallow, 2=coast, 3=land, 4=mountain
+      const type = h < 0.38 ? 0 : h < 0.45 ? 1 : h < 0.52 ? 2 : h < 0.68 ? 3 : 4;
+      let baseOpacity = [0, 0.08, 0.35, 0.6, 0.85][type];
+
+      // Add darker patches on land using secondary noise
+      if (type >= 2) {
+        const darkNoise = smoothNoise(nx * 8, ny * 8, 500);
+        if (darkNoise > 0.65) {
+          baseOpacity = Math.min(1, baseOpacity + 0.25);
+        }
+      }
+
+      cells[i] = { type, baseOpacity, shoreDist: type <= 1 ? 99 : 0 };
+    }
+
+    // Second pass: compute distance to shore for water cells (BFS)
+    const queue: number[] = [];
+    for (let i = 0; i < size * size; i++) {
+      if (cells[i].type <= 1) {
+        const x = i % size, y = (i / size) | 0;
+        for (let dx = -1; dx <= 1; dx++) {
+          for (let dy = -1; dy <= 1; dy++) {
+            if (dx === 0 && dy === 0) continue;
+            const nx = x + dx, ny = y + dy;
+            if (nx >= 0 && nx < size && ny >= 0 && ny < size) {
+              if (cells[ny * size + nx].type >= 2) {
+                cells[i].shoreDist = 1;
+                queue.push(i);
+                break;
+              }
+            }
+          }
+          if (cells[i].shoreDist === 1) break;
+        }
+      }
+    }
+
+    // Propagate distances
+    while (queue.length > 0) {
+      const i = queue.shift()!;
+      const x = i % size, y = (i / size) | 0;
+      const d = cells[i].shoreDist;
+      for (let dx = -1; dx <= 1; dx++) {
+        for (let dy = -1; dy <= 1; dy++) {
+          if (dx === 0 && dy === 0) continue;
+          const nx = x + dx, ny = y + dy;
+          if (nx >= 0 && nx < size && ny >= 0 && ny < size) {
+            const ni = ny * size + nx;
+            if (cells[ni].type <= 1 && cells[ni].shoreDist > d + 1) {
+              cells[ni].shoreDist = d + 1;
+              queue.push(ni);
+            }
+          }
+        }
+      }
+    }
+
+    return cells;
+  }, [size]);
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      setTime((t) => t + 0.015);
-    }, 50);
+    const canvas = canvasRef.current;
+    if (!canvas) return;
 
-    return () => clearInterval(interval);
-  }, []);
+    const ctx = canvas.getContext("2d", { alpha: true });
+    if (!ctx) return;
 
-  const pixels = Array.from({ length: size * size }, (_, i) => {
-    const x = i % size;
-    const y = Math.floor(i / size);
-    
-    // Normalize coordinates with slight offset for more interesting patterns
-    const nx = (x / size) * 1.2 - 0.1;
-    const ny = (y / size) * 1.2 - 0.1;
-    
-    // Get terrain height with fractal noise
-    const height = fractalNoise(nx, ny, time);
-    
-    // Add distance from center for island-like effect
-    const centerX = 0.5;
-    const centerY = 0.5;
-    const dist = Math.sqrt((nx - centerX) ** 2 + (ny - centerY) ** 2);
-    const islandFactor = (1 - dist * 1.5) * 0.2;
-    
-    const finalHeight = height + islandFactor;
-    
-    // Determine terrain type based on height
-    if (finalHeight < 0.35) {
-      // Deep water - transparent
-      return { type: 'water', opacity: 0 };
-    } else if (finalHeight < 0.45) {
-      // Shallow water - very light
-      return { type: 'shallow', opacity: 0.15 };
-    } else if (finalHeight < 0.55) {
-      // Coast/beach - medium
-      return { type: 'coast', opacity: 0.5 };
-    } else if (finalHeight < 0.7) {
-      // Land - high
-      return { type: 'land', opacity: 0.75 };
-    } else {
-      // Mountains - highest
-      return { type: 'mountain', opacity: 0.9 };
-    }
-  });
+    let frameId: number;
+    const cellSize = canvas.width / size;
+
+    const render = (t: number) => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const time = t * 0.001;
+
+      for (let i = 0; i < size * size; i++) {
+        const x = i % size, y = (i / size) | 0;
+        const cell = cells[i];
+        let opacity: number;
+
+        if (cell.type <= 1) {
+          const d = cell.shoreDist;
+
+          if (d <= 3) {
+            // Shore waves - ripple inward toward land
+            const phase = x * 0.3 + y * 0.3;
+            const wave = Math.sin(time * 0.8 + d * 1.2 + phase);
+            const intensity = Math.max(0, wave) * (1 - d * 0.25);
+            opacity = 0.03 + intensity * 0.25;
+          } else {
+            // Deep water - subtle shimmer
+            const shimmer = Math.sin(time * 1.5 + x * 0.2 + y * 0.15) * 0.5 + 0.5;
+            opacity = 0.02 + shimmer * 0.04;
+          }
+        } else {
+          opacity = cell.baseOpacity;
+        }
+
+        if (opacity > 0.01) {
+          ctx.fillStyle = `rgba(0,0,0,${opacity})`;
+          ctx.fillRect(x * cellSize, y * cellSize, cellSize - 2, cellSize - 2);
+        }
+      }
+
+      frameId = requestAnimationFrame(render);
+    };
+
+    frameId = requestAnimationFrame(render);
+    return () => cancelAnimationFrame(frameId);
+  }, [size, cells]);
 
   return (
-    <div 
-      className="grid gap-px bg-transparent" 
-      style={{ 
-        gridTemplateColumns: `repeat(${size}, 1fr)`,
-        width: '100%',
-        aspectRatio: '1/1'
-      }}
-    >
-      {pixels.map((pixel, i) => (
-        <div 
-          key={i}
-          className="w-full h-full transition-opacity duration-500"
-          style={{ 
-            backgroundColor: `rgba(0, 0, 0, ${pixel.opacity})`
-          }}
-        />
-      ))}
-    </div>
+    <canvas
+      ref={canvasRef}
+      width={size * 10}
+      height={size * 10}
+      className="w-full h-full"
+      style={{ aspectRatio: "1/1", imageRendering: "pixelated" }}
+    />
   );
 }
