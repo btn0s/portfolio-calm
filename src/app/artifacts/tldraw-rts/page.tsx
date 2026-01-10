@@ -33,6 +33,9 @@ export default function TldrawRTSPage() {
         <video
           src="/assets/videos/rts01.mp4"
           controls
+          autoPlay
+          muted
+          loop
           className="w-full h-auto"
           playsInline
         >

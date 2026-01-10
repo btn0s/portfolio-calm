@@ -40,6 +40,9 @@ export default function DelphiFallingChipsPage() {
         <video
           src="/assets/videos/delphi-falling-chips.mp4"
           controls
+          autoPlay
+          muted
+          loop
           className="w-full h-auto"
           playsInline
         >

@@ -26,6 +26,9 @@ export default function PortfolioV1Page() {
         <video
           src="/assets/videos/portfolio.mp4"
           controls
+          autoPlay
+          muted
+          loop
           className="w-full h-auto"
           playsInline
         >
