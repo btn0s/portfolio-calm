@@ -180,8 +180,10 @@ export function ReceiptStack({
               transition={{ type: "spring", stiffness: 200, damping: 25 }}
               onClick={() => handleCardClick(routeId, position)}
               className={cn(
-                "absolute top-0 left-0 w-full",
-                isFront ? "cursor-grab active:cursor-grabbing" : "cursor-pointer"
+                "w-full",
+                isFront
+                  ? "relative cursor-grab active:cursor-grabbing"
+                  : "absolute top-0 left-0 cursor-pointer"
               )}
             >
               {/* Shadow element behind content */}
