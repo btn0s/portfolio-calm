@@ -235,9 +235,7 @@ export function ReceiptStack({
         ref={dragConstraintsRef}
         className="fixed top-20 left-6 right-6 bottom-6 pointer-events-none"
       />
-      <div className="relative flex flex-col items-center justify-center overflow-y-clip isolate z-0">
-      {/* inner gradient mask for bottom of container */}
-      <div className="absolute -inset-x-6 bottom-0 h-12 bg-linear-to-b from-transparent to-background z-10" />
+      <div className="relative flex flex-col items-center justify-center isolate z-0">
       <div
         className="relative w-full max-w-xl flex items-center justify-center mt-4"
         onMouseEnter={() => setIsHovered(true)}
