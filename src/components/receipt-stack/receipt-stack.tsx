@@ -22,7 +22,7 @@ const ROUTE_HREFS: Record<RouteId, string> = {
 // Gesture tuning constants
 const FLICK_VELOCITY_THRESHOLD = 300; // velocity needed to change page
 const INTENT_THRESHOLD = 8; // pixels to travel before locking direction
-const VERTICAL_CONE_DEGREES = 5; // degrees from pure vertical that counts as "vertical"
+const VERTICAL_CONE_DEGREES = 45; // degrees from pure vertical that counts as "vertical"
 const VERTICAL_CONE_RATIO =
   1 / Math.tan((VERTICAL_CONE_DEGREES * Math.PI) / 180);
 const HORIZONTAL_VELOCITY_RATIO = 0.5; // vx must be > vy * this for flick
@@ -68,7 +68,7 @@ export function ReceiptStack({
 
   // "Intent Gatekeeper" - only unlock drag after confirming horizontal intent
   const [dragUnlocked, setDragUnlocked] = useState(false);
-  const [horizontalLocked, setHorizontalLocked] = useState(false);
+  const [verticalLocked, setVerticalLocked] = useState(false);
   const gestureStartRef = useRef<{ x: number; y: number } | null>(null);
   const dragControls = useDragControls();
   const pendingEventRef = useRef<React.PointerEvent | null>(null);
@@ -77,64 +77,77 @@ export function ReceiptStack({
     gestureStartRef.current = { x: e.clientX, y: e.clientY };
     pendingEventRef.current = e;
     setDragUnlocked(false);
-    setHorizontalLocked(false);
-    console.log('[Gatekeeper] ⬇️ Pointer down', {
+    setVerticalLocked(false);
+    console.log("[Gatekeeper] ⬇️ Pointer down", {
       start: gestureStartRef.current,
       pointerType: e.pointerType,
     });
   }, []);
 
-  const handlePointerMove = useCallback((e: React.PointerEvent) => {
-    if (!gestureStartRef.current) {
-      return;
-    }
-    if (dragUnlocked) {
-      // Already unlocked, Framer Motion handles it
-      return;
-    }
-
-    const dx = Math.abs(e.clientX - gestureStartRef.current.x);
-    const dy = Math.abs(e.clientY - gestureStartRef.current.y);
-
-    console.log('[Gatekeeper] 👆 Pointer move', {
-      dx: dx.toFixed(1),
-      dy: dy.toFixed(1),
-      threshold: INTENT_THRESHOLD,
-      ratio: dx > 0 ? (dy / dx).toFixed(2) : 'N/A',
-    });
-
-    // Only decide after moving past the threshold
-    if (dx > INTENT_THRESHOLD || dy > INTENT_THRESHOLD) {
-      // Vertical cone is ~10deg from pure vertical
-      const isNearlyPureVertical = dy > dx * VERTICAL_CONE_RATIO;
-
-      if (isNearlyPureVertical) {
-        // Vertical intent - still allow drag but lock to horizontal only
-        console.log('[Gatekeeper] ⛔ VERTICAL intent → locking to horizontal drag', { dx, dy, ratio: (dy/dx).toFixed(1) });
-        setHorizontalLocked(true);
-        setDragUnlocked(true);
-        dragControls.start(e, { snapToCursor: false });
-      } else {
-        // Horizontal intent confirmed - start drag with the current event
-        console.log('[Gatekeeper] ✅ HORIZONTAL intent → starting drag', { dx, dy, ratio: (dy/dx).toFixed(1) });
-        setDragUnlocked(true);
-        // Start drag with the CURRENT move event (not the original down event)
-        dragControls.start(e, { snapToCursor: false });
+  const handlePointerMove = useCallback(
+    (e: React.PointerEvent) => {
+      if (!gestureStartRef.current) {
+        return;
       }
-    }
-  }, [dragUnlocked, dragControls]);
+      if (dragUnlocked) {
+        // Already unlocked, Framer Motion handles it
+        return;
+      }
+
+      const dx = Math.abs(e.clientX - gestureStartRef.current.x);
+      const dy = Math.abs(e.clientY - gestureStartRef.current.y);
+
+      console.log("[Gatekeeper] 👆 Pointer move", {
+        dx: dx.toFixed(1),
+        dy: dy.toFixed(1),
+        threshold: INTENT_THRESHOLD,
+        ratio: dx > 0 ? (dy / dx).toFixed(2) : "N/A",
+      });
+
+      // Only decide after moving past the threshold
+      if (dx > INTENT_THRESHOLD || dy > INTENT_THRESHOLD) {
+        // Vertical cone is ~10deg from pure vertical
+        const isNearlyPureVertical = dy > dx * VERTICAL_CONE_RATIO;
+
+        if (isNearlyPureVertical) {
+          // Vertical intent - still allow drag but lock to vertical only
+          console.log(
+            "[Gatekeeper] ⛔ VERTICAL intent → locking to vertical drag",
+            { dx, dy, ratio: (dy / dx).toFixed(1) }
+          );
+          setVerticalLocked(true);
+          setDragUnlocked(true);
+          dragControls.start(e, { snapToCursor: false });
+        } else {
+          // Horizontal intent confirmed - start drag with the current event
+          console.log("[Gatekeeper] ✅ HORIZONTAL intent → starting drag", {
+            dx,
+            dy,
+            ratio: (dy / dx).toFixed(1),
+          });
+          setDragUnlocked(true);
+          // Start drag with the CURRENT move event (not the original down event)
+          dragControls.start(e, { snapToCursor: false });
+        }
+      }
+    },
+    [dragUnlocked, dragControls]
+  );
 
   const handlePointerUp = useCallback(() => {
-    console.log('[Gatekeeper] ⬆️ Pointer up', { wasUnlocked: dragUnlocked, wasHorizontalLocked: horizontalLocked });
+    console.log("[Gatekeeper] ⬆️ Pointer up", {
+      wasUnlocked: dragUnlocked,
+      wasVerticalLocked: verticalLocked,
+    });
     gestureStartRef.current = null;
     pendingEventRef.current = null;
     // Small delay to let Framer Motion's dragEnd fire first
     setTimeout(() => {
-      console.log('[Gatekeeper] 🔒 Resetting drag state');
+      console.log("[Gatekeeper] 🔒 Resetting drag state");
       setDragUnlocked(false);
-      setHorizontalLocked(false);
+      setVerticalLocked(false);
     }, DRAG_UNLOCK_RESET_DELAY);
-  }, [dragUnlocked, horizontalLocked]);
+  }, [dragUnlocked, verticalLocked]);
 
   const getInitialOrder = (
     currentPath: string
@@ -181,7 +194,9 @@ export function ReceiptStack({
 
   const handleDragEnd = (_: unknown, info: PanInfo) => {
     const velocity = Math.sqrt(info.velocity.x ** 2 + info.velocity.y ** 2);
-    const isHorizontalEnough = Math.abs(info.velocity.x) > Math.abs(info.velocity.y) * HORIZONTAL_VELOCITY_RATIO;
+    const isHorizontalEnough =
+      Math.abs(info.velocity.x) >
+      Math.abs(info.velocity.y) * HORIZONTAL_VELOCITY_RATIO;
 
     if (velocity > FLICK_VELOCITY_THRESHOLD && isHorizontalEnough) {
       // Send front card to back, bring next card forward
@@ -235,14 +250,19 @@ export function ReceiptStack({
                 // Start with none - we manually handle scroll pass-through
                 touchAction: isFront ? "none" : undefined,
               }}
-              drag={isFront ? (horizontalLocked ? "x" : true) : false}
+              drag={isFront ? (verticalLocked ? "y" : true) : false}
               dragControls={isFront ? dragControls : undefined}
               dragListener={false} // We manually start drag via dragControls
               dragSnapToOrigin
               dragElastic={DRAG_ELASTICITY}
               dragConstraints={
-                isFront && horizontalLocked
-                  ? { left: -window.innerWidth, right: window.innerWidth, top: 0, bottom: 0 }
+                isFront && verticalLocked
+                  ? {
+                      left: 0,
+                      right: 0,
+                      top: -window.innerHeight,
+                      bottom: window.innerHeight,
+                    }
                   : undefined
               }
               onPointerDown={isFront ? handlePointerDown : undefined}
