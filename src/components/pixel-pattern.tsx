@@ -23,88 +23,49 @@ const smoothNoise = (x: number, y: number, seed: number = 0) => {
   );
 };
 
-const fbm = (x: number, y: number) => {
-  let v = 0, a = 0.5;
-  for (let i = 0; i < 4; i++) {
-    v += smoothNoise(x * (3 << i), y * (3 << i), i * 100) * a;
-    a *= 0.5;
-  }
-  return v - Math.abs(smoothNoise(x * 2, y * 2, 400)) * 0.15;
+const smoothNoise3d = (x: number, y: number, z: number, seed: number = 0) => {
+  const iz = Math.floor(z);
+  const fz = z - iz;
+  return lerp(
+    smoothNoise(x + iz, y, seed),
+    smoothNoise(x + iz + 1, y, seed),
+    fz
+  );
 };
 
-interface Cell { type: number; baseOpacity: number; shoreDist: number }
+const fbm = (x: number, y: number, z: number = 0) => {
+  let v = 0, a = 0.5;
+  for (let i = 0; i < 3; i++) {
+    v += smoothNoise3d(x * (2 << i), y * (2 << i), z, i * 100) * a;
+    a *= 0.5;
+  }
+  return v;
+};
 
-export function PixelPattern({ size = 24 }: { size?: number }) {
+interface Cell { edgeFade: number }
+
+export function PixelPattern({ 
+  size = 24,
+  className,
+  style
+}: { 
+  size?: number;
+  className?: string;
+  style?: React.CSSProperties;
+}) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  // Pre-compute static terrain data
   const cells = useMemo(() => {
     const cells: Cell[] = new Array(size * size);
-
-    // First pass: compute terrain types
     for (let i = 0; i < size * size; i++) {
       const x = i % size, y = (i / size) | 0;
-      const nx = x / size * 1.2 - 0.1, ny = y / size * 1.2 - 0.1;
-      const dist = Math.hypot(nx - 0.5, ny - 0.5);
-      const h = fbm(nx, ny) + (1 - dist * 1.5) * 0.2;
-
-      // type: 0=water, 1=shallow, 2=coast, 3=land, 4=mountain
-      const type = h < 0.38 ? 0 : h < 0.45 ? 1 : h < 0.52 ? 2 : h < 0.68 ? 3 : 4;
-      let baseOpacity = [0, 0.08, 0.35, 0.6, 0.85][type];
-
-      // Add darker patches on land using secondary noise
-      if (type >= 2) {
-        const darkNoise = smoothNoise(nx * 8, ny * 8, 500);
-        if (darkNoise > 0.65) {
-          baseOpacity = Math.min(1, baseOpacity + 0.25);
-        }
-      }
-
-      cells[i] = { type, baseOpacity, shoreDist: type <= 1 ? 99 : 0 };
+      const margin = size * 0.25;
+      const fx = Math.min(x, size - 1 - x) / margin;
+      const fy = Math.min(y, size - 1 - y) / margin;
+      const noise = (hash(i + 500) - 0.5) * 0.4;
+      const edgeFade = Math.max(0, Math.min(1, Math.min(fx, fy) + noise));
+      cells[i] = { edgeFade };
     }
-
-    // Second pass: compute distance to shore for water cells (BFS)
-    const queue: number[] = [];
-    for (let i = 0; i < size * size; i++) {
-      if (cells[i].type <= 1) {
-        const x = i % size, y = (i / size) | 0;
-        for (let dx = -1; dx <= 1; dx++) {
-          for (let dy = -1; dy <= 1; dy++) {
-            if (dx === 0 && dy === 0) continue;
-            const nx = x + dx, ny = y + dy;
-            if (nx >= 0 && nx < size && ny >= 0 && ny < size) {
-              if (cells[ny * size + nx].type >= 2) {
-                cells[i].shoreDist = 1;
-                queue.push(i);
-                break;
-              }
-            }
-          }
-          if (cells[i].shoreDist === 1) break;
-        }
-      }
-    }
-
-    // Propagate distances
-    while (queue.length > 0) {
-      const i = queue.shift()!;
-      const x = i % size, y = (i / size) | 0;
-      const d = cells[i].shoreDist;
-      for (let dx = -1; dx <= 1; dx++) {
-        for (let dy = -1; dy <= 1; dy++) {
-          if (dx === 0 && dy === 0) continue;
-          const nx = x + dx, ny = y + dy;
-          if (nx >= 0 && nx < size && ny >= 0 && ny < size) {
-            const ni = ny * size + nx;
-            if (cells[ni].type <= 1 && cells[ni].shoreDist > d + 1) {
-              cells[ni].shoreDist = d + 1;
-              queue.push(ni);
-            }
-          }
-        }
-      }
-    }
-
     return cells;
   }, [size]);
 
@@ -117,40 +78,50 @@ export function PixelPattern({ size = 24 }: { size?: number }) {
 
     let frameId: number;
     const cellSize = canvas.width / size;
+    const color = getComputedStyle(canvas).color || "black";
 
     const render = (t: number) => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       const time = t * 0.001;
-
+      
       for (let i = 0; i < size * size; i++) {
         const x = i % size, y = (i / size) | 0;
         const cell = cells[i];
-        let opacity: number;
+        if (cell.edgeFade <= 0) continue;
 
-        if (cell.type <= 1) {
-          const d = cell.shoreDist;
+        const nx = x / size * 2.0, ny = y / size * 2.0;
 
-          if (d <= 3) {
-            // Shore waves - ripple inward toward land
-            const phase = x * 0.3 + y * 0.3;
-            const wave = Math.sin(time * 0.8 + d * 1.2 + phase);
-            const intensity = Math.max(0, wave) * (1 - d * 0.25);
-            opacity = 0.03 + intensity * 0.25;
-          } else {
-            // Deep water - subtle shimmer
-            const shimmer = Math.sin(time * 1.5 + x * 0.2 + y * 0.15) * 0.5 + 0.5;
-            opacity = 0.02 + shimmer * 0.04;
-          }
-        } else {
-          opacity = cell.baseOpacity;
-        }
+        // 1. Directional waves (flowing diagonal)
+        const flow = time * 0.4;
+        const wave1 = Math.sin(nx * 4 + ny * 3 + flow);
+        const wave2 = Math.sin(nx * 2 - ny * 5 - flow * 1.5);
+        const combinedWaves = (wave1 + wave2) * 0.5;
+
+        // 2. Caustic patterns (ridged noise)
+        const n1 = fbm(nx + flow * 0.2, ny + flow * 0.1, flow * 0.5);
+        const caustic = Math.pow(1.0 - Math.abs(n1 - 0.5) * 2.0, 3.0);
+
+        // 3. Specular glints (high frequency peaks)
+        const glintNoise = hash(i + Math.floor(time * 10)) > 0.98 ? 1 : 0;
+        const glint = glintNoise * Math.max(0, combinedWaves) * 0.4;
+
+        // Final opacity mix
+        // Base deep water + moving surface + sharp caustics + glints
+        let opacity = 0.05; // Ambient
+        opacity += Math.max(0, combinedWaves) * 0.15; // Surface movement
+        opacity += caustic * 0.35; // Caustic networks
+        opacity += glint; // Sun glints
+
+        opacity *= cell.edgeFade;
 
         if (opacity > 0.01) {
-          ctx.fillStyle = `rgba(0,0,0,${opacity})`;
+          ctx.globalAlpha = Math.min(1, opacity);
+          ctx.fillStyle = color;
           ctx.fillRect(x * cellSize, y * cellSize, cellSize - 2, cellSize - 2);
         }
       }
 
+      ctx.globalAlpha = 1.0;
       frameId = requestAnimationFrame(render);
     };
 
@@ -163,8 +134,14 @@ export function PixelPattern({ size = 24 }: { size?: number }) {
       ref={canvasRef}
       width={size * 10}
       height={size * 10}
-      className="w-full h-full"
-      style={{ aspectRatio: "1/1", imageRendering: "pixelated" }}
+      className={className}
+      style={{ 
+        aspectRatio: "1/1", 
+        imageRendering: "pixelated",
+        width: "100%",
+        height: "100%",
+        ...style 
+      }}
     />
   );
 }
