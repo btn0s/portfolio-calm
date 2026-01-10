@@ -4,7 +4,6 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import { motion, PanInfo, useDragControls } from "framer-motion";
 import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { useLenis } from "@/components/lenis-provider";
 
 type RouteId = "home" | "thoughts" | "artifacts";
 
@@ -23,7 +22,7 @@ const ROUTE_HREFS: Record<RouteId, string> = {
 // Gesture tuning constants
 const FLICK_VELOCITY_THRESHOLD = 300; // velocity needed to change page
 const INTENT_THRESHOLD = 8; // pixels to travel before locking direction
-const VERTICAL_CONE_DEGREES = 10; // degrees from pure vertical that counts as "vertical"
+const VERTICAL_CONE_DEGREES = 5; // degrees from pure vertical that counts as "vertical"
 const VERTICAL_CONE_RATIO =
   1 / Math.tan((VERTICAL_CONE_DEGREES * Math.PI) / 180);
 const HORIZONTAL_VELOCITY_RATIO = 0.5; // vx must be > vy * this for flick
@@ -72,94 +71,63 @@ export function ReceiptStack({
   const gestureStartRef = useRef<{ x: number; y: number } | null>(null);
   const dragControls = useDragControls();
   const pendingEventRef = useRef<React.PointerEvent | null>(null);
-  const lenis = useLenis();
-  const isScrollingRef = useRef(false);
-  const lastYRef = useRef<number | null>(null);
 
   const handlePointerDown = useCallback((e: React.PointerEvent) => {
     gestureStartRef.current = { x: e.clientX, y: e.clientY };
     pendingEventRef.current = e;
-    lastYRef.current = e.clientY;
-    isScrollingRef.current = false;
     setDragUnlocked(false);
-    console.log("[Gatekeeper] ⬇️ Pointer down", {
+    console.log('[Gatekeeper] ⬇️ Pointer down', {
       start: gestureStartRef.current,
       pointerType: e.pointerType,
     });
   }, []);
 
-  const handlePointerMove = useCallback(
-    (e: React.PointerEvent) => {
-      // If we're in scroll-forwarding mode, forward delta to Lenis
-      if (isScrollingRef.current && lastYRef.current !== null && lenis) {
-        const deltaY = lastYRef.current - e.clientY;
-        lenis.scrollTo(lenis.scroll + deltaY, { immediate: true });
-        lastYRef.current = e.clientY;
-        return;
+  const handlePointerMove = useCallback((e: React.PointerEvent) => {
+    if (!gestureStartRef.current) {
+      return;
+    }
+    if (dragUnlocked) {
+      // Already unlocked, Framer Motion handles it
+      return;
+    }
+
+    const dx = Math.abs(e.clientX - gestureStartRef.current.x);
+    const dy = Math.abs(e.clientY - gestureStartRef.current.y);
+
+    console.log('[Gatekeeper] 👆 Pointer move', {
+      dx: dx.toFixed(1),
+      dy: dy.toFixed(1),
+      threshold: INTENT_THRESHOLD,
+      ratio: dx > 0 ? (dy / dx).toFixed(2) : 'N/A',
+    });
+
+    // Only decide after moving past the threshold
+    if (dx > INTENT_THRESHOLD || dy > INTENT_THRESHOLD) {
+      // Vertical cone is ~10deg from pure vertical
+      const isNearlyPureVertical = dy > dx * VERTICAL_CONE_RATIO;
+
+      if (isNearlyPureVertical) {
+        // Vertical intent - clear start point to let native scroll take over
+        console.log('[Gatekeeper] ⛔ VERTICAL intent → allowing native scroll', { dx, dy, ratio: (dy/dx).toFixed(1) });
+        gestureStartRef.current = null;
+        pendingEventRef.current = null;
+      } else {
+        // Horizontal intent confirmed - start drag with the current event
+        console.log('[Gatekeeper] ✅ HORIZONTAL intent → starting drag', { dx, dy, ratio: (dy/dx).toFixed(1) });
+        setDragUnlocked(true);
+        // Start drag with the CURRENT move event (not the original down event)
+        dragControls.start(e, { snapToCursor: false });
       }
-
-      if (!gestureStartRef.current) {
-        return;
-      }
-      if (dragUnlocked) {
-        // Already unlocked, Framer Motion handles it
-        return;
-      }
-
-      const dx = Math.abs(e.clientX - gestureStartRef.current.x);
-      const dy = Math.abs(e.clientY - gestureStartRef.current.y);
-
-      console.log("[Gatekeeper] 👆 Pointer move", {
-        dx: dx.toFixed(1),
-        dy: dy.toFixed(1),
-        threshold: INTENT_THRESHOLD,
-        ratio: dx > 0 ? (dy / dx).toFixed(2) : "N/A",
-      });
-
-      // Only decide after moving past the threshold
-      if (dx > INTENT_THRESHOLD || dy > INTENT_THRESHOLD) {
-        // Vertical cone is ~10deg from pure vertical
-        const isNearlyPureVertical = dy > dx * VERTICAL_CONE_RATIO;
-
-        if (isNearlyPureVertical) {
-          // Vertical intent - start forwarding to Lenis
-          console.log("[Gatekeeper] ⛔ VERTICAL intent → forwarding to Lenis", {
-            dx,
-            dy,
-            ratio: (dy / dx).toFixed(1),
-          });
-          isScrollingRef.current = true;
-          lastYRef.current = e.clientY;
-          gestureStartRef.current = null;
-          pendingEventRef.current = null;
-        } else {
-          // Horizontal intent confirmed - start drag with the current event
-          console.log("[Gatekeeper] ✅ HORIZONTAL intent → starting drag", {
-            dx,
-            dy,
-            ratio: (dy / dx).toFixed(1),
-          });
-          setDragUnlocked(true);
-          // Start drag with the CURRENT move event (not the original down event)
-          dragControls.start(e, { snapToCursor: false });
-        }
-      }
-    },
-    [dragUnlocked, dragControls, lenis]
-  );
+    }
+  }, [dragUnlocked, dragControls]);
 
   const handlePointerUp = useCallback(() => {
-    console.log("[Gatekeeper] ⬆️ Pointer up", {
-      wasUnlocked: dragUnlocked,
-      wasScrolling: isScrollingRef.current,
-    });
+    console.log('[Gatekeeper] ⬆️ Pointer up', { wasUnlocked: dragUnlocked });
     gestureStartRef.current = null;
     pendingEventRef.current = null;
-    isScrollingRef.current = false;
-    lastYRef.current = null;
     // Small delay to let Framer Motion's dragEnd fire first
     setTimeout(() => {
-      console.log("[Gatekeeper] 🔒 Resetting dragUnlocked to false");
+      console.log('[Gatekeeper] 🔒 Resetting dragUnlocked to false');
       setDragUnlocked(false);
     }, DRAG_UNLOCK_RESET_DELAY);
   }, [dragUnlocked]);
@@ -209,9 +177,7 @@ export function ReceiptStack({
 
   const handleDragEnd = (_: unknown, info: PanInfo) => {
     const velocity = Math.sqrt(info.velocity.x ** 2 + info.velocity.y ** 2);
-    const isHorizontalEnough =
-      Math.abs(info.velocity.x) >
-      Math.abs(info.velocity.y) * HORIZONTAL_VELOCITY_RATIO;
+    const isHorizontalEnough = Math.abs(info.velocity.x) > Math.abs(info.velocity.y) * HORIZONTAL_VELOCITY_RATIO;
 
     if (velocity > FLICK_VELOCITY_THRESHOLD && isHorizontalEnough) {
       // Send front card to back, bring next card forward
