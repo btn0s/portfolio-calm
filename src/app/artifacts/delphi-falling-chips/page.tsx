@@ -11,27 +11,29 @@ export const metadata = generatePageMetadata({
 export default function DelphiFallingChipsPage() {
   return (
     <section>
-      <h1 className="font-semibold text-2xl mb-6 tracking-tighter">
-        Delphi Falling Chips
-      </h1>
+      <div className="pt-8 pb-6">
+        <h1 className="font-semibold text-2xl mb-6 tracking-tighter">
+          Delphi Falling Chips
+        </h1>
 
-      <p className="mb-4 text-sm text-muted-foreground">
-        React · Framer Motion · Animation
-      </p>
-
-      <div className="mb-6 flex flex-col gap-4 text-sm">
-        <p>
-          I was going through the Delphi onboarding and loved the chip falling
-          animation, so I decided to try and rebuild it!
+        <p className="mb-4 text-sm text-muted-foreground">
+          React · Framer Motion · Animation
         </p>
-        <a
-          href="https://delphi-chips-falling.vercel.app/"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1 w-fit"
-        >
-          View live <ArrowUpRight className="size-3" />
-        </a>
+
+        <div className="flex flex-col gap-4 text-sm">
+          <p>
+            I was going through the Delphi onboarding and loved the chip falling
+            animation, so I decided to try and rebuild it!
+          </p>
+          <a
+            href="https://delphi-chips-falling.vercel.app/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1 w-fit"
+          >
+            View live <ArrowUpRight className="size-3" />
+          </a>
+        </div>
       </div>
 
       <div className="mb-6">

@@ -77,13 +77,15 @@ export default async function Post({ params }: { params: Promise<{ slug: string 
           }),
         }}
       />
-      <h1 className="font-semibold text-xl tracking-tighter mb-2 font-mono">
-        {post.metadata.title}
-      </h1>
-      <div className="flex justify-between items-center mb-6 text-sm">
-        <p className="text-sm text-muted-foreground">
-          {formatDate(post.metadata.publishedAt)}
-        </p>
+      <div className="pt-8 pb-6">
+        <h1 className="font-semibold text-xl tracking-tighter mb-2 font-mono">
+          {post.metadata.title}
+        </h1>
+        <div className="flex justify-between items-center text-sm">
+          <p className="text-sm text-muted-foreground">
+            {formatDate(post.metadata.publishedAt)}
+          </p>
+        </div>
       </div>
       <article className="prose prose-sm">
         <CustomMDX source={post.content} />
