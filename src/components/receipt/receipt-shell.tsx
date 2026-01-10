@@ -1,7 +1,6 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { useRef, useState, useEffect } from "react";
 
 interface ReceiptShellProps {
   children: React.ReactNode;
@@ -10,61 +9,37 @@ interface ReceiptShellProps {
 
 const RIP_HEIGHT = 8;
 
+// Generate zigzag points for the bottom rip
+const ZIGZAG_POINTS = (() => {
+  const points = ["0% 0%", "100% 0%", "100% calc(100% - 8px)"];
+  // Generate 50 teeth (100 points) for a consistent rip across any width
+  for (let i = 50; i >= 0; i--) {
+    const x = i * 2;
+    const y = i % 2 === 0 ? `calc(100% - ${RIP_HEIGHT}px)` : "100%";
+    points.push(`${x}% ${y}`);
+  }
+  return `polygon(${points.join(", ")})`;
+})();
+
 export function ReceiptShell({ children, className }: ReceiptShellProps) {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [size, setSize] = useState({ width: 0, height: 0 });
-
-  useEffect(() => {
-    if (!containerRef.current) return;
-    const observer = new ResizeObserver(([entry]) => {
-      setSize({
-        width: entry.contentRect.width,
-        height: entry.contentRect.height,
-      });
-    });
-    observer.observe(containerRef.current);
-    return () => observer.disconnect();
-  }, []);
-
-  // Generate SVG path with fixed 8px rip at bottom
-  const generatePath = () => {
-    const { width, height } = size;
-    if (width === 0 || height === 0) return '';
-
-    const points: string[] = [
-      `M 0,0`,
-      `L ${width},0`,
-      `L ${width},${height - RIP_HEIGHT}`,
-    ];
-
-    // Bottom zigzag (right to left)
-    for (let i = 50; i >= 0; i--) {
-      const x = (i * 2 / 100) * width;
-      const y = i % 2 === 0 ? height - RIP_HEIGHT : height;
-      points.push(`L ${x},${y}`);
-    }
-
-    points.push(`Z`);
-    return points.join(' ');
-  };
-
   return (
-    <div ref={containerRef} className={cn("relative font-mono text-sm", className)}>
-      {size.width > 0 && size.height > 0 && (
-        <svg
-          className="absolute inset-0 w-full h-full pointer-events-none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <path
-            d={generatePath()}
-            fill="var(--paper)"
-            stroke="rgba(0,0,0,0.05)"
-            strokeWidth="1"
-          />
-        </svg>
+    <div
+      className={cn(
+        "relative font-mono text-sm bg-(--paper) selection:bg-black/10 shadow-sm",
+        className
       )}
-      <div className="absolute inset-0 paper-texture" style={{ clipPath: `inset(0 0 ${RIP_HEIGHT}px 0)` }} />
-      <div className="relative z-10 p-6 sm:p-8 pt-12 pb-12 flex flex-col min-h-[100svh] text-(--paper-foreground)">
+      style={{ clipPath: ZIGZAG_POINTS }}
+    >
+      {/* Texture layer */}
+      <div className="absolute inset-0 paper-texture pointer-events-none" />
+
+      {/* Subtle edge highlight to replace SVG stroke */}
+      <div
+        className="absolute inset-0 pointer-events-none border-x border-t border-black/2"
+        style={{ clipPath: ZIGZAG_POINTS }}
+      />
+
+      <div className="relative z-10 p-6 sm:p-8 pt-12 pb-12 flex flex-col min-h-svh text-(--paper-foreground)">
         {children}
       </div>
     </div>
