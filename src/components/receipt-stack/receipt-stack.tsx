@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { motion, PanInfo, useAnimation } from "framer-motion";
+import { motion, PanInfo } from "framer-motion";
 import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 
@@ -20,14 +20,10 @@ const ROUTE_HREFS: Record<RouteId, string> = {
 };
 
 // Gesture tuning constants
-const GESTURE_DECISION_THRESHOLD = 10; // pixels before deciding drag vs scroll
-const VERTICAL_SCROLL_RATIO = 2; // dy must be > dx * this to count as scroll
 const FLICK_VELOCITY_THRESHOLD = 300; // velocity needed to change page
-const SNAP_BACK_DELAY = 500; // ms before card snaps back to rest
-const REST_POSITION = { x: 0, y: -40 }; // default card position
 
 // Animation constants
-const SPRING_CONFIG = { stiffness: 200, damping: 25 };
+const SPRING_CONFIG = { type: "spring" as const, stiffness: 200, damping: 25 };
 const HOVER_SPREAD_MULTIPLIER = 1.5;
 
 // Seed-based pseudo-random for consistent but varied offsets
@@ -63,11 +59,6 @@ export function ReceiptStack({
   const [isHovered, setIsHovered] = useState(false);
   const isNavigatingRef = useRef(false);
 
-  // Gesture state
-  const gestureMode = useRef<"undecided" | "drag" | "scroll">("undecided");
-  const gestureStartPosition = useRef({ x: 0, y: 0 });
-  const controls = useAnimation();
-
   const getInitialOrder = (
     currentPath: string
   ): [RouteId, RouteId, RouteId] => {
@@ -84,17 +75,6 @@ export function ReceiptStack({
   const [order, setOrder] = useState<[RouteId, RouteId, RouteId]>(() =>
     getInitialOrder(pathname)
   );
-  const [frontPosition, setFrontPosition] = useState(REST_POSITION);
-
-  // Sync controls with frontPosition
-  useEffect(() => {
-    controls.start({
-      x: frontPosition.x,
-      y: frontPosition.y,
-      rotate: 0,
-      scale: 1,
-    });
-  }, [frontPosition, controls]);
 
   // Sync order when pathname changes (from navbar clicks, back/forward, etc.)
   useEffect(() => {
@@ -106,7 +86,6 @@ export function ReceiptStack({
     if (order[0] !== currentRoute) {
       const routes: RouteId[] = ["home", "thoughts", "artifacts"];
       const currentIndex = routes.indexOf(currentRoute);
-      setFrontPosition(REST_POSITION);
       setOrder([
         routes[currentIndex],
         routes[(currentIndex + 1) % 3],
@@ -123,81 +102,27 @@ export function ReceiptStack({
 
   const showSpread = isHovered;
 
-  const handlePanStart = () => {
-    gestureMode.current = "undecided";
-    gestureStartPosition.current = { ...frontPosition };
-  };
+  const handleDragEnd = (_: unknown, info: PanInfo) => {
+    const velocity = Math.sqrt(info.velocity.x ** 2 + info.velocity.y ** 2);
+    const isHorizontalEnough = Math.abs(info.velocity.x) > Math.abs(info.velocity.y) * 0.5;
 
-  const handlePan = (_: unknown, info: PanInfo) => {
-    const { offset } = info;
-    const dx = Math.abs(offset.x);
-    const dy = Math.abs(offset.y);
-
-    // Decide gesture mode if still undecided
-    if (
-      gestureMode.current === "undecided" &&
-      (dx > GESTURE_DECISION_THRESHOLD || dy > GESTURE_DECISION_THRESHOLD)
-    ) {
-      // Only pure vertical = scroll, otherwise drag
-      if (dy > dx * VERTICAL_SCROLL_RATIO) {
-        gestureMode.current = "scroll";
-      } else {
-        gestureMode.current = "drag";
-      }
-    }
-
-    if (gestureMode.current === "drag") {
-      // Update card position
-      controls.set({
-        x: gestureStartPosition.current.x + offset.x,
-        y: gestureStartPosition.current.y + offset.y,
+    if (velocity > FLICK_VELOCITY_THRESHOLD && isHorizontalEnough) {
+      // Send front card to back, bring next card forward
+      setOrder((prev) => {
+        const [front, ...rest] = prev;
+        return [...rest, front] as [RouteId, RouteId, RouteId];
       });
+
+      // Navigate to the new front card's route
+      const nextRoute = order[1];
+      isNavigatingRef.current = true;
+      router.push(ROUTE_HREFS[nextRoute]);
     }
-    // scroll mode: do nothing, let native scroll handle via touchAction
-  };
-
-  const handlePanEnd = (_: unknown, info: PanInfo) => {
-    if (gestureMode.current === "drag") {
-      const velocity = Math.sqrt(info.velocity.x ** 2 + info.velocity.y ** 2);
-
-      if (velocity > FLICK_VELOCITY_THRESHOLD) {
-        // Reset position for next front card
-        setFrontPosition(REST_POSITION);
-
-        // Send front card to back, bring next card forward
-        setOrder((prev) => {
-          const [front, ...rest] = prev;
-          const next = [...rest, front] as [RouteId, RouteId, RouteId];
-          return next;
-        });
-
-        // Navigate to the new front card's route
-        const nextRoute = order[1];
-        isNavigatingRef.current = true;
-        router.push(ROUTE_HREFS[nextRoute]);
-      } else {
-        // Stay where dropped temporarily
-        const newPos = {
-          x: gestureStartPosition.current.x + info.offset.x,
-          y: gestureStartPosition.current.y + info.offset.y,
-        };
-        setFrontPosition(newPos);
-
-        // Snap back to center after delay
-        setTimeout(() => {
-          setFrontPosition(REST_POSITION);
-        }, SNAP_BACK_DELAY);
-      }
-    }
-
-    gestureMode.current = "undecided";
+    // Otherwise Framer Motion snaps back automatically
   };
 
   const handleCardClick = (routeId: RouteId, position: number) => {
     if (position === 0) return; // Front card is not clickable
-
-    // Reset position for new front card
-    setFrontPosition(REST_POSITION);
 
     // Update order to bring clicked card to front
     setOrder((prev) => {
@@ -225,25 +150,26 @@ export function ReceiptStack({
           return (
             <motion.div
               key={routeId}
+              layout
               style={{
                 zIndex: 3 - position,
-                willChange: "transform",
-                touchAction: isFront ? "pan-y" : undefined,
+                touchAction: isFront ? "none" : undefined,
               }}
-              animate={isFront ? controls : undefined}
-              initial={false}
-              onPanStart={isFront ? handlePanStart : undefined}
-              onPan={isFront ? handlePan : undefined}
-              onPanEnd={isFront ? handlePanEnd : undefined}
-              {...(!isFront && {
-                animate: {
-                  x: offset.x * breathe,
-                  y: offset.y * breathe,
-                  rotate: offset.rotate * breathe,
-                  scale: 1 - position * 0.01,
-                },
-              })}
-              transition={{ type: "spring", ...SPRING_CONFIG }}
+              drag={isFront}
+              dragSnapToOrigin
+              dragElastic={0.5}
+              onDragEnd={isFront ? handleDragEnd : undefined}
+              animate={
+                isFront
+                  ? { x: 0, y: 0, rotate: 0, scale: 1 }
+                  : {
+                      x: offset.x * breathe,
+                      y: offset.y * breathe,
+                      rotate: offset.rotate * breathe,
+                      scale: 1 - position * 0.01,
+                    }
+              }
+              transition={SPRING_CONFIG}
               onClick={() => handleCardClick(routeId, position)}
               className={cn(
                 "w-full",
