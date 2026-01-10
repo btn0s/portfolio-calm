@@ -253,7 +253,6 @@ export function ReceiptStack({
             return (
               <motion.div
                 key={routeId}
-                layout
                 style={{
                   zIndex: 3 - position,
                   // Start with none - we manually handle scroll pass-through
