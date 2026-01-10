@@ -233,7 +233,7 @@ export function ReceiptStack({
       {/* Fixed drag constraints area */}
       <div
         ref={dragConstraintsRef}
-        className="fixed inset-6 pointer-events-none"
+        className="fixed top-20 left-6 right-6 bottom-6 pointer-events-none"
       />
       <div className="relative flex flex-col items-center justify-center overflow-y-clip isolate z-0">
       {/* inner gradient mask for bottom of container */}
