@@ -22,7 +22,7 @@ export function Navbar() {
         id="nav"
         className="flex flex-row items-center justify-between relative px-0 pb-0 fade md:overflow-auto scroll-pr-6 md:relative"
       >
-        <div className="flex flex-row items-center">
+        <div className="flex flex-row items-baseline">
           <Link
             href="/"
             className="flex items-center gap-1 mr-6 text-foreground"
