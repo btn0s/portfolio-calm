@@ -14,7 +14,7 @@ export function ReceiptShell({ children, className }: ReceiptShellProps) {
       )}
     >
       <div className="absolute inset-0 paper-texture" />
-      <div className="relative z-10">{children}</div>
+      <div className="relative z-10 flex flex-col min-h-[100svh]">{children}</div>
     </div>
   );
 }

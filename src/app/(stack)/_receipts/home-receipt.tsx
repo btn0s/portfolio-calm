@@ -73,20 +73,14 @@ export function HomeReceipt() {
         </h1>
         <p className="text-[10px] leading-none opacity-60 font-mono">DESIGN ENGINEER // 2026</p>
         <p className="text-[10px] leading-none opacity-60 font-mono">PHOENIX, AZ</p>
-        
-        <div className="w-full flex justify-center my-6">
-          <div className="text-[9px] opacity-40 font-mono border-y border-black/5 py-1 px-4">
-            REG: 01 // CASHIER: BT // TRANS: #009421
-          </div>
-        </div>
 
-        <div className="mt-2 border-y border-(--paper-foreground) border-dashed py-2 w-full flex justify-between px-2 text-[10px] font-mono">
+        <div className="mt-6 border-y border-(--paper-foreground) border-dashed py-2 w-full flex justify-between px-2 text-[10px] font-mono">
           <span>{today.toUpperCase()}</span>
           <span>{time}</span>
         </div>
       </div>
 
-      <div className="space-y-8">
+      <div className="flex flex-col flex-1">
         <section>
           <div className="flex items-center gap-2 mb-4">
             <h2 className="border-b border-(--paper-foreground) border-dashed pb-1 uppercase font-bold tracking-tighter text-xs flex-1">
@@ -100,13 +94,13 @@ export function HomeReceipt() {
                 interfaces that bridge the gap between design and engineering.
               </p>
             </div>
-            <div className="col-span-4 aspect-square opacity-60 mix-blend-multiply border border-black/5 p-1">
+            <div className="col-span-4 aspect-square opacity-60 mix-blend-multiply p-1">
               <PixelPattern size={24} />
             </div>
           </div>
         </section>
 
-        <section>
+        <section className="mt-8">
           <div className="flex items-center gap-2 mb-4">
             <h2 className="border-b border-(--paper-foreground) border-dashed pb-1 uppercase font-bold tracking-tighter text-xs flex-1">
               career_history
@@ -137,11 +131,7 @@ export function HomeReceipt() {
           </a>
         </section>
 
-        <div className="py-2 opacity-10 text-[8px] font-mono text-center tracking-[1em] select-none">
-          *************************
-        </div>
-
-        <section>
+        <section className="mt-8">
           <div className="flex items-center gap-2 mb-4">
             <h2 className="border-b border-(--paper-foreground) border-dashed pb-1 uppercase font-bold tracking-tighter text-xs flex-1">
               selected_projects
@@ -172,7 +162,7 @@ export function HomeReceipt() {
           </div>
         </section>
 
-        <section>
+        <section className="mt-8">
           <div className="flex items-center gap-2 mb-4">
             <h2 className="border-b border-(--paper-foreground) border-dashed pb-1 uppercase font-bold tracking-tighter text-xs flex-1">
               itemized_skills
@@ -186,26 +176,24 @@ export function HomeReceipt() {
             <div className="flex justify-between border-b border-black/5 pb-1"><span>Design</span><span>★★★★★</span></div>
             <div className="flex justify-between border-b border-black/5 pb-1"><span>Product</span><span>★★★★☆</span></div>
           </div>
-          <div className="mt-6 border-t border-(--paper-foreground) border-dashed pt-4 flex justify-between items-end font-bold uppercase">
+          <div className="mt-6 border-t border-(--paper-foreground) border-dashed pt-4 flex justify-between items-baseline font-bold uppercase">
             <div className="flex flex-col">
               <span className="text-[8px] opacity-40 font-mono">XP_PTS</span>
               <span className="text-xs tracking-tight">Total_Experience</span>
             </div>
-            <div className="flex items-end gap-2">
+            <div className="flex items-baseline gap-2">
               <div className="text-[10px] leading-[0.8] opacity-60 font-mono whitespace-pre select-none">
-                {`
-  _  _ 
- / |/ |
- | || |
- |_||_|
-                `}
+                {` _  _ 
+/ |/ |
+| || |
+|_||_|`}
               </div>
-              <span className="text-[10px] opacity-40 font-mono mb-1">YEARS</span>
+              <span className="text-[10px] opacity-40 font-mono">YEARS</span>
             </div>
           </div>
         </section>
 
-        <div className="border-t border-(--paper-foreground) border-dashed pt-12 flex flex-col items-center gap-6">
+        <div className="border-t border-(--paper-foreground) border-dashed pt-12 flex flex-col items-center gap-6 mt-auto">
           <div className="text-center relative">
             <div className="absolute -top-6 left-1/2 -translate-x-1/2 text-[9px] opacity-10 font-bold whitespace-nowrap tracking-[1.5em] pointer-events-none select-none italic">
               CUSTOMER COPY

@@ -73,20 +73,14 @@ export function ArtifactsReceipt() {
           ARTIFACTS
         </h1>
         <p className="text-[10px] leading-none opacity-60 font-mono">EXPERIMENTS // 2026</p>
-        
-        <div className="w-full flex justify-center my-6">
-          <div className="text-[9px] opacity-40 font-mono border-y border-black/5 py-1 px-4">
-            MANIFEST: PROTOTYPES // LEVEL: 04
-          </div>
-        </div>
 
-        <div className="mt-2 border-y border-(--paper-foreground) border-dashed py-2 w-full flex justify-between px-2 text-[10px] font-mono">
+        <div className="mt-6 border-y border-(--paper-foreground) border-dashed py-2 w-full flex justify-between px-2 text-[10px] font-mono">
           <span>{today.toUpperCase()}</span>
           <span>{time}</span>
         </div>
       </div>
 
-      <div className="space-y-8 flex-1">
+      <div className="flex flex-col flex-1">
         <section>
           <div className="flex items-center gap-2 mb-4">
             <h2 className="border-b border-(--paper-foreground) border-dashed pb-1 uppercase font-bold tracking-tighter text-xs flex-1">
