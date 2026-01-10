@@ -6,6 +6,12 @@ import Footer from "@/components/footer";
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { baseUrl } from "./sitemap";
+import { ReceiptStack } from "@/components/receipt-stack/receipt-stack";
+import { HomeReceipt } from "./(stack)/_receipts/home-receipt";
+import { ThoughtsReceipt } from "./(stack)/_receipts/thoughts-receipt";
+import { ArtifactsReceipt } from "./(stack)/_receipts/artifacts-receipt";
+import React from "react";
+import { cn } from "@/lib/utils";
 
 const abcOracle = localFont({
   src: "../assets/fonts/ABC-Stefan/ABCOracleVariable-Trial.ttf",
@@ -119,6 +125,9 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  console.log(React.Children.count(children));
+  const hasChildren = React.Children.count(children) > 1;
+
   return (
     <html
       lang="en"
@@ -140,13 +149,25 @@ export default function RootLayout({
             `,
           }}
         />
-        <main className="flex-auto min-w-0 pt-4 flex flex-col px-4 overflow-x-clip overflow-y-visible md:overflow-visible min-h-0">
+        <main className="min-w-0 pt-4 flex flex-col px-4 overflow-x-clip overflow-y-visible md:overflow-visible">
           <Navbar />
-          <div className="max-w-full md:max-w-xl mx-auto">{children}</div>
-          <Footer />
+          <div
+            className={cn(
+              "max-w-full md:max-w-xl mx-auto",
+              hasChildren ? "pb-24" : "pb-8"
+            )}
+          >
+            {children}
+          </div>
+          <ReceiptStack
+            homeReceipt={<HomeReceipt />}
+            thoughtsReceipt={<ThoughtsReceipt />}
+            artifactsReceipt={<ArtifactsReceipt />}
+          />
           <Analytics />
           <SpeedInsights />
         </main>
+        <Footer />
       </body>
     </html>
   );

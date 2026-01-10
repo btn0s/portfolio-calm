@@ -19,6 +19,23 @@ const ROUTE_HREFS: Record<RouteId, string> = {
   artifacts: "/artifacts",
 };
 
+// Helper to get the current route from any path, including subpages
+const getRouteFromPath = (path: string): RouteId => {
+  // Try exact match first
+  if (ROUTE_MAP[path]) {
+    return ROUTE_MAP[path];
+  }
+  
+  // Check if it's a subpage
+  if (path.startsWith("/thoughts/")) {
+    return "thoughts";
+  } else if (path.startsWith("/artifacts/")) {
+    return "artifacts";
+  }
+  
+  return "home";
+};
+
 // Gesture tuning constants
 const FLICK_VELOCITY_THRESHOLD = 150; // velocity needed to change page
 const INTENT_THRESHOLD = 8; // pixels to travel before locking direction
@@ -64,7 +81,16 @@ export function ReceiptStack({
   const pathname = usePathname();
   const router = useRouter();
   const [isHovered, setIsHovered] = useState(false);
+  const [isCollapsedHovered, setIsCollapsedHovered] = useState(false);
   const isNavigatingRef = useRef(false);
+
+  // Detect if we're on a detail page (thoughts posts or artifact pages)
+  const isSubpage =
+    pathname.startsWith("/thoughts/") || 
+    (pathname.startsWith("/artifacts/") && pathname !== "/artifacts");
+  
+  // Hide stack on pages like /me
+  const shouldHideStack = pathname === "/me";
 
   // "Intent Gatekeeper" - only unlock drag after confirming horizontal intent
   const [dragUnlocked, setDragUnlocked] = useState(false);
@@ -153,7 +179,7 @@ export function ReceiptStack({
   const getInitialOrder = (
     currentPath: string
   ): [RouteId, RouteId, RouteId] => {
-    const currentRoute = ROUTE_MAP[currentPath] || "home";
+    const currentRoute = getRouteFromPath(currentPath);
     const routes: RouteId[] = ["home", "thoughts", "artifacts"];
     const currentIndex = routes.indexOf(currentRoute);
     return [
@@ -173,7 +199,9 @@ export function ReceiptStack({
       isNavigatingRef.current = false;
       return;
     }
-    const currentRoute = ROUTE_MAP[pathname] || "home";
+    
+    const currentRoute = getRouteFromPath(pathname);
+    
     if (order[0] !== currentRoute) {
       const routes: RouteId[] = ["home", "thoughts", "artifacts"];
       const currentIndex = routes.indexOf(currentRoute);
@@ -228,6 +256,17 @@ export function ReceiptStack({
     router.push(ROUTE_HREFS[routeId]);
   };
 
+  if (shouldHideStack) {
+    return null;
+  }
+
+  const handleOverlayClick = () => {
+    if (isSubpage) {
+      const frontRoute = order[0];
+      router.push(ROUTE_HREFS[frontRoute]);
+    }
+  };
+
   return (
     <>
       {/* Fixed drag constraints area */}
@@ -235,12 +274,30 @@ export function ReceiptStack({
         ref={dragConstraintsRef}
         className="fixed top-20 left-6 right-6 bottom-6 pointer-events-none"
       />
-      <div
-        className="relative flex flex-col items-center justify-center isolate z-0 pb-12"
+      {/* Overlay for subpages - captures clicks to navigate back */}
+      {isSubpage && (
+        <div
+          className="fixed inset-0 z-0 cursor-pointer"
+          onClick={handleOverlayClick}
+          aria-label={`Go to ${order[0]} page`}
+        />
+      )}
+      <motion.div
+        className={cn(
+          "flex flex-col items-center justify-center isolate pb-12",
+          isSubpage ? "fixed bottom-0 left-0 right-0 z-10 cursor-pointer" : "relative z-0"
+        )}
         style={{ clipPath: "inset(-100vh -100vw 0 -100vw)", contain: "layout" }}
+        animate={{
+          y: isSubpage ? (isCollapsedHovered ? "80%" : "90%") : 0,
+        }}
+        transition={SPRING_CONFIG}
+        onMouseEnter={() => isSubpage && setIsCollapsedHovered(true)}
+        onMouseLeave={() => isSubpage && setIsCollapsedHovered(false)}
+        onClick={() => isSubpage && handleOverlayClick()}
       >
         <div
-          className="relative w-full max-w-xl flex items-center justify-center mt-4"
+          className="relative w-full max-w-xl flex items-center justify-center"
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
         >
@@ -314,7 +371,7 @@ export function ReceiptStack({
             );
           })}
         </div>
-      </div>
+      </motion.div>
     </>
   );
 }
