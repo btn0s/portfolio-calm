@@ -65,7 +65,7 @@ export function HomeReceipt() {
   });
 
   return (
-    <ReceiptShell className="flex flex-col">
+    <ReceiptShell variant="dossier" className="flex flex-col">
       <div className="flex flex-col mb-10 gap-4">
         <div className="flex justify-between items-start">
           <div className="flex flex-col">
@@ -76,23 +76,23 @@ export function HomeReceipt() {
               Subject: BT NORRIS // ID: 01001010
             </p>
           </div>
-          <div className="opacity-60 mix-blend-multiply border border-black/10 p-0.5">
+          <div className="opacity-60 mix-blend-multiply border border-current p-0.5">
             <PixelPattern size={32} />
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-px bg-(--paper-foreground)/10 border border-(--paper-foreground)/10">
-          <div className="bg-(--paper) p-2 flex flex-col gap-1">
+        <div className="grid grid-cols-2 gap-px bg-current/10 border border-current/10">
+          <div className="bg-[#2c3e2d] p-2 flex flex-col gap-1">
             <span className="text-[8px] opacity-40 uppercase font-bold tracking-tighter">STATUS</span>
             <span className="text-[10px] font-bold uppercase">ACTIVE_DUTY</span>
           </div>
-          <div className="bg-(--paper) p-2 flex flex-col gap-1">
+          <div className="bg-[#2c3e2d] p-2 flex flex-col gap-1">
             <span className="text-[8px] opacity-40 uppercase font-bold tracking-tighter">LOCATION</span>
             <span className="text-[10px] font-bold uppercase">PHOENIX, AZ</span>
           </div>
         </div>
 
-        <div className="border-y border-(--paper-foreground) border-dashed py-2 w-full flex justify-between px-2 text-[10px] font-mono">
+        <div className="border-y border-current border-dashed py-2 w-full flex justify-between px-2 text-[10px] font-mono">
           <span>DATE: {today.toUpperCase()}</span>
           <span>TIME: {time}</span>
         </div>
@@ -101,12 +101,12 @@ export function HomeReceipt() {
       <div className="flex flex-col flex-1">
         <section>
           <div className="flex items-center gap-2 mb-4">
-            <h2 className="bg-(--paper-foreground) text-(--paper) px-1.5 py-0.5 uppercase font-bold tracking-tighter text-[10px]">
+            <h2 className="bg-[#fdf6e3] text-[#2c3e2d] px-1.5 py-0.5 uppercase font-bold tracking-tighter text-[10px]">
               01 // PROFILE_SUMMARY
             </h2>
-            <div className="h-px bg-(--paper-foreground)/10 flex-1" />
+            <div className="h-px bg-current/10 flex-1" />
           </div>
-          <div className="pl-2 border-l-2 border-(--paper-foreground)/5">
+          <div className="pl-2 border-l-2 border-current/20">
             <p className="text-xs leading-relaxed opacity-90 italic">
               "Product designer, coder, tinkerer. Specialized in building
               interfaces that bridge the gap between design and engineering."
@@ -116,20 +116,21 @@ export function HomeReceipt() {
 
         <section className="mt-8">
           <div className="flex items-center gap-2 mb-4">
-            <h2 className="bg-(--paper-foreground) text-(--paper) px-1.5 py-0.5 uppercase font-bold tracking-tighter text-[10px]">
+            <h2 className="bg-[#fdf6e3] text-[#2c3e2d] px-1.5 py-0.5 uppercase font-bold tracking-tighter text-[10px]">
               02 // OPERATIONAL_HISTORY
             </h2>
-            <div className="h-px bg-(--paper-foreground)/10 flex-1" />
+            <div className="h-px bg-current/10 flex-1" />
           </div>
           <div className="space-y-4">
             {CAREER_ITEMS.map((item) => (
               <div key={`${item.date}-${item.title}`} className="relative group pl-3">
-                <div className="absolute left-0 top-1.5 bottom-1.5 w-0.5 bg-(--paper-foreground)/10 group-hover:bg-(--paper-foreground)/40 transition-colors" />
+                <div className="absolute left-0 top-1.5 bottom-1.5 w-0.5 bg-current/10 group-hover:bg-current/40 transition-colors" />
                 <ListItem
                   title={item.title}
                   subtext={`@${item.company.toLowerCase()}`}
                   date={item.date}
                   href={item.href}
+                  className="text-current"
                 />
               </div>
             ))}
@@ -138,7 +139,7 @@ export function HomeReceipt() {
             href="/resume.pdf"
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 border-2 border-(--paper-foreground) px-4 py-1.5 text-[10px] font-bold uppercase mt-8 hover:bg-(--paper-foreground) hover:text-(--paper) transition-all active:translate-y-0.5 font-mono"
+            className="inline-flex items-center gap-2 border-2 border-current px-4 py-1.5 text-[10px] font-bold uppercase mt-8 hover:bg-[#fdf6e3] hover:text-[#2c3e2d] transition-all active:translate-y-0.5 font-mono"
           >
             <span>DOWNLOAD_FULL_DOSSIER.PDF</span>
             <span className="opacity-40 group-hover:opacity-100">→</span>
@@ -147,14 +148,14 @@ export function HomeReceipt() {
 
         <section className="mt-10">
           <div className="flex items-center gap-2 mb-4">
-            <h2 className="bg-(--paper-foreground) text-(--paper) px-1.5 py-0.5 uppercase font-bold tracking-tighter text-[10px]">
+            <h2 className="bg-[#fdf6e3] text-[#2c3e2d] px-1.5 py-0.5 uppercase font-bold tracking-tighter text-[10px]">
               03 // DEPLOYED_ASSETS
             </h2>
-            <div className="h-px bg-(--paper-foreground)/10 flex-1" />
+            <div className="h-px bg-current/10 flex-1" />
           </div>
           <div className="grid grid-cols-1 gap-4">
             {PROJECTS.map((project) => (
-              <div key={project.title} className="border border-(--paper-foreground)/10 p-3 hover:border-(--paper-foreground)/30 transition-colors">
+              <div key={project.title} className="border border-current/10 p-3 hover:border-current/30 transition-colors">
                 <ListItem
                   title={project.title}
                   description={project.description}
@@ -162,6 +163,7 @@ export function HomeReceipt() {
                   subtext={project.href.replace(/^https?:\/\//, "").toLowerCase()}
                   target="_blank"
                   rel="noopener noreferrer"
+                  className="text-current"
                 />
               </div>
             ))}
@@ -170,56 +172,56 @@ export function HomeReceipt() {
 
         <section className="mt-10">
           <div className="flex items-center gap-2 mb-4">
-            <h2 className="bg-(--paper-foreground) text-(--paper) px-1.5 py-0.5 uppercase font-bold tracking-tighter text-[10px]">
+            <h2 className="bg-[#fdf6e3] text-[#2c3e2d] px-1.5 py-0.5 uppercase font-bold tracking-tighter text-[10px]">
               04 // CAPABILITY_MATRIX
             </h2>
-            <div className="h-px bg-(--paper-foreground)/10 flex-1" />
+            <div className="h-px bg-current/10 flex-1" />
           </div>
           <div className="grid grid-cols-2 gap-x-8 gap-y-3 text-[10px] uppercase opacity-80 font-mono">
-            <div className="flex flex-col gap-1 border-b border-black/5 pb-1.5">
+            <div className="flex flex-col gap-1 border-b border-current/10 pb-1.5">
               <div className="flex justify-between">
                 <span>TypeScript</span>
                 <span className="font-bold">LVL_5</span>
               </div>
-              <div className="h-0.5 bg-black/10 w-full"><div className="h-full bg-black/40 w-full" /></div>
+              <div className="h-0.5 bg-current/10 w-full"><div className="h-full bg-current/40 w-full" /></div>
             </div>
-            <div className="flex flex-col gap-1 border-b border-black/5 pb-1.5">
+            <div className="flex flex-col gap-1 border-b border-current/10 pb-1.5">
               <div className="flex justify-between">
                 <span>React</span>
                 <span className="font-bold">LVL_5</span>
               </div>
-              <div className="h-0.5 bg-black/10 w-full"><div className="h-full bg-black/40 w-full" /></div>
+              <div className="h-0.5 bg-current/10 w-full"><div className="h-full bg-current/40 w-full" /></div>
             </div>
-            <div className="flex flex-col gap-1 border-b border-black/5 pb-1.5">
+            <div className="flex flex-col gap-1 border-b border-current/10 pb-1.5">
               <div className="flex justify-between">
                 <span>Next.js</span>
                 <span className="font-bold">LVL_4</span>
               </div>
-              <div className="h-0.5 bg-black/10 w-full"><div className="h-full bg-black/40 w-[80%]" /></div>
+              <div className="h-0.5 bg-current/10 w-full"><div className="h-full bg-current/40 w-[80%]" /></div>
             </div>
-            <div className="flex flex-col gap-1 border-b border-black/5 pb-1.5">
+            <div className="flex flex-col gap-1 border-b border-current/10 pb-1.5">
               <div className="flex justify-between">
                 <span>Tailwind</span>
                 <span className="font-bold">LVL_5</span>
               </div>
-              <div className="h-0.5 bg-black/10 w-full"><div className="h-full bg-black/40 w-full" /></div>
+              <div className="h-0.5 bg-current/10 w-full"><div className="h-full bg-current/40 w-full" /></div>
             </div>
-            <div className="flex flex-col gap-1 border-b border-black/5 pb-1.5">
+            <div className="flex flex-col gap-1 border-b border-current/10 pb-1.5">
               <div className="flex justify-between">
                 <span>Design</span>
                 <span className="font-bold">LVL_5</span>
               </div>
-              <div className="h-0.5 bg-black/10 w-full"><div className="h-full bg-black/40 w-full" /></div>
+              <div className="h-0.5 bg-current/10 w-full"><div className="h-full bg-current/40 w-full" /></div>
             </div>
-            <div className="flex flex-col gap-1 border-b border-black/5 pb-1.5">
+            <div className="flex flex-col gap-1 border-b border-current/10 pb-1.5">
               <div className="flex justify-between">
                 <span>Product</span>
                 <span className="font-bold">LVL_4</span>
               </div>
-              <div className="h-0.5 bg-black/10 w-full"><div className="h-full bg-black/40 w-[80%]" /></div>
+              <div className="h-0.5 bg-current/10 w-full"><div className="h-full bg-current/40 w-[80%]" /></div>
             </div>
           </div>
-          <div className="mt-10 pt-6 flex justify-between items-end border-t-2 border-(--paper-foreground)">
+          <div className="mt-10 pt-6 flex justify-between items-end border-t-2 border-current">
             <div className="flex flex-col">
               <span className="text-[8px] opacity-40 font-mono tracking-widest">XP_TOTAL</span>
               <span className="text-lg font-bold tracking-tighter leading-none">TEN_PLUS_YEARS</span>
@@ -234,16 +236,16 @@ export function HomeReceipt() {
         </section>
 
         <div className="pt-12 flex flex-col items-center gap-6 mt-auto">
-          <div className="w-full h-px bg-(--paper-foreground)/20 border-b border-(--paper-foreground)/10" />
+          <div className="w-full h-px bg-current/20 border-b border-current/10" />
           
           <div className="flex flex-col items-center text-center">
             <p className="uppercase font-bold text-[10px] tracking-[0.4em] mb-1">
               MANIFEST_END
             </p>
             <div className="flex items-center gap-4 mt-2">
-              <div className="h-8 w-px bg-(--paper-foreground)/20 rotate-12" />
-              <Barcode className="opacity-70 mix-blend-multiply h-8" />
-              <div className="h-8 w-px bg-(--paper-foreground)/20 -rotate-12" />
+              <div className="h-8 w-px bg-current/20 rotate-12" />
+              <Barcode className="opacity-70 invert h-8" />
+              <div className="h-8 w-px bg-current/20 -rotate-12" />
             </div>
           </div>
 

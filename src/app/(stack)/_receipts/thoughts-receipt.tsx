@@ -17,74 +17,59 @@ export function ThoughtsReceipt() {
   });
 
   return (
-    <ReceiptShell className="flex flex-col">
-      <div className="flex flex-col mb-10 gap-6">
-        <div className="flex justify-between items-center border-b-4 border-(--paper-foreground) pb-4">
+    <ReceiptShell variant="stationery" className="flex flex-col relative">
+      {/* Decorative red margin line for stationery feel */}
+      <div className="absolute left-10 top-0 bottom-0 w-px bg-red-500/10 z-0 pointer-events-none sm:left-14" />
+      
+      <div className="flex flex-col mb-12 gap-8 relative z-10">
+        <div className="flex justify-between items-end border-b border-black/10 pb-6">
           <div className="flex flex-col">
-            <h1 className="text-3xl font-black uppercase tracking-widest leading-none">
-              FIELD_LOG
+            <h1 className="text-4xl font-serif italic tracking-tight leading-none text-[#1a1a1a]">
+              Field Log
             </h1>
-            <p className="text-[10px] mt-1 font-bold opacity-60 font-mono uppercase tracking-[0.2em]">
-              COMM_CHANNEL: THOUGHTS
+            <p className="text-[10px] mt-2 font-medium opacity-40 font-mono uppercase tracking-[0.3em]">
+              Issue 01 // 2026
             </p>
           </div>
           <div className="flex flex-col items-end gap-1">
-            <div className="flex gap-0.5">
-              <div className="w-1 h-3 bg-(--paper-foreground)" />
-              <div className="w-1 h-3 bg-(--paper-foreground)" />
-              <div className="w-1 h-3 bg-(--paper-foreground)" />
-              <div className="w-1 h-3 bg-(--paper-foreground)/20" />
-            </div>
-            <span className="text-[8px] font-bold opacity-40">SIGNAL: STABLE</span>
+            <span className="text-[10px] font-bold text-[#1a1a1a]/60 font-mono tracking-tighter">
+              {today.toUpperCase()}
+            </span>
+            <span className="text-[8px] opacity-30 font-mono uppercase tracking-widest">Available now</span>
           </div>
         </div>
 
-        <div className="flex flex-col gap-2 font-mono text-[10px] bg-(--paper-foreground)/5 p-3 border-l-4 border-(--paper-foreground)">
-          <div className="flex justify-between">
-            <span className="opacity-40 uppercase">Origin</span>
-            <span className="font-bold">2026_BT_NORRIS</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="opacity-40 uppercase">Timestamp</span>
-            <span className="font-bold">{today.toUpperCase()} // {time}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="opacity-40 uppercase">Encoding</span>
-            <span className="font-bold">UTF-8 // MDX</span>
-          </div>
+        <div className="flex flex-col gap-4 font-serif text-sm text-[#1a1a1a]/70 leading-relaxed max-w-md italic">
+          Observations on the intersection of design engineering, 
+          human-computer interaction, and the building of tools.
         </div>
       </div>
 
       <div className="flex flex-col flex-1">
         <section>
-          <div className="flex items-center gap-2 mb-6">
-            <h2 className="uppercase font-black tracking-tighter text-sm flex-1">
-              LOG_ENTRIES
+          <div className="flex items-center gap-4 mb-8">
+            <h2 className="uppercase font-bold tracking-[0.2em] text-[10px] text-[#1a1a1a]/40">
+              Selected Entries
             </h2>
-            <div className="flex gap-1">
-              {[1,2,3,4,5].map(i => <div key={i} className="w-1.5 h-1.5 rounded-full bg-(--paper-foreground)/10" />)}
-            </div>
+            <div className="h-px bg-black/5 flex-1" />
           </div>
-          <div className="receipt-thoughts pl-2 space-y-4">
+          <div className="receipt-thoughts space-y-8">
             <BlogPosts />
           </div>
         </section>
 
-        <div className="mt-auto pt-16 flex flex-col items-center gap-6">
-          <div className="relative w-full">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-(--paper-foreground)/10" />
-            </div>
-            <div className="relative flex justify-center text-[8px] uppercase font-bold text-(--paper-foreground)/40 bg-(--paper) px-4 tracking-[0.5em]">
-              END_OF_TRANSMISSION
-            </div>
+        <div className="mt-auto pt-20 flex flex-col items-center gap-8">
+          <div className="flex items-center gap-6 w-full opacity-20">
+            <div className="h-px bg-black flex-1" />
+            <div className="text-[10px] font-serif italic">Fin.</div>
+            <div className="h-px bg-black flex-1" />
           </div>
           
-          <div className="flex flex-col items-center gap-2">
-            <Barcode className="opacity-60 mix-blend-multiply h-8" />
-            <div className="text-[10px] opacity-40 font-mono tracking-widest">
-              TH_LOG_01001
+          <div className="flex flex-col items-center gap-3">
+            <div className="text-[9px] opacity-40 font-mono tracking-[0.5em] uppercase">
+              BT Norris // 2026
             </div>
+            <Barcode className="opacity-20 h-6" />
           </div>
         </div>
       </div>

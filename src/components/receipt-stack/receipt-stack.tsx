@@ -249,7 +249,7 @@ export function ReceiptStack({
       />
       <motion.div
         className={cn(
-          "flex flex-col items-center justify-center isolate pb-12",
+          "flex flex-col items-center justify-center isolate pb-12 min-h-[600px] md:min-h-[800px]",
           isSubpage ? "fixed bottom-0 left-0 right-0 z-10" : "relative z-0"
         )}
         style={{ clipPath: "inset(-100vh -100vw 0 -100vw)", contain: "layout" }}
@@ -330,21 +330,16 @@ export function ReceiptStack({
                     : "absolute top-0 left-0 cursor-pointer"
                 )}
               >
-                {/* Shadow element behind content */}
-                <div
-                  className={cn(
-                    "absolute inset-4 rounded-sm bg-black/0",
-                    isFront
-                      ? "shadow-[0_8px_24px_rgba(0,0,0,0.25)]"
-                      : "shadow-[0_2px_8px_rgba(0,0,0,0.1)]"
-                  )}
-                  style={{ transform: "translateZ(0)" }}
-                />
                 <div
                   className={cn(
                     "relative h-full w-full",
                     !isFront && "pointer-events-none"
                   )}
+                  style={{
+                    filter: isFront 
+                      ? "drop-shadow(0 12px 24px rgba(0,0,0,0.2))" 
+                      : "drop-shadow(0 4px 8px rgba(0,0,0,0.1))"
+                  }}
                   aria-hidden={!isFront}
                 >
                   {receiptMap[routeId]}
