@@ -4,6 +4,7 @@ import { useRef, useState, useCallback } from "react";
 import { motion, PanInfo, useDragControls } from "framer-motion";
 import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { STACK_SPRING, getStackOffset } from "@/lib/motion/stack";
 
 type RouteId = "home" | "thoughts" | "artifacts";
 
@@ -52,25 +53,7 @@ const DRAG_UNLOCK_RESET_DELAY = 50; // ms to wait before resetting drag state
 const DRAG_ELASTICITY = 1; // drag resistance (0 = stiff, 1 = loose)
 
 // Animation constants
-const SPRING_CONFIG = { type: "spring" as const, stiffness: 200, damping: 25 };
 const HOVER_SPREAD_MULTIPLIER = 1.5;
-
-// Seed-based pseudo-random for consistent but varied offsets
-const seededRandom = (seed: number) => {
-  const x = Math.sin(seed * 9999) * 10000;
-  return x - Math.floor(x);
-};
-
-const getOffset = (position: number) => {
-  const direction = position % 2 === 0 ? -1 : 1;
-  const baseX = direction * (30 + position * 15);
-
-  return {
-    x: baseX + (seededRandom(position * 1.1) - 0.5) * 20,
-    y: (seededRandom(position * 2.2) - 0.5) * 20 + position * 5,
-    rotate: direction * (3 + seededRandom(position * 3.3) * 5),
-  };
-};
 
 interface ReceiptStackProps {
   homeReceipt: React.ReactNode;
@@ -175,6 +158,11 @@ export function ReceiptStack({
     router.push(hrefForRoute(nextRoute));
   }, [order, router]);
 
+  const rotateBackward = useCallback(() => {
+    const prevRoute = order[2];
+    router.push(hrefForRoute(prevRoute));
+  }, [order, router]);
+
   const handleDragEnd = (_: unknown, info: PanInfo) => {
     const velocity = Math.sqrt(info.velocity.x ** 2 + info.velocity.y ** 2);
     const isHorizontalEnough =
@@ -203,12 +191,45 @@ export function ReceiptStack({
     bringToFront(routeId);
   };
 
+  const handleCardKeyDown = (
+    e: React.KeyboardEvent,
+    routeId: RouteId,
+    position: number
+  ) => {
+    // Disable keyboard interactions when interactions are locked
+    if (lockStackInteractions) return;
+    
+    if (position === 0) {
+      // Front card: arrow keys rotate the stack
+      if (e.key === "ArrowRight") {
+        e.preventDefault();
+        rotateForward();
+      } else if (e.key === "ArrowLeft") {
+        e.preventDefault();
+        rotateBackward();
+      }
+      return;
+    }
+
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      bringToFront(routeId);
+    }
+  };
+
   if (shouldHideStack) {
     return null;
   }
 
   const handleOverlayClick = () => {
     if (isSubpage) {
+      router.push(hrefForRoute(order[0]));
+    }
+  };
+
+  const handleOverlayKeyDown = (e: React.KeyboardEvent) => {
+    if (isSubpage && (e.key === "Enter" || e.key === " ")) {
+      e.preventDefault();
       router.push(hrefForRoute(order[0]));
     }
   };
@@ -229,26 +250,45 @@ export function ReceiptStack({
         animate={{
           y: isSubpage ? (isCollapsedHovered ? "85%" : "90%") : 0,
         }}
-        transition={SPRING_CONFIG}
+        transition={STACK_SPRING}
         onMouseEnter={() => isSubpage && setIsCollapsedHovered(true)}
         onMouseLeave={() => isSubpage && setIsCollapsedHovered(false)}
       >
         <div
-          className="relative w-full max-w-xl flex items-center justify-center"
+          className={cn(
+            "relative w-full max-w-xl flex items-center justify-center",
+            !lockStackInteractions &&
+              "focus:outline-none focus:ring-2 focus:ring-black/20 focus:ring-offset-2 focus:ring-offset-transparent rounded-sm"
+          )}
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
+          tabIndex={!lockStackInteractions ? 0 : -1}
+          role="group"
+          aria-label="Receipt stack navigation"
+          onKeyDown={(e) => {
+            if (lockStackInteractions) return;
+            if (e.key === "ArrowRight") {
+              e.preventDefault();
+              rotateForward();
+            } else if (e.key === "ArrowLeft") {
+              e.preventDefault();
+              rotateBackward();
+            }
+          }}
         >
           {/* Stack-area overlay for subpages - intercepts clicks to navigate back */}
           {lockStackInteractions && (
-            <div
-              className="absolute inset-0 z-10 cursor-pointer"
+            <button
+              type="button"
+              className="absolute inset-0 z-10 cursor-pointer focus:outline-none focus:ring-2 focus:ring-black/20 focus:ring-offset-2 focus:ring-offset-transparent rounded-sm"
               onClick={handleOverlayClick}
+              onKeyDown={handleOverlayKeyDown}
               aria-label={`Go to ${order[0]} page`}
             />
           )}
           {order.map((routeId, position) => {
             const isFront = position === 0;
-            const offset = getOffset(position);
+            const offset = getStackOffset(position);
             const breathe =
               showSpread && !isFront ? HOVER_SPREAD_MULTIPLIER : 1;
 
@@ -284,15 +324,23 @@ export function ReceiptStack({
                         scale: 1 - position * 0.01,
                       }
                 }
-                transition={SPRING_CONFIG}
+                transition={STACK_SPRING}
                 onClick={() => handleCardClick(routeId, position)}
+                onKeyDown={(e) => handleCardKeyDown(e, routeId, position)}
+                tabIndex={!isFront && !lockStackInteractions ? 0 : -1}
+                role={!isFront && !lockStackInteractions ? "button" : undefined}
+                aria-label={
+                  !isFront && !lockStackInteractions
+                    ? `Navigate to ${routeId} page`
+                    : undefined
+                }
                 className={cn(
                   "w-full",
                   isFront
                     ? lockStackInteractions
                       ? "relative cursor-default"
                       : "relative cursor-grab active:cursor-grabbing"
-                    : "absolute top-0 left-0 cursor-pointer"
+                    : "absolute top-0 left-0 cursor-pointer focus:outline-none focus:ring-2 focus:ring-black/20 focus:ring-offset-2 focus:ring-offset-transparent rounded-sm"
                 )}
               >
                 {/* Shadow element behind content */}

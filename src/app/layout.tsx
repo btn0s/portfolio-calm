@@ -125,7 +125,6 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  console.log(React.Children.count(children));
   const hasChildren = React.Children.count(children) > 1;
 
   return (

@@ -5,6 +5,7 @@ import { motion, PanInfo } from "framer-motion";
 import { Barcode } from "@/components/barcode";
 import { PixelPattern } from "@/components/pixel-pattern";
 import { cn } from "@/lib/utils";
+import { STACK_SPRING, getStackOffset } from "@/lib/motion/stack";
 
 const CARDS = [
   {
@@ -45,23 +46,6 @@ const CARDS = [
   },
 ];
 
-// Seed-based pseudo-random for consistent but varied offsets
-const seededRandom = (seed: number) => {
-  const x = Math.sin(seed * 9999) * 10000;
-  return x - Math.floor(x);
-};
-
-const getOffset = (position: number) => {
-  // Alternate left/right based on position
-  const direction = position % 2 === 0 ? -1 : 1;
-  const baseX = direction * (30 + position * 15);
-  
-  return {
-    x: baseX + (seededRandom(position * 1.1) - 0.5) * 20,
-    y: (seededRandom(position * 2.2) - 0.5) * 20 + position * 5,
-    rotate: direction * (3 + seededRandom(position * 3.3) * 5),
-  };
-};
 
 export default function CardStackPage() {
   const [index, setIndex] = useState(0);
@@ -102,7 +86,7 @@ export default function CardStackPage() {
         {CARDS.map((card, i) => {
           const position = (i - index + CARDS.length) % CARDS.length;
           const isFront = position === 0;
-          const offset = getOffset(position);
+          const offset = getStackOffset(position);
           const breathe = showSpread && !isFront ? 1.5 : 1;
 
           return (
@@ -115,7 +99,7 @@ export default function CardStackPage() {
                 rotate: isFront ? 0 : offset.rotate * breathe,
                 scale: 1 - position * 0.01,
               }}
-              transition={{ type: "spring", stiffness: 200, damping: 25 }}
+              transition={STACK_SPRING}
               drag={isFront}
               dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
               dragElastic={0.6}

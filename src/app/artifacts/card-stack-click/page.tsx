@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { Barcode } from "@/components/barcode";
 import { PixelPattern } from "@/components/pixel-pattern";
 import { cn } from "@/lib/utils";
+import { STACK_SPRING, getStackOffset } from "@/lib/motion/stack";
 
 const CARDS = [
   {
@@ -36,22 +37,6 @@ const CARDS = [
   },
 ];
 
-// Seed-based pseudo-random for consistent but varied offsets
-const seededRandom = (seed: number) => {
-  const x = Math.sin(seed * 9999) * 10000;
-  return x - Math.floor(x);
-};
-
-const getOffset = (position: number) => {
-  const direction = position % 2 === 0 ? -1 : 1;
-  const baseX = direction * (30 + position * 15);
-
-  return {
-    x: baseX + (seededRandom(position * 1.1) - 0.5) * 20,
-    y: (seededRandom(position * 2.2) - 0.5) * 20 + position * 5,
-    rotate: direction * (3 + seededRandom(position * 3.3) * 5),
-  };
-};
 
 export default function CardStackClickPage() {
   // order is "front -> back" as indices into CARDS
@@ -70,7 +55,7 @@ export default function CardStackClickPage() {
         {order.map((cardIndex, position) => {
           const card = CARDS[cardIndex];
           const isFront = position === 0;
-          const offset = getOffset(position);
+          const offset = getStackOffset(position);
           const breathe = showSpread && !isFront ? 1.5 : 1;
 
           return (
@@ -83,7 +68,7 @@ export default function CardStackClickPage() {
                 rotate: isFront ? 0 : offset.rotate * breathe,
                 scale: 1 - position * 0.01,
               }}
-              transition={{ type: "spring", stiffness: 200, damping: 25 }}
+              transition={STACK_SPRING}
               onClick={
                 isFront
                   ? undefined
