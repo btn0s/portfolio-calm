@@ -3,7 +3,7 @@ import localFont from "next/font/local";
 import "./globals.css";
 import { Navbar } from "@/components/nav";
 import Footer from "@/components/footer";
-import { Analytics } from "@vercel/analytics/react";
+import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { baseUrl } from "./sitemap";
 import { ReceiptStack } from "@/components/receipt-stack/receipt-stack";

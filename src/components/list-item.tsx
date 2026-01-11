@@ -43,7 +43,7 @@ export function ListItem({
         )}
       </div>
       {description && (
-        <p className="text-[10px] leading-tight opacity-70 mb-1">
+        <p className="text-[10px] leading-tight opacity-70 mb-1 max-w-[75%]">
           {description}
         </p>
       )}
@@ -62,7 +62,7 @@ export function ListItem({
       rel={rel}
       className={cn(
         "group block transition-all",
-        href && "border-l-2 border-transparent hover:border-black/5 hover:pl-2",
+        href && "border-l-2 border-transparent hover:border-current/20 hover:pl-2",
         className
       )}
     >
