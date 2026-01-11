@@ -25,6 +25,7 @@ export function Navbar() {
         <div className="flex flex-row items-baseline">
           <Link
             href="/"
+            prefetch
             className="flex items-center gap-1 mr-6 text-foreground"
           >
             <Image
@@ -41,6 +42,7 @@ export function Navbar() {
                 <Link
                   key={path}
                   href={path}
+                  prefetch
                   className="transition-all hover:text-foreground text-sm flex align-middle relative py-1 px-2 m-1 text-muted-foreground"
                 >
                   {name}
