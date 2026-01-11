@@ -112,14 +112,11 @@ export function ArtifactsReceipt() {
           </div>
 
           <div className="grid grid-cols-1 gap-px bg-white/10 border border-white/10">
-            {ARTIFACTS.map((artifact, i) => (
+            {ARTIFACTS.map((artifact) => (
               <div 
                 key={artifact.title} 
                 className="bg-[#0047ab] p-5 hover:bg-white/5 transition-colors group relative border-b border-white/5 last:border-0"
               >
-                <div className="absolute left-0 top-0 text-[8px] opacity-20 font-mono p-1 text-white">
-                  [{String(i + 1).padStart(2, '0')}]
-                </div>
                 <ListItem
                   title={artifact.title}
                   description={artifact.description}

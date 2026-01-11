@@ -82,7 +82,7 @@ export function ReceiptShell({
     receipt: "p-6 sm:p-8",
     dossier: "p-6 sm:p-8",
     blueprint: "p-5 sm:p-10",
-    stationery: "pl-16 pr-6 sm:pl-24 sm:pr-8",
+    stationery: "pl-12 pr-6 sm:pl-16 sm:pr-8",
   };
 
   return (

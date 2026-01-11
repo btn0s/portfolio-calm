@@ -13,12 +13,9 @@ export function BlogPosts() {
 
   return (
     <div className="space-y-6">
-      {sortedBlogs.map((post, i) => (
+      {sortedBlogs.map((post) => (
         <div key={post.slug} className="relative group">
           <div className="absolute -left-3 top-0 bottom-0 w-0.5 bg-foreground/10 group-hover:bg-foreground/40 transition-colors" />
-          <div className="absolute -left-6 top-1 text-[8px] opacity-10 font-mono font-bold">
-            0{i + 1}
-          </div>
           <ListItem
             title={post.metadata.title}
             description={post.metadata.summary}

@@ -19,7 +19,7 @@ export function ThoughtsReceipt() {
   return (
     <ReceiptShell variant="stationery" className="flex flex-col relative">
       {/* Decorative red margin line for stationery feel */}
-      <div className="absolute left-10 top-0 bottom-0 w-px bg-red-500/10 z-0 pointer-events-none sm:left-14" />
+      <div className="absolute left-8 top-0 bottom-0 w-px bg-red-500/10 z-0 pointer-events-none sm:left-12" />
       
       <div className="flex flex-col mb-12 gap-8 relative z-10">
         <div className="flex justify-between items-end border-b border-black/10 pb-6">
