@@ -1,6 +1,7 @@
 import { ReceiptShell } from "@/components/receipt/receipt-shell";
 import { Barcode } from "@/components/barcode";
 import { ListItem } from "@/components/list-item";
+import { Signature } from "@/components/signature";
 
 const ARTIFACTS = [
   {
@@ -103,8 +104,6 @@ export function ArtifactsReceipt() {
 
       <div className="flex flex-col flex-1">
         <section className="relative">
-          <div className="absolute -left-5 top-0 bottom-0 w-5 border-y border-r border-white/10 pointer-events-none sm:-left-10 sm:w-10" />
-          
           <div className="flex items-center gap-5 mb-5">
             <div className="w-2.5 h-2.5 bg-white" />
             <h2 className="uppercase font-black tracking-widest text-xs flex-1 border-b-2 border-white pb-1 text-white">
@@ -138,8 +137,8 @@ export function ArtifactsReceipt() {
           <div className="grid grid-cols-2 w-full gap-8">
             <div className="flex flex-col gap-1">
               <span className="text-[8px] font-black uppercase tracking-widest opacity-40 text-white">AUTHORIZATION</span>
-              <div className="h-10 border border-white/20 flex items-center justify-center italic text-xs opacity-60 font-serif text-white">
-                BT Norris
+              <div className="h-10 border border-white/20 flex items-center justify-center italic text-xs opacity-90 font-serif text-white relative">
+                <Signature className="w-40 h-auto absolute -rotate-1" />
               </div>
             </div>
             <div className="flex flex-col gap-1 items-end">
