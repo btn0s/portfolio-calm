@@ -43,7 +43,7 @@ export function ListItem({
         )}
       </div>
       {description && (
-        <p className="text-[10px] leading-tight opacity-70 mb-1">
+        <p className="text-[10px] leading-tight opacity-70 mb-1 max-w-[75%]">
           {description}
         </p>
       )}
