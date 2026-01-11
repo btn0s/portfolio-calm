@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, useCallback } from "react";
+import { useRef, useState, useCallback, useEffect } from "react";
 import { motion, PanInfo, useDragControls } from "framer-motion";
 import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
@@ -163,6 +163,37 @@ export function ReceiptStack({
     router.push(hrefForRoute(prevRoute));
   }, [order, router]);
 
+  // Global arrow key handler for route switching
+  useEffect(() => {
+    if (lockStackInteractions) return;
+
+    const handleGlobalKeyDown = (e: KeyboardEvent) => {
+      // Ignore if user is typing in an editable element
+      const target = e.target as HTMLElement;
+      if (
+        target.tagName === "INPUT" ||
+        target.tagName === "TEXTAREA" ||
+        target.tagName === "SELECT" ||
+        target.isContentEditable
+      ) {
+        return;
+      }
+
+      if (e.key === "ArrowRight") {
+        e.preventDefault();
+        rotateForward();
+      } else if (e.key === "ArrowLeft") {
+        e.preventDefault();
+        rotateBackward();
+      }
+    };
+
+    window.addEventListener("keydown", handleGlobalKeyDown);
+    return () => {
+      window.removeEventListener("keydown", handleGlobalKeyDown);
+    };
+  }, [lockStackInteractions, rotateForward, rotateBackward]);
+
   const handleDragEnd = (_: unknown, info: PanInfo) => {
     const velocity = Math.sqrt(info.velocity.x ** 2 + info.velocity.y ** 2);
     const isHorizontalEnough =
@@ -191,31 +222,6 @@ export function ReceiptStack({
     bringToFront(routeId);
   };
 
-  const handleCardKeyDown = (
-    e: React.KeyboardEvent,
-    routeId: RouteId,
-    position: number
-  ) => {
-    // Disable keyboard interactions when interactions are locked
-    if (lockStackInteractions) return;
-    
-    if (position === 0) {
-      // Front card: arrow keys rotate the stack
-      if (e.key === "ArrowRight") {
-        e.preventDefault();
-        rotateForward();
-      } else if (e.key === "ArrowLeft") {
-        e.preventDefault();
-        rotateBackward();
-      }
-      return;
-    }
-
-    if (e.key === "Enter" || e.key === " ") {
-      e.preventDefault();
-      bringToFront(routeId);
-    }
-  };
 
   if (shouldHideStack) {
     return null;
@@ -255,26 +261,9 @@ export function ReceiptStack({
         onMouseLeave={() => isSubpage && setIsCollapsedHovered(false)}
       >
         <div
-          className={cn(
-            "relative w-full max-w-xl flex items-center justify-center",
-            !lockStackInteractions &&
-              "focus:outline-none focus:ring-2 focus:ring-black/20 focus:ring-offset-2 focus:ring-offset-transparent rounded-sm"
-          )}
+          className="relative w-full max-w-xl flex items-center justify-center"
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
-          tabIndex={!lockStackInteractions ? 0 : -1}
-          role="group"
-          aria-label="Receipt stack navigation"
-          onKeyDown={(e) => {
-            if (lockStackInteractions) return;
-            if (e.key === "ArrowRight") {
-              e.preventDefault();
-              rotateForward();
-            } else if (e.key === "ArrowLeft") {
-              e.preventDefault();
-              rotateBackward();
-            }
-          }}
         >
           {/* Stack-area overlay for subpages - intercepts clicks to navigate back */}
           {lockStackInteractions && (
@@ -326,12 +315,10 @@ export function ReceiptStack({
                 }
                 transition={STACK_SPRING}
                 onClick={() => handleCardClick(routeId, position)}
-                onKeyDown={(e) => handleCardKeyDown(e, routeId, position)}
-                tabIndex={!isFront && !lockStackInteractions ? 0 : -1}
-                role={!isFront && !lockStackInteractions ? "button" : undefined}
+                tabIndex={isFront && !lockStackInteractions ? 0 : -1}
                 aria-label={
-                  !isFront && !lockStackInteractions
-                    ? `Navigate to ${routeId} page`
+                  isFront && !lockStackInteractions
+                    ? `Receipt stack navigation. Use Left and Right arrow keys to switch routes.`
                     : undefined
                 }
                 className={cn(
@@ -339,8 +326,8 @@ export function ReceiptStack({
                   isFront
                     ? lockStackInteractions
                       ? "relative cursor-default"
-                      : "relative cursor-grab active:cursor-grabbing"
-                    : "absolute top-0 left-0 cursor-pointer focus:outline-none focus:ring-2 focus:ring-black/20 focus:ring-offset-2 focus:ring-offset-transparent rounded-sm"
+                      : "relative cursor-grab active:cursor-grabbing focus:outline-none focus:ring-2 focus:ring-black/20 focus:ring-offset-2 focus:ring-offset-transparent rounded-sm"
+                    : "absolute top-0 left-0 cursor-pointer"
                 )}
               >
                 {/* Shadow element behind content */}
