@@ -1,40 +1,45 @@
 "use client";
 
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useRef, useState, useCallback } from "react";
 import { motion, PanInfo, useDragControls } from "framer-motion";
 import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 
 type RouteId = "home" | "thoughts" | "artifacts";
 
-const ROUTE_MAP: Record<string, RouteId> = {
-  "/": "home",
-  "/thoughts": "thoughts",
-  "/artifacts": "artifacts",
+type StackRoute = {
+  id: RouteId;
+  href: string;
+  match: (path: string) => boolean;
 };
 
-const ROUTE_HREFS: Record<RouteId, string> = {
-  home: "/",
-  thoughts: "/thoughts",
-  artifacts: "/artifacts",
-};
+const STACK_ROUTES: StackRoute[] = [
+  { id: "home", href: "/", match: (p) => p === "/" },
+  {
+    id: "thoughts",
+    href: "/thoughts",
+    match: (p) => p === "/thoughts" || p.startsWith("/thoughts/"),
+  },
+  {
+    id: "artifacts",
+    href: "/artifacts",
+    match: (p) => p === "/artifacts" || p.startsWith("/artifacts/"),
+  },
+];
 
-// Helper to get the current route from any path, including subpages
-const getRouteFromPath = (path: string): RouteId => {
-  // Try exact match first
-  if (ROUTE_MAP[path]) {
-    return ROUTE_MAP[path];
-  }
-  
-  // Check if it's a subpage
-  if (path.startsWith("/thoughts/")) {
-    return "thoughts";
-  } else if (path.startsWith("/artifacts/")) {
-    return "artifacts";
-  }
-  
-  return "home";
-};
+function classifyPath(pathname: string) {
+  const route =
+    STACK_ROUTES.find((r) => r.match(pathname))?.id ?? "home";
+  const routeConfig = STACK_ROUTES.find((r) => r.id === route)!;
+  const isSubpage = pathname !== routeConfig.href;
+  const lockStackInteractions = isSubpage;
+  const shouldHideStack = pathname === "/me";
+  return { route, isSubpage, lockStackInteractions, shouldHideStack };
+}
+
+function hrefForRoute(routeId: RouteId) {
+  return STACK_ROUTES.find((r) => r.id === routeId)!.href;
+}
 
 // Gesture tuning constants
 const FLICK_VELOCITY_THRESHOLD = 150; // velocity needed to change page
@@ -82,36 +87,21 @@ export function ReceiptStack({
   const router = useRouter();
   const [isHovered, setIsHovered] = useState(false);
   const [isCollapsedHovered, setIsCollapsedHovered] = useState(false);
-  const isNavigatingRef = useRef(false);
 
-  // Detect if we're on a detail page (thoughts posts or artifact pages)
-  const isSubpage =
-    pathname.startsWith("/thoughts/") || 
-    (pathname.startsWith("/artifacts/") && pathname !== "/artifacts");
-  
-  // Lock stack interactions on subpages (no drag, no card clicks)
-  const lockStackInteractions = isSubpage;
-  
-  // Hide stack on pages like /me
-  const shouldHideStack = pathname === "/me";
+  const { route, isSubpage, lockStackInteractions, shouldHideStack } =
+    classifyPath(pathname);
 
   // "Intent Gatekeeper" - only unlock drag after confirming horizontal intent
   const [dragUnlocked, setDragUnlocked] = useState(false);
   const [verticalLocked, setVerticalLocked] = useState(false);
   const gestureStartRef = useRef<{ x: number; y: number } | null>(null);
   const dragControls = useDragControls();
-  const pendingEventRef = useRef<React.PointerEvent | null>(null);
   const dragConstraintsRef = useRef<HTMLDivElement>(null);
 
   const handlePointerDown = useCallback((e: React.PointerEvent) => {
     gestureStartRef.current = { x: e.clientX, y: e.clientY };
-    pendingEventRef.current = e;
     setDragUnlocked(false);
     setVerticalLocked(false);
-    console.log("[Gatekeeper] ⬇️ Pointer down", {
-      start: gestureStartRef.current,
-      pointerType: e.pointerType,
-    });
   }, []);
 
   const handlePointerMove = useCallback(
@@ -127,13 +117,6 @@ export function ReceiptStack({
       const dx = Math.abs(e.clientX - gestureStartRef.current.x);
       const dy = Math.abs(e.clientY - gestureStartRef.current.y);
 
-      console.log("[Gatekeeper] 👆 Pointer move", {
-        dx: dx.toFixed(1),
-        dy: dy.toFixed(1),
-        threshold: INTENT_THRESHOLD,
-        ratio: dx > 0 ? (dy / dx).toFixed(2) : "N/A",
-      });
-
       // Only decide after moving past the threshold
       if (dx > INTENT_THRESHOLD || dy > INTENT_THRESHOLD) {
         // Vertical cone is ~10deg from pure vertical
@@ -141,20 +124,11 @@ export function ReceiptStack({
 
         if (isNearlyPureVertical) {
           // Vertical intent - still allow drag but lock to vertical only
-          console.log(
-            "[Gatekeeper] ⛔ VERTICAL intent → locking to vertical drag",
-            { dx, dy, ratio: (dy / dx).toFixed(1) }
-          );
           setVerticalLocked(true);
           setDragUnlocked(true);
           dragControls.start(e, { snapToCursor: false });
         } else {
           // Horizontal intent confirmed - start drag with the current event
-          console.log("[Gatekeeper] ✅ HORIZONTAL intent → starting drag", {
-            dx,
-            dy,
-            ratio: (dy / dx).toFixed(1),
-          });
           setDragUnlocked(true);
           // Start drag with the CURRENT move event (not the original down event)
           dragControls.start(e, { snapToCursor: false });
@@ -165,24 +139,18 @@ export function ReceiptStack({
   );
 
   const handlePointerUp = useCallback(() => {
-    console.log("[Gatekeeper] ⬆️ Pointer up", {
-      wasUnlocked: dragUnlocked,
-      wasVerticalLocked: verticalLocked,
-    });
     gestureStartRef.current = null;
-    pendingEventRef.current = null;
     // Small delay to let Framer Motion's dragEnd fire first
     setTimeout(() => {
-      console.log("[Gatekeeper] 🔒 Resetting drag state");
       setDragUnlocked(false);
       setVerticalLocked(false);
     }, DRAG_UNLOCK_RESET_DELAY);
-  }, [dragUnlocked, verticalLocked]);
+  }, []);
 
-  const getInitialOrder = (
-    currentPath: string
+  // Build order from current route (derived from pathname)
+  const getOrderFromRoute = (
+    currentRoute: RouteId
   ): [RouteId, RouteId, RouteId] => {
-    const currentRoute = getRouteFromPath(currentPath);
     const routes: RouteId[] = ["home", "thoughts", "artifacts"];
     const currentIndex = routes.indexOf(currentRoute);
     return [
@@ -192,29 +160,7 @@ export function ReceiptStack({
     ] as [RouteId, RouteId, RouteId];
   };
 
-  const [order, setOrder] = useState<[RouteId, RouteId, RouteId]>(() =>
-    getInitialOrder(pathname)
-  );
-
-  // Sync order when pathname changes (from navbar clicks, back/forward, etc.)
-  useEffect(() => {
-    if (isNavigatingRef.current) {
-      isNavigatingRef.current = false;
-      return;
-    }
-    
-    const currentRoute = getRouteFromPath(pathname);
-    
-    if (order[0] !== currentRoute) {
-      const routes: RouteId[] = ["home", "thoughts", "artifacts"];
-      const currentIndex = routes.indexOf(currentRoute);
-      setOrder([
-        routes[currentIndex],
-        routes[(currentIndex + 1) % 3],
-        routes[(currentIndex + 2) % 3],
-      ] as [RouteId, RouteId, RouteId]);
-    }
-  }, [pathname, order]);
+  const order = getOrderFromRoute(route);
 
   const receiptMap: Record<RouteId, React.ReactNode> = {
     home: homeReceipt,
@@ -224,6 +170,11 @@ export function ReceiptStack({
 
   const showSpread = isHovered;
 
+  const rotateForward = useCallback(() => {
+    const nextRoute = order[1];
+    router.push(hrefForRoute(nextRoute));
+  }, [order, router]);
+
   const handleDragEnd = (_: unknown, info: PanInfo) => {
     const velocity = Math.sqrt(info.velocity.x ** 2 + info.velocity.y ** 2);
     const isHorizontalEnough =
@@ -231,19 +182,17 @@ export function ReceiptStack({
       Math.abs(info.velocity.y) * HORIZONTAL_VELOCITY_RATIO;
 
     if (velocity > FLICK_VELOCITY_THRESHOLD && isHorizontalEnough) {
-      // Send front card to back, bring next card forward
-      setOrder((prev) => {
-        const [front, ...rest] = prev;
-        return [...rest, front] as [RouteId, RouteId, RouteId];
-      });
-
-      // Navigate to the new front card's route
-      const nextRoute = order[1];
-      isNavigatingRef.current = true;
-      router.push(ROUTE_HREFS[nextRoute]);
+      rotateForward();
     }
     // Otherwise Framer Motion snaps back automatically
   };
+
+  const bringToFront = useCallback(
+    (routeId: RouteId) => {
+      router.push(hrefForRoute(routeId));
+    },
+    [router]
+  );
 
   const handleCardClick = (routeId: RouteId, position: number) => {
     // Disable card clicks when interactions are locked
@@ -251,15 +200,7 @@ export function ReceiptStack({
     
     if (position === 0) return; // Front card is not clickable
 
-    // Update order to bring clicked card to front
-    setOrder((prev) => {
-      const next: RouteId[] = [routeId, ...prev.filter((id) => id !== routeId)];
-      return next as [RouteId, RouteId, RouteId];
-    });
-
-    // Navigate to the route
-    isNavigatingRef.current = true;
-    router.push(ROUTE_HREFS[routeId]);
+    bringToFront(routeId);
   };
 
   if (shouldHideStack) {
@@ -268,8 +209,7 @@ export function ReceiptStack({
 
   const handleOverlayClick = () => {
     if (isSubpage) {
-      const frontRoute = order[0];
-      router.push(ROUTE_HREFS[frontRoute]);
+      router.push(hrefForRoute(order[0]));
     }
   };
 
