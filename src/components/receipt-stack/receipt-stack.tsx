@@ -89,6 +89,9 @@ export function ReceiptStack({
     pathname.startsWith("/thoughts/") || 
     (pathname.startsWith("/artifacts/") && pathname !== "/artifacts");
   
+  // Lock stack interactions on subpages (no drag, no card clicks)
+  const lockStackInteractions = isSubpage;
+  
   // Hide stack on pages like /me
   const shouldHideStack = pathname === "/me";
 
@@ -243,6 +246,9 @@ export function ReceiptStack({
   };
 
   const handleCardClick = (routeId: RouteId, position: number) => {
+    // Disable card clicks when interactions are locked
+    if (lockStackInteractions) return;
+    
     if (position === 0) return; // Front card is not clickable
 
     // Update order to bring clicked card to front
@@ -274,18 +280,10 @@ export function ReceiptStack({
         ref={dragConstraintsRef}
         className="fixed top-20 left-6 right-6 bottom-6 pointer-events-none"
       />
-      {/* Overlay for subpages - captures clicks to navigate back */}
-      {isSubpage && (
-        <div
-          className="fixed inset-0 z-0 cursor-pointer"
-          onClick={handleOverlayClick}
-          aria-label={`Go to ${order[0]} page`}
-        />
-      )}
       <motion.div
         className={cn(
           "flex flex-col items-center justify-center isolate pb-12",
-          isSubpage ? "fixed bottom-0 left-0 right-0 z-10 cursor-pointer" : "relative z-0"
+          isSubpage ? "fixed bottom-0 left-0 right-0 z-10" : "relative z-0"
         )}
         style={{ clipPath: "inset(-100vh -100vw 0 -100vw)", contain: "layout" }}
         animate={{
@@ -294,13 +292,20 @@ export function ReceiptStack({
         transition={SPRING_CONFIG}
         onMouseEnter={() => isSubpage && setIsCollapsedHovered(true)}
         onMouseLeave={() => isSubpage && setIsCollapsedHovered(false)}
-        onClick={() => isSubpage && handleOverlayClick()}
       >
         <div
           className="relative w-full max-w-xl flex items-center justify-center"
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
         >
+          {/* Stack-area overlay for subpages - intercepts clicks to navigate back */}
+          {lockStackInteractions && (
+            <div
+              className="absolute inset-0 z-10 cursor-pointer"
+              onClick={handleOverlayClick}
+              aria-label={`Go to ${order[0]} page`}
+            />
+          )}
           {order.map((routeId, position) => {
             const isFront = position === 0;
             const offset = getOffset(position);
@@ -314,21 +319,21 @@ export function ReceiptStack({
                 style={{
                   zIndex: 3 - position,
                   // Start with none - we manually handle scroll pass-through
-                  touchAction: isFront ? "none" : undefined,
+                  touchAction: isFront && !lockStackInteractions ? "none" : undefined,
                 }}
-                drag={isFront ? (verticalLocked ? "y" : true) : false}
-                dragControls={isFront ? dragControls : undefined}
+                drag={isFront && !lockStackInteractions ? (verticalLocked ? "y" : true) : false}
+                dragControls={isFront && !lockStackInteractions ? dragControls : undefined}
                 dragListener={false} // We manually start drag via dragControls
                 dragSnapToOrigin={!verticalLocked} // Don't snap in vertical mode
                 dragElastic={DRAG_ELASTICITY}
                 dragConstraints={
-                  isFront && verticalLocked ? dragConstraintsRef : undefined
+                  isFront && verticalLocked && !lockStackInteractions ? dragConstraintsRef : undefined
                 }
-                onPointerDown={isFront ? handlePointerDown : undefined}
-                onPointerMove={isFront ? handlePointerMove : undefined}
-                onPointerUp={isFront ? handlePointerUp : undefined}
-                onPointerCancel={isFront ? handlePointerUp : undefined}
-                onDragEnd={isFront ? handleDragEnd : undefined}
+                onPointerDown={isFront && !lockStackInteractions ? handlePointerDown : undefined}
+                onPointerMove={isFront && !lockStackInteractions ? handlePointerMove : undefined}
+                onPointerUp={isFront && !lockStackInteractions ? handlePointerUp : undefined}
+                onPointerCancel={isFront && !lockStackInteractions ? handlePointerUp : undefined}
+                onDragEnd={isFront && !lockStackInteractions ? handleDragEnd : undefined}
                 animate={
                   isFront
                     ? { x: 0, y: 0, rotate: 0, scale: 1 }
@@ -344,7 +349,9 @@ export function ReceiptStack({
                 className={cn(
                   "w-full",
                   isFront
-                    ? "relative cursor-grab active:cursor-grabbing"
+                    ? lockStackInteractions
+                      ? "relative cursor-default"
+                      : "relative cursor-grab active:cursor-grabbing"
                     : "absolute top-0 left-0 cursor-pointer"
                 )}
               >
