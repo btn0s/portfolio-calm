@@ -113,6 +113,15 @@ export function ReceiptStack({
   const dragConstraintsRef = useRef<HTMLDivElement>(null);
 
   const handlePointerDown = useCallback((e: React.PointerEvent) => {
+    // Check if the click target is a link or inside a link
+    const target = e.target as HTMLElement;
+    const isLink = target.closest('a[href], [role="link"]');
+    
+    // If clicking on a link, don't interfere with the click
+    if (isLink) {
+      return;
+    }
+    
     // Don't prevent default here - we want links to work if it's just a click
     gestureStartRef.current = { x: e.clientX, y: e.clientY };
     dragUnlockedRef.current = false;
@@ -130,6 +139,13 @@ export function ReceiptStack({
       }
       if (dragUnlockedRef.current || scrollCommittedRef.current) {
         // Already committed to drag or scroll, let browser/Framer handle it
+        return;
+      }
+
+      // Check if we started on a link - if so, don't interfere
+      const target = e.target as HTMLElement;
+      const isLink = target.closest('a[href], [role="link"]');
+      if (isLink) {
         return;
       }
 
@@ -325,7 +341,9 @@ export function ReceiptStack({
         onDragEnd={isFront && !lockStackInteractions ? handleDragEnd : undefined}
         animate={
           isFront
-            ? { x: 0, y: 0, rotate: 0, scale: 1 }
+            ? isSubpage
+              ? { x: 0, rotate: 0, scale: 1 }
+              : { x: 0, y: 0, rotate: 0, scale: 1 }
             : isSubpage
             ? { x: 0, y: 0, rotate: 0, scale: 1 }
             : {
