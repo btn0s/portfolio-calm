@@ -426,6 +426,11 @@ export function ReceiptStack({
     // Only apply willChange when actively animating (front card dragable or back cards spreading)
     const wantsWillChange = (isFront && !lockStackInteractions) || showSpread;
     const dragEnabled = canDrag(isFront, lockStackInteractions);
+    const animation = getCardAnimation(isFront, isSubpage, offset, breathe, position);
+    // Initial state for back cards should match final state without spread to prevent animation on mount
+    const initialAnimation = !isFront 
+      ? getCardAnimation(isFront, isSubpage, offset, 1, position)
+      : undefined;
 
     return (
       <motion.div
@@ -443,7 +448,8 @@ export function ReceiptStack({
         onPointerUp={dragEnabled ? (e) => handlePointerUp(e) : undefined}
         onPointerCancel={dragEnabled ? (e) => handlePointerUp(e) : undefined}
         onDragEnd={dragEnabled ? handleDragEnd : undefined}
-        animate={getCardAnimation(isFront, isSubpage, offset, breathe, position)}
+        initial={initialAnimation}
+        animate={animation}
         transition={STACK_SPRING}
         onClick={() => handleCardClick(routeId, position)}
         tabIndex={dragEnabled ? 0 : -1}
