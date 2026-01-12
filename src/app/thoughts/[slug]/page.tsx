@@ -6,7 +6,6 @@ import { baseUrl } from '@/app/sitemap'
 import type { Metadata } from "next";
 import { Barcode } from '@/components/barcode'
 import { PixelPattern } from '@/components/pixel-pattern'
-import { EnableScroll } from '@/components/enable-scroll'
 
 export async function generateStaticParams() {
   try {
@@ -62,7 +61,6 @@ export default async function Post({
 
   return (
     <>
-      <EnableScroll />
       <section className="pb-32 max-w-2xl mx-auto">
       <script
         type="application/ld+json"

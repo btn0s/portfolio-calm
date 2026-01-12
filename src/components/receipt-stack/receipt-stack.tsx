@@ -72,9 +72,38 @@ export function ReceiptStack({
   const [isCollapsedHovered, setIsCollapsedHovered] = useState(false);
   // Only state needed for rendering: touchAction needs to update when intent is confirmed
   const [touchAction, setTouchAction] = useState<"pan-y" | "none">("pan-y");
+  const [hasHover, setHasHover] = useState(false);
 
   const { route, isSubpage, lockStackInteractions, shouldHideStack } =
     classifyPath(pathname);
+
+  // Detect if device supports hover (not touch-only)
+  useEffect(() => {
+    const mediaQuery = window.matchMedia("(hover: hover)");
+    setHasHover(mediaQuery.matches);
+    
+    const handleChange = (e: MediaQueryListEvent) => {
+      setHasHover(e.matches);
+    };
+    
+    mediaQuery.addEventListener("change", handleChange);
+    return () => mediaQuery.removeEventListener("change", handleChange);
+  }, []);
+
+  // Enable scrolling on subpages (mobile) without body class manipulation
+  useEffect(() => {
+    if (isSubpage && typeof window !== "undefined") {
+      // On mobile, body has overflow: hidden by default
+      // Enable scrolling for subpages by setting overflow directly
+      const isMobile = window.matchMedia("(max-width: 768px)").matches;
+      if (isMobile) {
+        document.body.style.overflow = "auto";
+        return () => {
+          document.body.style.overflow = "";
+        };
+      }
+    }
+  }, [isSubpage]);
 
   // "Intent Gatekeeper" - only unlock drag after confirming horizontal intent
   // Using refs instead of state to avoid React re-renders in the hot path
@@ -246,42 +275,20 @@ export function ReceiptStack({
     }
   };
 
-  return (
+  // Render cards - shared between subpage and main page
+  const renderCards = () => (
     <>
-      {/* Fixed drag constraints area */}
-      <div
-        ref={dragConstraintsRef}
-        className="fixed top-20 left-6 right-6 bottom-6 pointer-events-none"
-      />
-      <motion.div
-        className={cn(
-          "flex flex-col items-center justify-center isolate pb-12 min-h-[600px] md:min-h-[800px]",
-          isSubpage ? "fixed bottom-0 left-0 right-0 z-10" : "relative z-0"
-        )}
-        animate={{
-          y: isSubpage ? (isCollapsedHovered ? "90%" : "95%") : 0,
-        }}
-        transition={STACK_SPRING}
-        onMouseEnter={() => isSubpage && setIsCollapsedHovered(true)}
-        onMouseLeave={() => isSubpage && setIsCollapsedHovered(false)}
-      >
-        <div
-          className="relative w-full max-w-xl flex items-center justify-center"
-          style={{ minHeight: "inherit" }}
-          onMouseEnter={() => setIsHovered(true)}
-          onMouseLeave={() => setIsHovered(false)}
-        >
-          {/* Stack-area overlay for subpages - intercepts clicks to navigate back */}
-          {lockStackInteractions && (
-            <button
-              type="button"
-              className="absolute inset-0 z-10 cursor-pointer focus:outline-none focus:ring-2 focus:ring-black/20 focus:ring-offset-2 focus:ring-offset-transparent rounded-sm"
-              onClick={handleOverlayClick}
-              onKeyDown={handleOverlayKeyDown}
-              aria-label={`Go to ${order[0]} page`}
-            />
-          )}
-          {order.map((routeId, position) => {
+      {/* Stack-area overlay for subpages - intercepts clicks to navigate back */}
+      {lockStackInteractions && (
+        <button
+          type="button"
+          className="absolute inset-0 z-10 cursor-pointer focus:outline-none focus:ring-2 focus:ring-black/20 focus:ring-offset-2 focus:ring-offset-transparent rounded-sm"
+          onClick={handleOverlayClick}
+          onKeyDown={handleOverlayKeyDown}
+          aria-label={`Go to ${order[0]} page`}
+        />
+      )}
+      {order.map((routeId, position) => {
             const isFront = position === 0;
             const offset = getStackOffset(position);
             const breathe =
@@ -300,7 +307,7 @@ export function ReceiptStack({
                   position: "absolute",
                   top: 0,
                   left: 0,
-                  width: "100%",
+                  right: 0,
                   willChange: "transform",
                   // Start with pan-y to allow native vertical scroll until horizontal intent confirmed
                   touchAction: isFront && !lockStackInteractions ? touchAction : undefined,
@@ -360,8 +367,42 @@ export function ReceiptStack({
               </motion.div>
             );
           })}
-        </div>
-      </motion.div>
+    </>
+  );
+
+  return (
+    <>
+      {/* Fixed drag constraints area */}
+      <div
+        ref={dragConstraintsRef}
+        className="fixed top-20 left-6 right-6 bottom-6 pointer-events-none"
+      />
+      <div
+        className={cn(
+          isSubpage
+            ? "fixed bottom-0 left-0 right-0 z-10 px-4 md:left-1/2 md:right-auto md:-translate-x-1/2 md:max-w-xl md:px-0"
+            : "relative z-0"
+        )}
+      >
+        <motion.div
+          className="flex flex-col items-center justify-center isolate pb-12 min-h-[600px] md:min-h-[800px]"
+          animate={{
+            y: isSubpage ? (hasHover && isCollapsedHovered ? "90%" : "95%") : 0,
+          }}
+          transition={STACK_SPRING}
+          onMouseEnter={() => isSubpage && hasHover && setIsCollapsedHovered(true)}
+          onMouseLeave={() => isSubpage && hasHover && setIsCollapsedHovered(false)}
+        >
+          <div
+            className="relative w-full flex items-center justify-center"
+            style={{ minHeight: "inherit" }}
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
+          >
+            {renderCards()}
+          </div>
+        </motion.div>
+      </div>
     </>
   );
 }
