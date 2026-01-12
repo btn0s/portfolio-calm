@@ -1,0 +1,132 @@
+---
+title: "Scaling Backbone.com from Startup to Global Brand"
+publishedAt: "2022-08-01"
+summary: "How I designed and built Backbone's ecommerce store, migrating from Gatsby to Next.js and scaling it to a global audience."
+category: 'professional'
+---
+
+## The Problem
+
+When I joined Backbone in 2021, the site was on Gatsby and struggling to scale. The platform couldn't handle rapid growth, and the architecture made it difficult to iterate quickly. We needed a foundation that could support a global ecommerce operation.
+
+**The core issue:** Gatsby's build times were becoming prohibitive as the site grew. The static site generation model that worked for a small site didn't scale to thousands of product pages and dynamic content. We needed a platform that could handle both static and dynamic content efficiently.
+
+## What I Built
+
+I designed and built Backbone's ecommerce store on Next.js with headless Shopify, owning the front-end architecture from day one. The migration wasn't just about switching frameworks—it was about building systems that could handle rapid growth.
+
+**Key differentiator:** Rather than just migrating the existing site, I redesigned the architecture to support scale. The online game library expanded the site's SEO surface by over 10,000 pages, each pulling metadata, screenshots, and compatibility data from our Games DB, creating a scalable template system that generated pages automatically.
+
+<Image
+  src="/images/work/backbone/web/cover.jpg"
+  alt="Backbone.com homepage"
+  width={1600}
+  height={900}
+  className="w-full max-w-4xl my-8"
+/>
+
+## Technical Approach
+
+### Stack
+
+- **Framework**: Next.js (App Router)
+- **Ecommerce**: Headless Shopify
+- **Styling**: Tailwind CSS
+- **CMS**: Contentful for marketing content
+- **Search**: Algolia for product and game search
+
+### Architecture Decisions
+
+**Headless Shopify**
+
+Decoupling the frontend from Shopify's storefront gave us flexibility to build custom experiences while still leveraging Shopify's robust ecommerce backend. This architecture supported custom cart flows, bundle pricing, and international pricing that wouldn't have been possible with a standard Shopify theme.
+
+**Dynamic Page Generation**
+
+The game library used Next.js's dynamic routing to generate thousands of pages from the Games DB. Each game page pulled metadata, screenshots, and compatibility data automatically, creating a scalable template system that required no manual page creation.
+
+**Modular Marketing Layouts**
+
+Product detail pages (PDP) used a modular layout system that allowed marketing to customize page structure without code changes. This flexibility supported high-profile collaboration landing pages and seasonal campaigns.
+
+<Image
+  src="/images/work/backbone/web/backbone-web-home.png"
+  alt="Backbone.com homepage"
+  width={1600}
+  height={900}
+  className="w-full max-w-4xl my-8"
+/>
+
+<Image
+  src="/images/work/backbone/web/backbone-web-app.png"
+  alt="Backbone.com app ecosystem"
+  width={1600}
+  height={900}
+  className="w-full max-w-4xl my-8"
+/>
+
+## Key Design Decisions
+
+**Next.js over Gatsby**
+
+Gatsby's build times were becoming prohibitive. Next.js's hybrid rendering model allowed us to use static generation where it made sense and server-side rendering for dynamic content. This flexibility was essential as the site grew.
+
+**Headless architecture**
+
+Decoupling the frontend from Shopify gave us the flexibility to build custom experiences—custom cart flows, bundle pricing, international pricing—that wouldn't have been possible with a standard Shopify theme.
+
+**Template-driven page generation**
+
+Rather than manually creating thousands of game pages, I built a template system that generated them automatically from the Games DB. This approach scaled effortlessly as the database grew.
+
+<Image
+  src="/images/work/backbone/web/backbone-web-gdp.png"
+  alt="Backbone.com game detail page"
+  width={1600}
+  height={900}
+  className="w-full max-w-4xl my-8"
+/>
+
+<Image
+  src="/images/work/backbone/web/backbone-web-pdp.png"
+  alt="Backbone.com product detail page"
+  width={1600}
+  height={900}
+  className="w-full max-w-4xl my-8"
+/>
+
+<Image
+  src="/images/work/backbone/web/backbone-web-pdp-cart.png"
+  alt="Backbone.com cart experience"
+  width={1600}
+  height={900}
+  className="w-full max-w-4xl my-8"
+/>
+
+## What I Learned
+
+**Architecture enables scale**
+
+The migration wasn't just about switching frameworks. It was about building systems that could handle rapid growth. The template-driven page generation system scaled effortlessly as the Games DB grew from hundreds to thousands of entries.
+
+**Headless enables flexibility**
+
+Decoupling the frontend from Shopify gave us the flexibility to build custom experiences that wouldn't have been possible with a standard theme. Custom cart flows, bundle pricing, and international pricing all became possible with the headless architecture.
+
+**SEO scales with automation**
+
+The game library expanded the site's SEO surface by over 10,000 pages, but it required no manual page creation. The template system generated pages automatically, making SEO scale a byproduct of good architecture.
+
+## Results
+
+**Quantitative:**
+- Expanded SEO surface by over 10,000 pages through automated game library
+- Reduced build times compared to Gatsby
+- Supported rapid growth without architectural changes
+
+**Qualitative:**
+- Established a scalable foundation that supported multiple high-profile collaboration landing pages
+- Created a flexible architecture that enabled custom ecommerce experiences
+- Built systems that required minimal maintenance as the site grew
+
+The migration from Gatsby to Next.js wasn't just about switching frameworks—it was about building systems that could handle rapid growth. By designing for scale from the start, I created a foundation that supported Backbone's evolution from startup to global brand without requiring constant architectural changes.

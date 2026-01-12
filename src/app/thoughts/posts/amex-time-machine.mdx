@@ -1,0 +1,114 @@
+---
+title: "Modernizing Internal Developer Tooling at American Express"
+publishedAt: "2020-06-01"
+summary: "How I designed a bridge architecture that let us ship modern React experiences without disrupting the existing Angular platform."
+category: 'professional'
+---
+
+## The Problem
+
+We needed to ship modern React experiences for a customer care platform without disrupting the existing Angular system that agents relied on daily. The Angular application was mission-critical—any downtime or breaking changes would impact customer service operations.
+
+**The core issue:** We couldn't rewrite the entire application in React. The Angular codebase was too large, too critical, and too integrated with existing systems. But we also couldn't continue building new features in Angular—React offered better developer experience and access to modern tooling. We needed a way to coexist.
+
+## What I Built
+
+I designed a bridge architecture with three components: DOM integration to render React inside Angular, an event system for communication between frameworks, and state synchronization to keep data consistent. This allowed us to ship new React features incrementally while maintaining the existing Angular platform.
+
+**Key differentiator:** Rather than a big-bang rewrite, I built a coexistence strategy. React components could be embedded anywhere in the Angular application, communicate bidirectionally, and share state seamlessly. This approach let us modernize incrementally without disrupting operations.
+
+<Image
+  src="/images/work/amex/time-machine/cover.png"
+  alt="American Express Time Machine Architecture"
+  width={1600}
+  height={900}
+  className="w-full max-w-4xl my-8"
+/>
+
+## Technical Approach
+
+### Bridge Architecture
+
+**DOM Integration**
+
+React components rendered inside Angular's DOM using React's `createRoot` API. Angular components created container elements, and React took over rendering within those containers. This allowed React components to exist anywhere in the Angular application without requiring changes to Angular's routing or component structure.
+
+**Event System**
+
+Communication between frameworks happened through a custom event system. Angular components could dispatch events that React components listened to, and React components could dispatch events that Angular components handled. This bidirectional communication enabled seamless integration.
+
+**State Synchronization**
+
+Shared state lived in a Redux store that both frameworks could access. Angular components connected to Redux through a thin adapter layer, and React components used standard Redux hooks. This ensured data consistency across framework boundaries.
+
+<Image
+  src="/images/work/amex/time-machine/architecture-diagram.svg"
+  alt="Time Machine Architecture Diagram"
+  width={1600}
+  height={900}
+  className="w-full max-w-4xl my-8"
+/>
+
+### Implementation Details
+
+**React Root Management**
+
+Each React component instance created its own root using React's `createRoot` API. When Angular components mounted, they created container elements and initialized React roots. When Angular components unmounted, React roots were cleaned up to prevent memory leaks.
+
+**Event Bus**
+
+The event system used a simple pub/sub pattern. Events were typed with TypeScript interfaces, ensuring type safety across framework boundaries. Both Angular and React components could subscribe to events and dispatch them.
+
+**Redux Adapter**
+
+Angular components connected to Redux through a thin adapter that wrapped Redux's connect function. This adapter handled Angular's change detection, ensuring that Redux state changes triggered Angular component updates.
+
+<Image
+  src="/images/work/amex/time-machine/integration-flow.svg"
+  alt="Time Machine Integration Flow"
+  width={1600}
+  height={900}
+  className="w-full max-w-4xl my-8"
+/>
+
+## Key Design Decisions
+
+**Coexistence over migration**
+
+Rather than attempting a big-bang rewrite, I designed for coexistence. This approach let us modernize incrementally without disrupting operations. New features could be built in React while existing Angular features continued to work.
+
+**Shared state over duplication**
+
+Both frameworks accessed the same Redux store, ensuring data consistency. This eliminated the need to duplicate state management logic or synchronize data between frameworks.
+
+**Event system over direct coupling**
+
+The event system decoupled Angular and React components. Components communicated through events rather than direct references, making the system more maintainable and testable.
+
+## What I Learned
+
+**Incremental modernization is possible**
+
+You don't have to rewrite everything at once. The bridge architecture let us modernize incrementally, shipping new React features while maintaining the existing Angular platform. This approach reduced risk and allowed us to validate the architecture with real features.
+
+**Shared state simplifies integration**
+
+Having both frameworks access the same Redux store eliminated data synchronization complexity. State changes propagated automatically to both Angular and React components, ensuring consistency without manual coordination.
+
+**Event systems enable decoupling**
+
+The event system decoupled Angular and React components, making the system more maintainable. Components communicated through events rather than direct references, which made testing easier and reduced coupling.
+
+## Results
+
+**Quantitative:**
+- Enabled incremental React adoption without disrupting Angular operations
+- Reduced development time for new features through modern React tooling
+- Maintained zero downtime during the transition period
+
+**Qualitative:**
+- Established a pattern for incremental framework migration
+- Demonstrated that coexistence strategies can work for large-scale applications
+- Created a foundation that enabled gradual modernization over time
+
+The Time Machine architecture worked because it prioritized coexistence over migration. By designing a bridge that let React and Angular coexist, we could modernize incrementally without disrupting operations. The shared state and event system ensured seamless integration, while the DOM integration allowed React components to exist anywhere in the Angular application. This approach reduced risk and enabled gradual modernization over time.

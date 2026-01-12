@@ -1,0 +1,86 @@
+---
+title: "Building a Comprehensive Retro Gaming Emulator"
+publishedAt: "2025-04-01"
+summary: "How I pivoted from a native C++ approach to a WebView-based solution using EmulatorJS, completing Backbone's aggregator mission."
+category: 'professional'
+---
+
+## The Problem
+
+Retro gamers had no home in Backbone, yet they represent the exact engagement pattern that drives retention. Backbone's mission was to be the aggregator for mobile gaming, but retro gaming was missing from the ecosystem.
+
+**The core issue:** We needed to bring retro gaming into Backbone, but building native emulators for iOS and Android would require significant engineering effort and face GPL licensing challenges. We needed a solution that could ship quickly, work across platforms, and avoid licensing complications.
+
+## What I Built
+
+I built a comprehensive retro gaming emulator that shipped to iOS and Android in April 2025. After pivoting from a native C++ approach (blocked by GPL licensing), I moved to a WebView-based solution using EmulatorJS, reusing cloud gaming patterns that already felt native. Six UXR cycles refined ROM import and onboarding before launch.
+
+**Key differentiator:** Rather than building native emulators, I used a WebView-based approach that felt native through careful UX design. The solution reused patterns from Backbone's cloud gaming features, making it feel consistent with the rest of the platform.
+
+## Technical Approach
+
+### Architecture Pivot
+
+**Initial Approach: Native C++**
+
+The initial plan was to build native emulators using C++ libraries. This approach would have provided the best performance but was blocked by GPL licensing requirements that conflicted with App Store policies.
+
+**Final Approach: WebView + EmulatorJS**
+
+I pivoted to a WebView-based solution using EmulatorJS. This approach avoided licensing issues while still providing good performance through WebView optimization. The solution reused cloud gaming patterns that already felt native to Backbone users.
+
+### UX Refinement
+
+**Six UXR Cycles**
+
+Before launch, I ran six user research cycles focused on ROM import and onboarding. Each cycle revealed friction points that I addressed in the next iteration. This iterative approach ensured the experience felt polished despite the technical constraints.
+
+**ROM Import Flow**
+
+The ROM import flow needed to be simple and secure. Users could import ROMs from their device storage, and the system handled file validation and emulator configuration automatically.
+
+**Onboarding**
+
+The onboarding flow introduced users to the emulator's controls and features. I designed it to feel native to Backbone's existing patterns while explaining emulator-specific concepts.
+
+## Key Design Decisions
+
+**WebView over native**
+
+The WebView approach avoided GPL licensing issues while still providing good performance. By reusing cloud gaming patterns, the experience felt native even though it was web-based.
+
+**EmulatorJS over custom solution**
+
+Building a custom emulator would have taken significantly longer. EmulatorJS provided a solid foundation that I could optimize and customize for Backbone's needs.
+
+**UXR-driven iteration**
+
+Six UXR cycles ensured the experience felt polished despite technical constraints. Each cycle revealed friction points that I addressed, resulting in a smooth onboarding and ROM import experience.
+
+## What I Learned
+
+**Licensing constraints drive architecture**
+
+GPL licensing requirements blocked the native C++ approach, forcing a pivot to WebView. This constraint actually led to a faster path to shipping, demonstrating that constraints can drive better solutions.
+
+**WebView can feel native**
+
+With careful UX design, WebView-based solutions can feel native. By reusing cloud gaming patterns, the emulator felt consistent with the rest of Backbone's platform.
+
+**UXR compounds**
+
+Six UXR cycles might seem like overkill, but each cycle revealed new friction points. The iterative approach ensured the experience felt polished despite technical constraints.
+
+## Results
+
+**Quantitative:**
+- Shipped to iOS and Android in April 2025
+- Completed Backbone's aggregator mission by bringing retro gaming into the ecosystem
+- Validated the Labs approach as the first project to ship real production value
+
+**Qualitative:**
+- Demonstrated that WebView-based solutions can feel native with careful UX design
+- Established a pattern for handling licensing constraints through architecture decisions
+- Proved that the Labs program could deliver production value, not just experiments
+
+The Emulator project validated the Labs approach. By pivoting from native C++ to WebView when blocked by licensing, I found a faster path to shipping that still delivered a native-feeling experience. Six UXR cycles ensured the experience felt polished, and the project became the first Labs initiative to ship real production value. The emulator completed Backbone's aggregator mission by bringing retro gaming into the ecosystem, solving a retention problem by serving the exact engagement pattern that drives retention.

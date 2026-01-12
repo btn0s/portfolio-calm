@@ -1,0 +1,123 @@
+---
+title: "Design Tooling That Made Backbone Workflows 80% Faster"
+publishedAt: "2023-07-01"
+summary: "How I built a Figma plugin that connected designers directly to Backbone's game assets database, reducing asset management time by 80%."
+category: 'professional'
+---
+
+## The Problem
+
+Designers were spending hours manually searching and importing game assets—finding icons, downloading them, importing into Figma, multiple times a day. This workflow was repetitive, error-prone, and slowed down the entire design process.
+
+**The core issue:** Backbone had a comprehensive games database with thousands of assets, but designers had no direct way to access it from their design tools. They had to switch contexts, search through multiple interfaces, download files, and manually import them. This friction added up to significant time loss across the design team.
+
+## What I Built
+
+I designed and built a Figma plugin that connected design tools directly to Backbone's games database. One search, one click, asset in your design. The plugin became essential infrastructure for the design team and led to the creation of Backbone's Labs team.
+
+**Key differentiator:** Instead of building a separate asset management interface, I brought the assets directly into the design tool where designers were already working. This eliminated context switching and made asset discovery feel native to the design workflow.
+
+<Image
+  src="/images/work/backbone/games-db-figma-plugin/cover.png"
+  alt="Games DB Figma Plugin"
+  width={1600}
+  height={900}
+  className="w-full max-w-4xl my-8"
+/>
+
+## Technical Approach
+
+### Stack
+
+- **Framework**: React (Figma Plugin API)
+- **Language**: TypeScript
+- **Search**: Algolia for fast, typo-tolerant asset search
+- **API**: Direct connection to Backbone's Games DB
+
+### The Plugin Architecture
+
+**Search Interface**
+
+The plugin provided a search interface directly in Figma's UI. Designers could search by game name, asset type, or keyword. Algolia handled the search indexing and provided instant results with typo tolerance.
+
+**Asset Import**
+
+Once an asset was selected, the plugin fetched it from the Games DB API and imported it directly into Figma as an image node. This eliminated the download-and-import step entirely.
+
+**Caching**
+
+Frequently used assets were cached locally to reduce API calls and improve performance. The plugin tracked which assets were used most often and prioritized them in search results.
+
+<Image
+  src="/images/work/backbone/games-db-figma-plugin/gdb-1.png"
+  alt="Games DB Figma Plugin interface"
+  width={1600}
+  height={900}
+  className="w-full max-w-4xl my-8"
+/>
+
+## Key Design Decisions
+
+**Figma-native experience**
+
+Rather than building a web interface that designers had to switch to, I built directly into Figma's plugin system. This made asset discovery feel like a native part of the design tool, not a separate application.
+
+**Algolia for search**
+
+Backbone's Games DB had thousands of assets. A simple text search wouldn't scale. Algolia provided fast, typo-tolerant search that felt instant even with large result sets.
+
+**One-click import**
+
+The plugin eliminated the download-and-import step entirely. Click an asset, and it appears in your design. This single change removed the biggest source of friction in the old workflow.
+
+<Image
+  src="/images/work/backbone/games-db-figma-plugin/app-closeup.png"
+  alt="Backbone app content pages"
+  width={800}
+  height={600}
+  className="w-full max-w-2xl my-8"
+/>
+
+<Image
+  src="/images/work/backbone/games-db-figma-plugin/plugin-closeup.png"
+  alt="Figma plugin UI"
+  width={800}
+  height={600}
+  className="w-full max-w-2xl my-8"
+/>
+
+## What I Learned
+
+**Internal tooling compounds**
+
+What started as a simple plugin to reduce friction became essential infrastructure. The design team came to depend on it, and it influenced how we thought about internal tooling across the organization.
+
+**Context switching is expensive**
+
+Eliminating the need to switch between design tools and asset management interfaces saved more time than optimizing the individual steps. The plugin worked because it removed context switching entirely.
+
+**Good tools disappear**
+
+The best internal tools become so integrated into workflows that they feel invisible. Designers stopped thinking about asset management as a separate task—it just became part of designing.
+
+<Image
+  src="/images/work/backbone/games-db-figma-plugin/feedback.png"
+  alt="Feedback from the design team"
+  width={1600}
+  height={900}
+  className="w-full max-w-4xl my-8"
+/>
+
+## Results
+
+**Quantitative:**
+- Reduced asset management time by 80%
+- Eliminated context switching between design tools and asset management
+- Became essential infrastructure for the entire design team
+
+**Qualitative:**
+- Changed how designers thought about asset discovery—from a separate task to part of the design process
+- Demonstrated the value of internal tooling, leading to the creation of Backbone's Labs team
+- Established a pattern for bringing external data sources directly into design tools
+
+The plugin worked because it removed friction, not because it optimized existing steps. By bringing assets directly into Figma, I eliminated context switching and made asset discovery feel native to the design workflow. This single change reduced asset management time by 80% and became essential infrastructure for the design team.

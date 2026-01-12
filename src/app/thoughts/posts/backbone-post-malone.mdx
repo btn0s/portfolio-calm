@@ -1,0 +1,125 @@
+---
+title: "Launching a High-Stakes Product Collaboration"
+publishedAt: "2022-11-01"
+summary: "How I built a custom landing page for a limited-edition Post Malone controller that sold out in under 2 minutes with zero downtime."
+category: 'professional'
+---
+
+## The Problem
+
+Backbone was launching a limited-edition Post Malone controller collaboration. Thousands of people would hit the page simultaneously when it went live. The page needed to handle massive traffic spikes, provide an engaging interactive experience, and process orders reliably—all while maintaining zero downtime.
+
+**The core issue:** This wasn't a standard product launch. It was a high-stakes collaboration with a major artist, and the controller would sell out quickly. The page needed to be performant under extreme load, provide a memorable brand experience, and handle the technical complexity of a limited-edition drop.
+
+## What I Built
+
+I led the development of a custom landing page for the limited-edition Post Malone controller. The page featured an interactive light switch that dimmed the page and revealed the controller's glow-in-the-dark initials using three carefully synced videos, plus a cart reservation system and performance optimizations to handle the traffic surge.
+
+**Key differentiator:** Rather than a standard product page, I built an immersive brand experience that matched the collaboration's energy. The interactive light switch created a moment of discovery, and the technical implementation ensured the experience worked flawlessly even under extreme load.
+
+<Image
+  src="/images/work/backbone/post-malone/cover.png"
+  alt="Post Malone limited edition controller"
+  width={1600}
+  height={900}
+  className="w-full max-w-4xl my-8"
+/>
+
+## Technical Approach
+
+### Stack
+
+- **Framework**: Next.js
+- **Ecommerce**: Headless Shopify
+- **Animation**: Framer Motion for smooth interactions
+- **Video**: Three synced MP4 videos for the light switch effect
+
+### The Light Switch Interaction
+
+**Three-Video System**
+
+The light switch effect used three carefully synced videos:
+1. Lights-on state showing the controller normally
+2. Transition animation as the switch is toggled
+3. Lights-off state revealing the glow-in-the-dark initials
+
+**Synchronization**
+
+All three videos needed to be frame-perfect synchronized. I pre-rendered them with matching frame rates and used precise timing controls to ensure smooth transitions regardless of device performance.
+
+**Performance Optimization**
+
+Videos were optimized for web delivery with multiple quality levels. The page used intersection observers to load videos only when needed, and the light switch interaction was optimized to work smoothly even on lower-end devices.
+
+<Video
+  src="https://files.backbon3.com/contentful/2ly2S31xTkQUbJEbkmyfLu.mp4"
+  className="w-full max-w-4xl my-8"
+/>
+
+### Cart Reservation System
+
+**Reservation Logic**
+
+To handle the rush of simultaneous orders, I implemented a cart reservation system. When a user added the controller to their cart, it was reserved for a short window, preventing overselling while allowing legitimate purchases to complete.
+
+**Queue Management**
+
+The system handled queue management gracefully. If the controller sold out during checkout, users were notified immediately rather than discovering it at the final payment step.
+
+<Image
+  src="/images/work/backbone/post-malone/post-malone-lights-off.png"
+  alt="Post Malone controller lights off state"
+  width={1600}
+  height={900}
+  className="w-full max-w-4xl my-8"
+/>
+
+## Key Design Decisions
+
+**Interactive over static**
+
+Rather than a standard product page with images, I built an interactive experience that matched the collaboration's energy. The light switch created a moment of discovery that made the page memorable.
+
+**Performance-first architecture**
+
+The page needed to handle massive traffic spikes. I optimized every aspect—video loading, image delivery, API calls—to ensure the experience remained smooth even under extreme load.
+
+**Cart reservation system**
+
+A standard cart system would have led to overselling. The reservation system ensured we could handle the rush while maintaining inventory accuracy.
+
+<Image
+  src="https://files.backbon3.com/contentful/Backbone-PostMalone-reveal-16x9-01.jpg"
+  alt="Post Malone collaboration reveal"
+  width={1600}
+  height={900}
+  className="w-full max-w-4xl my-8"
+/>
+
+## What I Learned
+
+**High-stakes launches require different architecture**
+
+This wasn't a standard product launch. The technical requirements—handling massive traffic, preventing overselling, maintaining performance—required a different approach than typical ecommerce pages.
+
+**Interactive experiences need careful optimization**
+
+The light switch effect worked because it was carefully optimized. Videos were pre-rendered, synchronized, and optimized for web delivery. The interaction was smooth because every detail was considered.
+
+**Cart systems need reservation logic**
+
+Standard cart systems don't handle limited-edition drops well. The reservation system prevented overselling while allowing legitimate purchases to complete smoothly.
+
+## Results
+
+**Quantitative:**
+- Sold out in under 2 minutes
+- Zero downtime during the launch
+- Handled thousands of simultaneous users without performance degradation
+
+**Qualitative:**
+- Created a memorable brand experience that matched the collaboration's energy
+- Established a pattern for high-stakes product launches
+- Demonstrated that technical excellence enables creative experiences
+
+The Post Malone collaboration page worked because it balanced creative ambition with technical rigor. The interactive light switch created a memorable experience, while the performance optimizations and cart reservation system ensured everything worked flawlessly even under extreme load. The page sold out in under 2 minutes with zero downtime, proving that technical excellence enables creative experiences.

@@ -2,8 +2,10 @@ import Link from 'next/link'
 import { BlogPosts } from '@/components/blog-posts'
 import { ReceiptShell } from "@/components/receipt/receipt-shell";
 import { Barcode } from "@/components/barcode";
+import { getBlogPosts } from '@/lib/blog'
 
 export function ThoughtsReceipt() {
+  const posts = getBlogPosts()
   const today = new Date().toLocaleDateString('en-US', {
     weekday: 'short',
     year: 'numeric',
@@ -54,7 +56,7 @@ export function ThoughtsReceipt() {
             <div className="h-px bg-black/5 flex-1" />
           </div>
           <div className="receipt-thoughts space-y-8">
-            <BlogPosts />
+            <BlogPosts posts={posts} />
           </div>
         </section>
 
