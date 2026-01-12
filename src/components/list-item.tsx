@@ -61,8 +61,8 @@ export function ListItem({
       target={target}
       rel={rel}
       className={cn(
-        "group block transition-all",
-        href && "border-l-2 border-transparent hover:border-current/20 hover:pl-2",
+        "block transition-all",
+        href && "border-l-2 border-transparent group-hover:border-current/20 group-hover:pl-2",
         className
       )}
     >

@@ -254,7 +254,7 @@ export function ReceiptStack({
         )}
         style={{ clipPath: "inset(-100vh -100vw 0 -100vw)", contain: "layout" }}
         animate={{
-          y: isSubpage ? (isCollapsedHovered ? "88%" : "93%") : 0,
+          y: isSubpage ? (isCollapsedHovered ? "90%" : "95%") : 0,
         }}
         transition={STACK_SPRING}
         onMouseEnter={() => isSubpage && setIsCollapsedHovered(true)}
@@ -305,6 +305,8 @@ export function ReceiptStack({
                 onDragEnd={isFront && !lockStackInteractions ? handleDragEnd : undefined}
                 animate={
                   isFront
+                    ? { x: 0, y: 0, rotate: 0, scale: 1 }
+                    : isSubpage
                     ? { x: 0, y: 0, rotate: 0, scale: 1 }
                     : {
                         x: offset.x * breathe,

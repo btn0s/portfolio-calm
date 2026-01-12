@@ -2,18 +2,13 @@ import { ReceiptShell } from "@/components/receipt/receipt-shell";
 import { Barcode } from "@/components/barcode";
 import { ListItem } from "@/components/list-item";
 import { Signature } from "@/components/signature";
+import Link from "next/link";
 
 const ARTIFACTS = [
   {
     title: 'Card Stack',
-    description: 'Shufflable receipt stack interaction (drag or click)',
+    description: 'Interactive receipt stack prototypes - drag/click shuffle and click-behind navigation',
     href: '/artifacts/card-stack',
-    date: '2026',
-  },
-  {
-    title: 'Card Stack (Click)',
-    description: 'Click a card behind to bring it forward (3 cards)',
-    href: '/artifacts/card-stack-click',
     date: '2026',
   },
   {
@@ -113,19 +108,19 @@ export function ArtifactsReceipt() {
 
           <div className="grid grid-cols-1 gap-px bg-white/10 border border-white/10">
             {ARTIFACTS.map((artifact) => (
-              <div 
-                key={artifact.title} 
-                className="bg-[#0047ab] p-5 hover:bg-white/5 transition-colors group relative border-b border-white/5 last:border-0"
+              <Link
+                key={artifact.title}
+                href={artifact.href}
+                className="bg-[#0047ab] p-5 hover:bg-white/5 transition-colors group relative border-b border-white/5 last:border-0 cursor-pointer block"
               >
                 <ListItem
                   title={artifact.title}
                   description={artifact.description}
-                  href={artifact.href}
                   date={artifact.date}
                   subtext={`artifacts/${artifact.href.split('/').pop()?.toLowerCase()}`}
                   className="text-white"
                 />
-              </div>
+              </Link>
             ))}
           </div>
         </section>
