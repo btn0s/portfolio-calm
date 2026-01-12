@@ -347,9 +347,11 @@ export function ReceiptStack({
         ? { x: 0, rotate: 0, scale: 1 }
         : { x: 0, y: 0, rotate: 0, scale: 1 };
     }
+    // When collapsed (isSubpage), back cards have no rotation or offset
     if (isSubpage) {
       return { x: 0, y: 0, rotate: 0, scale: 1 };
     }
+    // When expanded, back cards have offset, rotation, and scale based on position
     return {
       x: offset.x * breathe,
       y: offset.y * breathe,
@@ -429,7 +431,7 @@ export function ReceiptStack({
       <motion.div
         key={routeId}
         layoutId={routeId}
-        layout="position"
+        layout={isFront ? "position" : false}
         style={getCardStyle(isFront, isInBackStage, position, lockStackInteractions, touchAction, wantsWillChange)}
         drag={dragEnabled}
         dragControls={dragEnabled ? dragControls : undefined}

@@ -8,7 +8,7 @@ export const metadata = generatePageMetadata({
 
 export default function PortfolioV1Page() {
   return (
-    <section>
+    <section className="w-full">
       <div className="pt-8 pb-6">
         <h1 className="font-semibold text-2xl mb-6 tracking-tighter">
           Portfolio v1

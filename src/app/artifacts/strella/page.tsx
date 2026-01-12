@@ -12,25 +12,25 @@ export const metadata = generatePageMetadata({
 
 export default function StrellaPage() {
   return (
-    <section className="pb-32 max-w-4xl mx-auto">
+    <section className="pb-32 w-full max-w-4xl mx-auto">
       {/* Technical Data Header */}
       <header className="pt-12 pb-16">
-        <div className="flex justify-between items-start mb-8">
-          <div className="flex flex-col gap-2">
+        <div className="flex justify-between items-start mb-8 gap-4">
+          <div className="flex flex-col gap-2 min-w-0 flex-1">
             <div className="flex items-center gap-2">
-              <span className="bg-foreground text-background px-2 py-0.5 text-[10px] font-black uppercase tracking-widest">
+              <span className="bg-foreground text-background px-2 py-0.5 text-[10px] font-black uppercase tracking-widest whitespace-nowrap">
                 DATA_SHEET // ARTIFACT_04
               </span>
               <div className="h-0.5 w-12 bg-foreground" />
             </div>
-            <h1 className="font-black text-5xl tracking-tighter uppercase leading-[0.8] mt-2">
+            <h1 className="font-black text-3xl sm:text-4xl md:text-5xl tracking-tighter uppercase leading-[0.8] mt-2 break-words">
               STRELLA
             </h1>
             <p className="text-sm font-bold opacity-60 tracking-tight max-w-[40ch] mt-2 italic">
               "The first IDE for design engineers - a Visual Development Environment where layout, logic, and state come together"
             </p>
           </div>
-          <div className="hidden sm:block">
+          <div className="hidden sm:block flex-shrink-0">
             <PixelPattern size={48} className="w-24 h-24 opacity-20" />
           </div>
         </div>
@@ -99,7 +99,7 @@ export default function StrellaPage() {
           </div>
         </div>
 
-        <div className="col-span-12 lg:col-span-8 flex flex-col gap-6">
+        <div className="col-span-12 lg:col-span-8 flex flex-col gap-6 min-w-0">
           <div className="relative group">
             <div className="absolute -inset-2 border border-foreground/5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
             <Image
@@ -117,7 +117,7 @@ export default function StrellaPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 mb-24">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-8 mb-24">
         <div className="flex flex-col gap-3">
           <Image
             src="/images/artifacts/strella/page-view-graph-w-preview.png"

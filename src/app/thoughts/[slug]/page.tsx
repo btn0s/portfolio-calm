@@ -61,7 +61,7 @@ export default async function Post({
 
   return (
     <>
-      <section className="pb-32 max-w-2xl mx-auto">
+      <section className="pb-32 w-full max-w-2xl mx-auto">
       <script
         type="application/ld+json"
         suppressHydrationWarning
@@ -93,19 +93,19 @@ export default async function Post({
       
       {/* Technical Header */}
       <header className="pt-12 pb-16">
-        <div className="flex justify-between items-start mb-8">
-          <div className="flex flex-col gap-1">
+        <div className="flex justify-between items-start mb-8 gap-4">
+          <div className="flex flex-col gap-1 min-w-0 flex-1">
             <div className="flex items-center gap-2 mb-2">
-              <span className="bg-foreground text-background px-1.5 py-0.5 text-[10px] font-black uppercase tracking-tighter">
+              <span className="bg-foreground text-background px-1.5 py-0.5 text-[10px] font-black uppercase tracking-tighter whitespace-nowrap">
                 ENTRY_{slug.toUpperCase().replace(/-/g, '_')}
               </span>
               <div className="h-px bg-foreground/10 flex-1 min-w-[40px]" />
             </div>
-            <h1 className="font-black text-4xl tracking-tighter uppercase leading-[0.9] max-w-[15ch]">
+            <h1 className="font-black text-2xl sm:text-3xl md:text-4xl tracking-tighter uppercase leading-[0.9] max-w-[15ch] break-words">
               {post.metadata.title}
             </h1>
           </div>
-          <div className="w-16 h-16 border border-foreground/5 p-1 opacity-20 hidden sm:block">
+          <div className="w-16 h-16 border border-foreground/5 p-1 opacity-20 hidden sm:block flex-shrink-0">
             <PixelPattern size={32} />
           </div>
         </div>

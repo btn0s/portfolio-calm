@@ -10,7 +10,7 @@ export const metadata = generatePageMetadata({
 
 export default function DelphiFallingChipsPage() {
   return (
-    <section>
+    <section className="w-full">
       <div className="pt-8 pb-6">
         <h1 className="font-semibold text-2xl mb-6 tracking-tighter">
           Delphi Falling Chips

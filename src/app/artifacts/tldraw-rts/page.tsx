@@ -11,21 +11,21 @@ export const metadata = generatePageMetadata({
 
 export default function TldrawRTSPage() {
   return (
-    <section className="pb-32 max-w-3xl mx-auto">
+    <section className="pb-32 w-full max-w-3xl mx-auto">
       {/* Research Note Header */}
       <header className="pt-12 pb-16">
         <div className="flex flex-col gap-8">
-          <div className="flex justify-between items-start">
-            <div className="flex flex-col gap-4">
+          <div className="flex justify-between items-start gap-4">
+            <div className="flex flex-col gap-4 min-w-0 flex-1">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-1 bg-foreground" />
-                <span className="text-[10px] font-black uppercase tracking-[0.4em]">RESEARCH_NOTE // ARCHIVE_05</span>
+                <div className="w-12 h-1 bg-foreground flex-shrink-0" />
+                <span className="text-[10px] font-black uppercase tracking-[0.4em] whitespace-nowrap">RESEARCH_NOTE // ARCHIVE_05</span>
               </div>
-              <h1 className="font-black text-5xl tracking-tighter uppercase leading-[0.9]">
+              <h1 className="font-black text-3xl sm:text-4xl md:text-5xl tracking-tighter uppercase leading-[0.9] break-words">
                 TLDRAW_RTS
               </h1>
             </div>
-            <div className="w-12 h-12 border-2 border-foreground/10 flex items-center justify-center p-1">
+            <div className="w-12 h-12 border-2 border-foreground/10 flex items-center justify-center p-1 flex-shrink-0">
               <div className="w-full h-full bg-foreground/5 flex items-center justify-center text-[10px] font-bold">R5</div>
             </div>
           </div>
@@ -72,8 +72,8 @@ export default function TldrawRTSPage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-12 gap-8">
-          <div className="col-span-12 lg:col-span-5">
+        <div className="grid grid-cols-12 gap-6 lg:gap-8">
+          <div className="col-span-12 lg:col-span-5 min-w-0">
             <div className="flex items-center gap-2 mb-4">
               <div className="w-2 h-2 bg-foreground rotate-45" />
               <h2 className="text-xs font-black uppercase tracking-widest">OBSERVATION</h2>
@@ -84,7 +84,7 @@ export default function TldrawRTSPage() {
               using this tick function.
             </p>
           </div>
-          <div className="col-span-12 lg:col-span-7">
+          <div className="col-span-12 lg:col-span-7 min-w-0">
             <div className="flex items-center gap-2 mb-4">
               <div className="w-2 h-2 bg-foreground rotate-45" />
               <h2 className="text-xs font-black uppercase tracking-widest">FINDINGS</h2>

@@ -12,18 +12,18 @@ export const metadata = generatePageMetadata({
 
 export default function EchelonPage() {
   return (
-    <section className="pb-32 max-w-5xl mx-auto">
+    <section className="pb-32 w-full max-w-5xl mx-auto">
       {/* Tactical Report Header */}
       <header className="pt-12 pb-16">
         <div className="flex flex-col gap-6">
-          <div className="flex justify-between items-center border-b-8 border-foreground pb-4">
-            <div className="flex flex-col">
+          <div className="flex justify-between items-center border-b-8 border-foreground pb-4 gap-4">
+            <div className="flex flex-col min-w-0 flex-1">
               <span className="text-[10px] font-black uppercase tracking-[0.3em] opacity-40 mb-2">TACTICAL_REPORT // ARCHIVE_03</span>
-              <h1 className="font-black text-6xl tracking-tighter uppercase leading-none">
+              <h1 className="font-black text-3xl sm:text-4xl md:text-5xl lg:text-6xl tracking-tighter uppercase leading-none break-words">
                 ECHELON
               </h1>
             </div>
-            <div className="flex flex-col items-end">
+            <div className="flex flex-col items-end flex-shrink-0">
               <span className="bg-foreground text-background px-2 py-0.5 text-[10px] font-black uppercase tracking-widest mb-2">
                 TOP_SECRET
               </span>
@@ -51,8 +51,8 @@ export default function EchelonPage() {
         </div>
       </header>
 
-      <div className="grid grid-cols-12 gap-12 mb-20">
-        <div className="col-span-12 lg:col-span-7">
+      <div className="grid grid-cols-12 gap-6 lg:gap-12 mb-20">
+        <div className="col-span-12 lg:col-span-7 min-w-0">
           <div className="relative group">
             <Image
               src="/images/artifacts/echelon/cover.png"
