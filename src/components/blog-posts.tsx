@@ -12,16 +12,18 @@ export function BlogPosts() {
   });
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       {sortedBlogs.map((post) => (
-        <ListItem
-          key={post.slug}
-          title={post.metadata.title}
-          description={post.metadata.summary}
-          date={formatDate(post.metadata.publishedAt, false)}
-          subtext={`thoughts/${post.slug}`}
-          href={`/thoughts/${post.slug}`}
-        />
+        <div key={post.slug} className="relative group">
+          <div className="absolute -left-3 top-0 bottom-0 w-0.5 bg-foreground/10 group-hover:bg-foreground/40 transition-colors" />
+          <ListItem
+            title={post.metadata.title}
+            description={post.metadata.summary}
+            date={formatDate(post.metadata.publishedAt, false)}
+            subtext={`log/${post.slug}`}
+            href={`/thoughts/${post.slug}`}
+          />
+        </div>
       ))}
     </div>
   );

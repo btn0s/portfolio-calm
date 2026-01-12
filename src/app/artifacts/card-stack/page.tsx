@@ -46,8 +46,29 @@ const CARDS = [
   },
 ];
 
-
 export default function CardStackPage() {
+  return (
+    <main className="py-20 flex flex-col items-center gap-32 overflow-visible">
+      {/* Drag & Click Version */}
+      <section className="flex flex-col items-center">
+        <h2 className="text-sm font-mono uppercase tracking-wider mb-8 opacity-60">
+          Drag & Click
+        </h2>
+        <DragClickStack />
+      </section>
+
+      {/* Click Behind Version */}
+      <section className="flex flex-col items-center">
+        <h2 className="text-sm font-mono uppercase tracking-wider mb-8 opacity-60">
+          Click Behind
+        </h2>
+        <ClickBehindStack />
+      </section>
+    </main>
+  );
+}
+
+function DragClickStack() {
   const [index, setIndex] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
@@ -77,7 +98,7 @@ export default function CardStackPage() {
   const showSpread = isHovered && !isDragging;
 
   return (
-    <main className="py-20 flex flex-col items-center justify-center overflow-visible">
+    <>
       <div
         className="relative w-full max-w-[320px] h-[480px] flex items-center justify-center mt-10"
         onMouseEnter={() => setIsHovered(true)}
@@ -165,7 +186,84 @@ export default function CardStackPage() {
           ))}
         </div>
       </motion.div>
-    </main>
+    </>
+  );
+}
+
+function ClickBehindStack() {
+  const [order, setOrder] = useState<[number, number, number]>([0, 1, 2]);
+  const [isHovered, setIsHovered] = useState(false);
+
+  const showSpread = isHovered;
+
+  return (
+    <>
+      <div
+        className="relative w-full max-w-[320px] h-[480px] flex items-center justify-center mt-10"
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+      >
+        {order.map((cardIndex, position) => {
+          const card = CARDS[cardIndex];
+          const isFront = position === 0;
+          const offset = getStackOffset(position);
+          const breathe = showSpread && !isFront ? 1.5 : 1;
+
+          return (
+            <motion.div
+              key={card.id}
+              style={{ zIndex: CARDS.length - position }}
+              animate={{
+                x: isFront ? 0 : offset.x * breathe,
+                y: isFront ? -40 : offset.y * breathe,
+                rotate: isFront ? 0 : offset.rotate * breathe,
+                scale: 1 - position * 0.01,
+              }}
+              transition={STACK_SPRING}
+              onClick={
+                isFront
+                  ? undefined
+                  : () => {
+                      setOrder((prev) => {
+                        const next: number[] = [
+                          cardIndex,
+                          ...prev.filter((i) => i !== cardIndex),
+                        ];
+                        return next as [number, number, number];
+                      });
+                    }
+              }
+              className={cn(
+                "absolute inset-0",
+                isFront ? "cursor-default" : "cursor-pointer"
+              )}
+            >
+              <div
+                className={cn(
+                  "absolute inset-2 bg-black/20 -z-10 pointer-events-none",
+                  isFront
+                    ? "blur-2xl translate-y-10 scale-95 opacity-50"
+                    : "blur-md translate-y-1 scale-[0.98] opacity-30"
+                )}
+                aria-hidden="true"
+              />
+              <ReceiptCard card={card} />
+            </motion.div>
+          );
+        })}
+      </div>
+
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.5 }}
+        className="mt-16 flex flex-col items-center gap-2"
+      >
+        <p className="font-mono text-[10px] uppercase tracking-[0.3em] opacity-40">
+          Click a card behind to bring it forward
+        </p>
+      </motion.div>
+    </>
   );
 }
 

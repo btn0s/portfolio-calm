@@ -70,21 +70,24 @@ export function ReceiptStack({
   const router = useRouter();
   const [isHovered, setIsHovered] = useState(false);
   const [isCollapsedHovered, setIsCollapsedHovered] = useState(false);
+  // Only state needed for rendering: touchAction needs to update when intent is confirmed
+  const [touchAction, setTouchAction] = useState<"pan-y" | "none">("pan-y");
 
   const { route, isSubpage, lockStackInteractions, shouldHideStack } =
     classifyPath(pathname);
 
   // "Intent Gatekeeper" - only unlock drag after confirming horizontal intent
-  const [dragUnlocked, setDragUnlocked] = useState(false);
-  const [verticalLocked, setVerticalLocked] = useState(false);
+  // Using refs instead of state to avoid React re-renders in the hot path
+  const dragUnlockedRef = useRef(false);
+  const verticalLockedRef = useRef(false);
   const gestureStartRef = useRef<{ x: number; y: number } | null>(null);
   const dragControls = useDragControls();
   const dragConstraintsRef = useRef<HTMLDivElement>(null);
 
   const handlePointerDown = useCallback((e: React.PointerEvent) => {
     gestureStartRef.current = { x: e.clientX, y: e.clientY };
-    setDragUnlocked(false);
-    setVerticalLocked(false);
+    dragUnlockedRef.current = false;
+    verticalLockedRef.current = false;
   }, []);
 
   const handlePointerMove = useCallback(
@@ -92,7 +95,7 @@ export function ReceiptStack({
       if (!gestureStartRef.current) {
         return;
       }
-      if (dragUnlocked) {
+      if (dragUnlockedRef.current) {
         // Already unlocked, Framer Motion handles it
         return;
       }
@@ -107,26 +110,29 @@ export function ReceiptStack({
 
         if (isNearlyPureVertical) {
           // Vertical intent - still allow drag but lock to vertical only
-          setVerticalLocked(true);
-          setDragUnlocked(true);
+          verticalLockedRef.current = true;
+          dragUnlockedRef.current = true;
+          setTouchAction("none"); // Block native scrolling once drag starts
           dragControls.start(e, { snapToCursor: false });
         } else {
           // Horizontal intent confirmed - start drag with the current event
-          setDragUnlocked(true);
+          dragUnlockedRef.current = true;
+          setTouchAction("none"); // Block native scrolling once drag starts
           // Start drag with the CURRENT move event (not the original down event)
           dragControls.start(e, { snapToCursor: false });
         }
       }
     },
-    [dragUnlocked, dragControls]
+    [dragControls]
   );
 
   const handlePointerUp = useCallback(() => {
     gestureStartRef.current = null;
     // Small delay to let Framer Motion's dragEnd fire first
     setTimeout(() => {
-      setDragUnlocked(false);
-      setVerticalLocked(false);
+      dragUnlockedRef.current = false;
+      verticalLockedRef.current = false;
+      setTouchAction("pan-y"); // Re-enable native vertical scroll
     }, DRAG_UNLOCK_RESET_DELAY);
   }, []);
 
@@ -249,12 +255,11 @@ export function ReceiptStack({
       />
       <motion.div
         className={cn(
-          "flex flex-col items-center justify-center isolate pb-12",
+          "flex flex-col items-center justify-center isolate pb-12 min-h-[600px] md:min-h-[800px]",
           isSubpage ? "fixed bottom-0 left-0 right-0 z-10" : "relative z-0"
         )}
-        style={{ clipPath: "inset(-100vh -100vw 0 -100vw)", contain: "layout" }}
         animate={{
-          y: isSubpage ? (isCollapsedHovered ? "85%" : "90%") : 0,
+          y: isSubpage ? (isCollapsedHovered ? "90%" : "95%") : 0,
         }}
         transition={STACK_SPRING}
         onMouseEnter={() => isSubpage && setIsCollapsedHovered(true)}
@@ -262,6 +267,7 @@ export function ReceiptStack({
       >
         <div
           className="relative w-full max-w-xl flex items-center justify-center"
+          style={{ minHeight: "inherit" }}
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
         >
@@ -281,22 +287,32 @@ export function ReceiptStack({
             const breathe =
               showSpread && !isFront ? HOVER_SPREAD_MULTIPLIER : 1;
 
+            // Shadow values: front card gets stronger shadow, back cards get lighter
+            const shadowStyle = isFront
+              ? { boxShadow: "0 12px 24px rgba(0,0,0,0.2)" }
+              : { boxShadow: "0 4px 8px rgba(0,0,0,0.1)" };
+
             return (
               <motion.div
                 key={routeId}
-                layout="position"
                 style={{
                   zIndex: 3 - position,
-                  // Start with none - we manually handle scroll pass-through
-                  touchAction: isFront && !lockStackInteractions ? "none" : undefined,
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
+                  width: "100%",
+                  willChange: "transform",
+                  // Start with pan-y to allow native vertical scroll until horizontal intent confirmed
+                  touchAction: isFront && !lockStackInteractions ? touchAction : undefined,
+                  ...shadowStyle,
                 }}
-                drag={isFront && !lockStackInteractions ? (verticalLocked ? "y" : true) : false}
+                drag={isFront && !lockStackInteractions ? (verticalLockedRef.current ? "y" : true) : false}
                 dragControls={isFront && !lockStackInteractions ? dragControls : undefined}
                 dragListener={false} // We manually start drag via dragControls
-                dragSnapToOrigin={!verticalLocked} // Don't snap in vertical mode
+                dragSnapToOrigin={!verticalLockedRef.current} // Don't snap in vertical mode
                 dragElastic={DRAG_ELASTICITY}
                 dragConstraints={
-                  isFront && verticalLocked && !lockStackInteractions ? dragConstraintsRef : undefined
+                  isFront && verticalLockedRef.current && !lockStackInteractions ? dragConstraintsRef : undefined
                 }
                 onPointerDown={isFront && !lockStackInteractions ? handlePointerDown : undefined}
                 onPointerMove={isFront && !lockStackInteractions ? handlePointerMove : undefined}
@@ -305,6 +321,8 @@ export function ReceiptStack({
                 onDragEnd={isFront && !lockStackInteractions ? handleDragEnd : undefined}
                 animate={
                   isFront
+                    ? { x: 0, y: 0, rotate: 0, scale: 1 }
+                    : isSubpage
                     ? { x: 0, y: 0, rotate: 0, scale: 1 }
                     : {
                         x: offset.x * breathe,
@@ -322,24 +340,14 @@ export function ReceiptStack({
                     : undefined
                 }
                 className={cn(
-                  "w-full",
                   isFront
                     ? lockStackInteractions
-                      ? "relative cursor-default"
-                      : "relative cursor-grab active:cursor-grabbing focus:outline-none focus:ring-2 focus:ring-black/20 focus:ring-offset-2 focus:ring-offset-transparent rounded-sm"
-                    : "absolute top-0 left-0 cursor-pointer"
+                      ? "cursor-default"
+                      : "cursor-grab active:cursor-grabbing focus:outline-none focus:ring-2 focus:ring-black/20 focus:ring-offset-2 focus:ring-offset-transparent rounded-sm"
+                    : "cursor-pointer"
                 )}
               >
-                {/* Shadow element behind content */}
-                <div
-                  className={cn(
-                    "absolute inset-4 rounded-sm bg-black/0",
-                    isFront
-                      ? "shadow-[0_8px_24px_rgba(0,0,0,0.25)]"
-                      : "shadow-[0_2px_8px_rgba(0,0,0,0.1)]"
-                  )}
-                  style={{ transform: "translateZ(0)" }}
-                />
+                {/* Paint layer: contains clip-path and texture, not animated */}
                 <div
                   className={cn(
                     "relative h-full w-full",

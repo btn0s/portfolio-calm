@@ -17,10 +17,10 @@ const navItems = {
 
 export function Navbar() {
   return (
-    <aside className="mb-2 tracking-tight isolate z-10 lg:sticky lg:top-4">
+    <aside className="fixed top-0 left-0 right-0 p-4 tracking-tight isolate z-20 pointer-events-none">
       <nav
         id="nav"
-        className="flex flex-row items-center justify-between relative px-0 pb-0 fade md:overflow-auto scroll-pr-6 md:relative"
+        className="flex flex-row items-center justify-between relative px-0 pb-0 fade md:overflow-auto scroll-pr-6 pointer-events-auto"
       >
         <div className="flex flex-row items-baseline">
           <Link
