@@ -450,7 +450,7 @@ export function ReceiptStack({
         style={
           isSubpage
             ? {
-                top: "calc(100vh - 1.5rem)",
+                top: "calc(100dvh - 1.5rem)",
               }
             : undefined
         }
