@@ -73,7 +73,7 @@ export function ReceiptShell({
 
   const variantStyles = {
     receipt: "bg-(--paper) text-(--paper-foreground) shadow-sm",
-    dossier: "bg-[#2c3e2d] text-[#fdf6e3] border-2 border-[#fdf6e3]/10 shadow-xl",
+    dossier: "bg-[#2c3e2d] text-[#fdf6e3] border-2 border-[#41503E] shadow-xl",
     blueprint: "bg-[#0047ab] text-white border border-white/20 blueprint-grid-pattern shadow-lg",
     stationery: "bg-[#faf9f6] text-[#1a1a1a] shadow-2xl border-x border-t border-black/[0.03]",
   };
@@ -119,8 +119,12 @@ export function ReceiptShell({
       {/* Dossier corner borders */}
       {variant === "dossier" && (
         <>
-          <div className="absolute left-0 top-[17px] w-[28.28px] h-[2px] bg-[#fdf6e3]/20 origin-left -rotate-45 pointer-events-none z-20" />
-          <div className="absolute right-0 top-[17px] w-[28.28px] h-[2px] bg-[#fdf6e3]/20 origin-right rotate-45 pointer-events-none z-20" />
+          <svg className="absolute left-0 top-0 w-5 h-5 pointer-events-none z-20 overflow-visible">
+            <line x1="-7" y1="25" x2="23" y2="-5" className="stroke-[#41503E]" strokeWidth="2" />
+          </svg>
+          <svg className="absolute right-0 top-0 w-5 h-5 pointer-events-none z-20 overflow-visible">
+            <line x1="-3" y1="-5" x2="27" y2="25" className="stroke-[#41503E]" strokeWidth="2" />
+          </svg>
         </>
       )}
 
