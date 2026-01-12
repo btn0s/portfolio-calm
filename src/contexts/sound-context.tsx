@@ -1,37 +1,95 @@
 "use client";
 
-import { createContext, useContext, useState, useEffect, useRef } from "react";
+import { createContext, useContext, useState, useEffect, useRef, useCallback } from "react";
 import useSound from "use-sound";
 
 // Sound settings
 export const SOUND_VOLUME = 0.15;
+export const AMBIENT_VOLUME = 0.1;
+export const INTRO_VOLUME = 0.2;
+export const TRANSITION_VOLUME = 0.15;
 
-// Sound files
-export const SOUNDS = {
-  click: "/assets/audio/click.wav",
-  clickAlt: "/assets/audio/click-alt.mp3",
-  confetti: "/assets/audio/sad-party-horn.wav",
-  drop: "/assets/audio/drop.mp3",
-};
+// Sound categories
+export type SoundCategory = "interaction" | "intro" | "ambient" | "transition";
+
+// Route IDs for intro/ambient sounds
+export type RouteId = "home" | "thoughts" | "artifacts";
+
+// Sound configuration
+export const SOUND_CONFIG = {
+  interaction: {
+    click: "/assets/audio/click.wav",
+    clickAlt: "/assets/audio/click-alt.mp3",
+    confetti: "/assets/audio/sad-party-horn.wav",
+    drop: "/assets/audio/drop.mp3",
+  },
+  intro: {
+    home: "/assets/audio/intro-home.mp3",
+    thoughts: "/assets/audio/intro-thoughts.mp3",
+    artifacts: "/assets/audio/intro-artifacts.mp3",
+  },
+  ambient: {
+    global: "/assets/audio/ambient-global.mp3",
+    home: "/assets/audio/ambient-home.mp3",
+    thoughts: "/assets/audio/ambient-thoughts.mp3",
+    artifacts: "/assets/audio/ambient-artifacts.mp3",
+  },
+  transition: {
+    swipeForward: "/assets/audio/swipe-forward.mp3",
+    swipeBackward: "/assets/audio/swipe-backward.mp3",
+  },
+} as const;
+
+// Legacy SOUNDS export for backward compatibility
+export const SOUNDS = SOUND_CONFIG.interaction;
 
 // Types
 type SoundContextType = {
   isMuted: boolean;
   toggleMute: () => void;
-  playSound: (sound: keyof typeof SOUNDS, alt?: boolean) => void;
+  playSound: (sound: keyof typeof SOUND_CONFIG.interaction, alt?: boolean) => void;
+  playIntro: (route: RouteId) => void;
+  playTransition: (direction: "forward" | "backward") => void;
+  getSoundUrl: (category: SoundCategory, key: string) => string;
 };
 
 // Create context
 const SoundContext = createContext<SoundContextType | undefined>(undefined);
 
-// Storage key for persisting mute preference
+// Storage keys
 const MUTE_STORAGE_KEY = "sound-muted";
+const OVERRIDE_PREFIX = "sound-override-";
+
+// Get override key for a sound
+const getOverrideKey = (category: SoundCategory, key: string): string => {
+  return `${OVERRIDE_PREFIX}${category}-${key}`;
+};
+
+// Get sound URL with override support
+const getSoundUrl = (category: SoundCategory, key: string): string => {
+  if (typeof window === "undefined") {
+    // Server-side: return default
+    const config = SOUND_CONFIG[category] as Record<string, string>;
+    return config[key] || "";
+  }
+
+  // Check for localStorage override
+  const overrideKey = getOverrideKey(category, key);
+  const override = localStorage.getItem(overrideKey);
+  
+  if (override) {
+    return override;
+  }
+
+  // Return default
+  const config = SOUND_CONFIG[category] as Record<string, string>;
+  return config[key] || "";
+};
 
 // Unlock audio context for mobile browsers
 const unlockAudioContext = () => {
   if (typeof window === "undefined") return;
 
-  // Create a dummy audio context and play a silent sound to unlock audio
   const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
   
   if (audioContext.state === "suspended") {
@@ -49,54 +107,179 @@ const unlockAudioContext = () => {
 
 // Provider component
 export const SoundProvider = ({ children }: { children: React.ReactNode }) => {
-  // State for mute toggle
   const [isMuted, setIsMuted] = useState(false);
   const audioUnlockedRef = useRef(false);
+  const [soundOverrides, setSoundOverrides] = useState<Record<string, string>>({});
 
-  // Load sounds with useSound hook - preload for mobile support
-  const [playClick] = useSound(SOUNDS.click, {
-    volume: isMuted ? 0 : SOUND_VOLUME,
-    preload: true,
-    html5: true, // Better mobile support
-  });
-  const [playClickAlt] = useSound(SOUNDS.clickAlt, {
-    volume: isMuted ? 0 : SOUND_VOLUME,
-    preload: true,
-    html5: true,
-  });
-  const [playConfetti] = useSound(SOUNDS.confetti, {
-    volume: isMuted ? 0 : SOUND_VOLUME,
-    preload: true,
-    html5: true,
-  });
-  const [playDrop] = useSound(SOUNDS.drop, {
-    volume: isMuted ? 0 : SOUND_VOLUME,
-    preload: true,
-    html5: true,
-  });
+  // Load sound overrides from localStorage
+  useEffect(() => {
+    if (typeof window === "undefined") return;
 
-  // Sound player utility
-  const playSound = (sound: keyof typeof SOUNDS, alt?: boolean) => {
+    const loadOverrides = () => {
+      const overrides: Record<string, string> = {};
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key?.startsWith(OVERRIDE_PREFIX)) {
+          const value = localStorage.getItem(key);
+          if (value) {
+            overrides[key] = value;
+          }
+        }
+      }
+      setSoundOverrides(overrides);
+    };
+
+    loadOverrides();
+
+    // Listen for storage changes (for cross-tab sync)
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key?.startsWith(OVERRIDE_PREFIX)) {
+        loadOverrides();
+      }
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+    return () => window.removeEventListener("storage", handleStorageChange);
+  }, []);
+
+  // Get sound URL with override support
+  const getSoundUrlWithOverride = useCallback((category: SoundCategory, key: string): string => {
+    const overrideKey = getOverrideKey(category, key);
+    const override = soundOverrides[overrideKey];
+    
+    if (override) {
+      return override;
+    }
+
+    const config = SOUND_CONFIG[category] as Record<string, string>;
+    return config[key] || "";
+  }, [soundOverrides]);
+
+  // Helper to play sound with override support
+  const playSoundWithOverride = useCallback((
+    category: SoundCategory,
+    key: string,
+    volume: number,
+    useSoundHook: () => void
+  ) => {
     if (isMuted) return;
 
-    // Unlock audio context on first interaction (mobile requirement)
     if (!audioUnlockedRef.current) {
       unlockAudioContext();
       audioUnlockedRef.current = true;
     }
 
-    switch (sound) {
-      case "click":
-        alt ? playClickAlt() : playClick();
+    const overrideKey = getOverrideKey(category, key);
+    const override = soundOverrides[overrideKey];
+
+    if (override) {
+      // Use HTML5 Audio for overrides
+      const audio = new Audio(override);
+      audio.volume = volume;
+      audio.play().catch(() => {
+        // Ignore play errors
+      });
+    } else {
+      // Use useSound hook for defaults
+      useSoundHook();
+    }
+  }, [isMuted, soundOverrides]);
+
+  // Load interaction sounds with useSound hook (for defaults)
+  const [playClick] = useSound(SOUND_CONFIG.interaction.click, {
+    volume: isMuted ? 0 : SOUND_VOLUME,
+    preload: true,
+    html5: true,
+  });
+  const [playClickAlt] = useSound(SOUND_CONFIG.interaction.clickAlt, {
+    volume: isMuted ? 0 : SOUND_VOLUME,
+    preload: true,
+    html5: true,
+  });
+  const [playConfetti] = useSound(SOUND_CONFIG.interaction.confetti, {
+    volume: isMuted ? 0 : SOUND_VOLUME,
+    preload: true,
+    html5: true,
+  });
+  const [playDrop] = useSound(SOUND_CONFIG.interaction.drop, {
+    volume: isMuted ? 0 : SOUND_VOLUME,
+    preload: true,
+    html5: true,
+  });
+
+  // Load intro sounds
+  const [playIntroHome] = useSound(SOUND_CONFIG.intro.home, {
+    volume: isMuted ? 0 : INTRO_VOLUME,
+    preload: true,
+    html5: true,
+  });
+  const [playIntroThoughts] = useSound(SOUND_CONFIG.intro.thoughts, {
+    volume: isMuted ? 0 : INTRO_VOLUME,
+    preload: true,
+    html5: true,
+  });
+  const [playIntroArtifacts] = useSound(SOUND_CONFIG.intro.artifacts, {
+    volume: isMuted ? 0 : INTRO_VOLUME,
+    preload: true,
+    html5: true,
+  });
+
+  // Load transition sounds
+  const [playSwipeForward] = useSound(SOUND_CONFIG.transition.swipeForward, {
+    volume: isMuted ? 0 : TRANSITION_VOLUME,
+    preload: true,
+    html5: true,
+  });
+  const [playSwipeBackward] = useSound(SOUND_CONFIG.transition.swipeBackward, {
+    volume: isMuted ? 0 : TRANSITION_VOLUME,
+    preload: true,
+    html5: true,
+  });
+
+  // Sound player utility
+  const playSound = useCallback((sound: keyof typeof SOUND_CONFIG.interaction, alt?: boolean) => {
+    if (alt && sound === "click") {
+      playSoundWithOverride("interaction", "clickAlt", SOUND_VOLUME, playClickAlt);
+    } else {
+      playSoundWithOverride("interaction", sound, SOUND_VOLUME, () => {
+        switch (sound) {
+          case "click":
+            playClick();
+            break;
+          case "confetti":
+            playConfetti();
+            break;
+          case "drop":
+            playDrop();
+            break;
+        }
+      });
+    }
+  }, [playSoundWithOverride, playClick, playClickAlt, playConfetti, playDrop]);
+
+  // Play intro sound for a route
+  const playIntro = useCallback((route: RouteId) => {
+    switch (route) {
+      case "home":
+        playSoundWithOverride("intro", "home", INTRO_VOLUME, playIntroHome);
         break;
-      case "confetti":
-        playConfetti();
+      case "thoughts":
+        playSoundWithOverride("intro", "thoughts", INTRO_VOLUME, playIntroThoughts);
         break;
-      case "drop":
-        playDrop();
+      case "artifacts":
+        playSoundWithOverride("intro", "artifacts", INTRO_VOLUME, playIntroArtifacts);
         break;
     }
-  };
+  }, [playSoundWithOverride, playIntroHome, playIntroThoughts, playIntroArtifacts]);
+
+  // Play transition sound
+  const playTransition = useCallback((direction: "forward" | "backward") => {
+    if (direction === "forward") {
+      playSoundWithOverride("transition", "swipeForward", TRANSITION_VOLUME, playSwipeForward);
+    } else {
+      playSoundWithOverride("transition", "swipeBackward", TRANSITION_VOLUME, playSwipeBackward);
+    }
+  }, [playSoundWithOverride, playSwipeForward, playSwipeBackward]);
 
   // Initialize audio on first user interaction (mobile requirement)
   useEffect(() => {
@@ -106,14 +289,12 @@ export const SoundProvider = ({ children }: { children: React.ReactNode }) => {
       if (!audioUnlockedRef.current) {
         unlockAudioContext();
         audioUnlockedRef.current = true;
-        // Remove listeners after first unlock
         document.removeEventListener("touchstart", unlockOnInteraction);
         document.removeEventListener("touchend", unlockOnInteraction);
         document.removeEventListener("click", unlockOnInteraction);
       }
     };
 
-    // Listen for first user interaction
     document.addEventListener("touchstart", unlockOnInteraction, { once: true });
     document.addEventListener("touchend", unlockOnInteraction, { once: true });
     document.addEventListener("click", unlockOnInteraction, { once: true });
@@ -148,7 +329,16 @@ export const SoundProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   return (
-    <SoundContext.Provider value={{ isMuted, toggleMute, playSound }}>
+    <SoundContext.Provider
+      value={{
+        isMuted,
+        toggleMute,
+        playSound,
+        playIntro,
+        playTransition,
+        getSoundUrl: getSoundUrlWithOverride,
+      }}
+    >
       {children}
     </SoundContext.Provider>
   );

@@ -5,6 +5,7 @@ import { motion, PanInfo, useDragControls, LayoutGroup } from "framer-motion";
 import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { STACK_SPRING, getStackOffset } from "@/lib/motion/stack";
+import { useSoundSettings } from "@/contexts/sound-context";
 
 type RouteId = "home" | "thoughts" | "artifacts";
 
@@ -97,6 +98,7 @@ export function ReceiptStack({
 }: ReceiptStackProps) {
   const pathname = usePathname();
   const router = useRouter();
+  const { playTransition } = useSoundSettings();
   const [isHovered, setIsHovered] = useState(false);
   const [isFrontCardHovered, setIsFrontCardHovered] = useState(false);
   // Only state needed for rendering: touchAction needs to update when intent is confirmed
@@ -248,6 +250,7 @@ export function ReceiptStack({
   const showSpread = isHovered;
 
   const rotateForward = useCallback(() => {
+    playTransition("forward");
     const currentOrder = getOrderFromRoute(route);
     const nextRoute = currentOrder[1];
     // Reset scroll to top when rotating routes
@@ -255,9 +258,10 @@ export function ReceiptStack({
       window.scrollTo({ top: 0, behavior: "instant" });
     }
     router.push(hrefForRoute(nextRoute));
-  }, [route, router]);
+  }, [route, router, playTransition]);
 
   const rotateBackward = useCallback(() => {
+    playTransition("backward");
     const currentOrder = getOrderFromRoute(route);
     const prevRoute = currentOrder[2];
     // Reset scroll to top when rotating routes
@@ -265,7 +269,7 @@ export function ReceiptStack({
       window.scrollTo({ top: 0, behavior: "instant" });
     }
     router.push(hrefForRoute(prevRoute));
-  }, [route, router]);
+  }, [route, router, playTransition]);
 
   // Global arrow key handler for route switching
   useEffect(() => {
