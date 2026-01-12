@@ -113,9 +113,14 @@ export function ReceiptStack({
   const dragConstraintsRef = useRef<HTMLDivElement>(null);
 
   const handlePointerDown = useCallback((e: React.PointerEvent) => {
+    // Don't prevent default here - we want links to work if it's just a click
     gestureStartRef.current = { x: e.clientX, y: e.clientY };
     dragUnlockedRef.current = false;
     scrollCommittedRef.current = false;
+    // Capture pointer to get all events even over links
+    if (e.currentTarget instanceof HTMLElement) {
+      e.currentTarget.setPointerCapture(e.pointerId);
+    }
   }, []);
 
   const handlePointerMove = useCallback(
@@ -151,7 +156,11 @@ export function ReceiptStack({
     [dragControls]
   );
 
-  const handlePointerUp = useCallback(() => {
+  const handlePointerUp = useCallback((e?: React.PointerEvent) => {
+    // Release pointer capture
+    if (e && e.currentTarget instanceof HTMLElement) {
+      e.currentTarget.releasePointerCapture(e.pointerId);
+    }
     gestureStartRef.current = null;
     // Small delay to let Framer Motion's dragEnd fire first
     setTimeout(() => {
@@ -304,15 +313,15 @@ export function ReceiptStack({
           touchAction: isFront && !lockStackInteractions ? touchAction : undefined,
           ...shadowStyle,
         }}
-        drag={isFront && !lockStackInteractions ? "x" : false}
+        drag={isFront && !lockStackInteractions ? true : false}
         dragControls={isFront && !lockStackInteractions ? dragControls : undefined}
         dragListener={false}
         dragSnapToOrigin={true}
         dragElastic={DRAG_ELASTICITY}
         onPointerDown={isFront && !lockStackInteractions ? handlePointerDown : undefined}
         onPointerMove={isFront && !lockStackInteractions ? handlePointerMove : undefined}
-        onPointerUp={isFront && !lockStackInteractions ? handlePointerUp : undefined}
-        onPointerCancel={isFront && !lockStackInteractions ? handlePointerUp : undefined}
+          onPointerUp={isFront && !lockStackInteractions ? (e) => handlePointerUp(e) : undefined}
+          onPointerCancel={isFront && !lockStackInteractions ? (e) => handlePointerUp(e) : undefined}
         onDragEnd={isFront && !lockStackInteractions ? handleDragEnd : undefined}
         animate={
           isFront
@@ -338,7 +347,7 @@ export function ReceiptStack({
           isFront
             ? lockStackInteractions
               ? "cursor-default"
-              : "cursor-grab active:cursor-grabbing focus:outline-none focus:ring-2 focus:ring-black/20 focus:ring-offset-2 focus:ring-offset-transparent rounded-sm"
+              : "cursor-grab active:cursor-grabbing focus:outline-none focus:ring-2 focus:ring-black/20 focus:ring-offset-2 focus:ring-offset-transparent rounded-sm select-none"
             : "cursor-pointer",
           "w-full"
         )}
@@ -347,8 +356,10 @@ export function ReceiptStack({
         <div
           className={cn(
             "relative h-full w-full",
-            !isFront && isInBackStage && "pointer-events-none"
+            !isFront && isInBackStage && "pointer-events-none",
+            isFront && !lockStackInteractions && "select-none"
           )}
+          style={isFront && !lockStackInteractions ? { userSelect: "none" } : undefined}
           aria-hidden={!isFront}
         >
           {receiptMap[routeId]}
