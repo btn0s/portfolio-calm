@@ -12,6 +12,14 @@ interface SoundPlayingLinkProps extends LinkProps {
   sound?: "click" | "clickAlt" | "confetti" | "drop" | "rustle" | "navigate";
 }
 
+function hrefToString(href: LinkProps["href"]): string | undefined {
+  if (typeof href === "string") return href;
+  if (typeof href === "object" && href !== null && "pathname" in href) {
+    return href.pathname ?? undefined;
+  }
+  return undefined;
+}
+
 function normalizeHref(href: string | undefined): string {
   if (!href) return "";
   // Remove trailing slash for comparison
@@ -49,7 +57,8 @@ export function SoundPlayingLink({
   const handlePointerDown = (e: React.PointerEvent<HTMLAnchorElement>) => {
     // For navigate sound, check if we're actually navigating to a different page
     if (sound === "navigate") {
-      const isCurrentPage = matchesCurrentRoute(href, pathname);
+      const hrefString = hrefToString(href);
+      const isCurrentPage = matchesCurrentRoute(hrefString, pathname);
       if (isCurrentPage) {
         // Same page - just play click feedback
         playSound("click", true);

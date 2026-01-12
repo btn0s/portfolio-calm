@@ -105,7 +105,7 @@ export function ReceiptShell({
 
       {/* Stationery specific detail: Subtle edge darkening to feel like thick paper */}
       {variant === "stationery" && (
-        <div className="absolute inset-0 pointer-events-none border-b-2 border-black/[0.02]" />
+        <div className="absolute inset-0 pointer-events-none border-b-2 border-black/2" />
       )}
 
       {/* Subtle edge highlight */}
@@ -114,6 +114,14 @@ export function ReceiptShell({
           className="absolute inset-0 pointer-events-none border-x border-t border-black/2"
           style={{ clipPath: ZIGZAG_POINTS }}
         />
+      )}
+
+      {/* Dossier corner borders */}
+      {variant === "dossier" && (
+        <>
+          <div className="absolute left-0 top-[17px] w-[28.28px] h-[2px] bg-[#fdf6e3]/20 origin-left -rotate-45 pointer-events-none z-20" />
+          <div className="absolute right-0 top-[17px] w-[28.28px] h-[2px] bg-[#fdf6e3]/20 origin-right rotate-45 pointer-events-none z-20" />
+        </>
       )}
 
       <div
