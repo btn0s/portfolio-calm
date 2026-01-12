@@ -4,14 +4,14 @@ export default function Footer() {
       <div className="mx-auto flex justify-between text-xs text-muted-foreground">
         <span>© {new Date().getFullYear()}</span>
         <div className="flex items-center gap-4 ">
-          <a href="/rss" className="hover:text-foreground transition-colors pointer-events-auto">
+          <a href="/rss" className="hover:text-foreground transition-colors pointer-events-auto rounded-sm">
             rss feed
           </a>
           <a
             href="https://x.com/btn0s"
             target="_blank"
             rel="noopener noreferrer"
-            className="hover:text-foreground transition-colors pointer-events-auto"
+            className="hover:text-foreground transition-colors pointer-events-auto rounded-sm"
           >
             x.com/btn0s
           </a>

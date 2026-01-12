@@ -149,7 +149,7 @@ export default function RootLayout({
       <body className="antialiased">
         <SoundProvider>
           <a
-            href="#main"
+            href="#content"
             className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-background focus:text-foreground focus:border-2 focus:border-foreground focus:rounded-md focus:font-bold focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
           >
             Skip to content
@@ -159,22 +159,31 @@ export default function RootLayout({
           <ClickHandler />
           <SafariBar />
           <ScrollToTop />
-          <main id="main" className="min-w-0 pt-16 flex flex-col px-4 overflow-x-clip overflow-y-visible md:overflow-visible">
+          <main className="min-w-0 pt-16 flex flex-col px-4 overflow-x-clip overflow-y-visible md:overflow-visible">
             <Navbar />
             <MobileNav />
             <div
+              id="content"
+              tabIndex={-1}
               className={cn(
-                "max-w-full md:max-w-xl mx-auto",
-                hasChildren ? "pb-24" : "pb-8"
+                "relative outline-none",
+                hasChildren ? "pb-24" : ""
               )}
             >
-              {children}
+              <div
+                className={cn(
+                  "max-w-full md:max-w-xl mx-auto",
+                  !hasChildren && "hidden"
+                )}
+              >
+                {children}
+              </div>
+              <ReceiptStack
+                homeReceipt={<HomeReceipt />}
+                thoughtsReceipt={<ThoughtsReceipt />}
+                artifactsReceipt={<ArtifactsReceipt />}
+              />
             </div>
-            <ReceiptStack
-              homeReceipt={<HomeReceipt />}
-              thoughtsReceipt={<ThoughtsReceipt />}
-              artifactsReceipt={<ArtifactsReceipt />}
-            />
             <Analytics />
             <SpeedInsights />
           </main>

@@ -474,21 +474,6 @@ export function ReceiptStack({
     const initialAnimation = !isFront 
       ? getCardAnimation(isFront, isSubpage, offset, 1, position)
       : undefined;
-    const contentRef = useRef<HTMLDivElement>(null);
-
-    // Make all interactive elements inside back cards non-focusable
-    useEffect(() => {
-      if (!isFront && contentRef.current) {
-        const interactiveElements = contentRef.current.querySelectorAll(
-          'a, button, input, textarea, select, [tabindex]'
-        );
-        interactiveElements.forEach((el) => {
-          if (el instanceof HTMLElement) {
-            el.setAttribute('tabindex', '-1');
-          }
-        });
-      }
-    }, [isFront]);
 
     return (
       <motion.div
@@ -515,13 +500,12 @@ export function ReceiptStack({
       >
         {/* Paint layer: contains clip-path and texture, not animated */}
         <div
-          ref={contentRef}
           className={cn(
             "relative h-full w-full",
-            !isFront && isInBackStage && "pointer-events-none",
             isFront && !lockStackInteractions && "select-none"
           )}
           style={isFront && !lockStackInteractions ? { userSelect: "none" } : undefined}
+          inert={!isFront || isSubpage}
           aria-hidden={!isFront}
         >
           {receiptMap[routeId]}
@@ -571,12 +555,7 @@ export function ReceiptStack({
               <button
                 type="button"
                 className={cn(
-                  "absolute inset-0 z-10 cursor-pointer focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-background outline-none rounded-sm",
-                  {
-                    home: "focus-visible:ring-[#fdf6e3]",
-                    thoughts: "focus-visible:ring-[#1a1a1a]",
-                    artifacts: "focus-visible:ring-white",
-                  }[order[0]]
+                  "absolute inset-0 z-10 cursor-pointer outline-none rounded-sm"
                 )}
                 onClick={handleOverlayClick}
                 onKeyDown={handleOverlayKeyDown}
@@ -612,12 +591,7 @@ export function ReceiptStack({
               <button
                 type="button"
                 className={cn(
-                  "absolute inset-0 z-10 cursor-pointer focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-background outline-none rounded-sm",
-                  {
-                    home: "focus-visible:ring-[#fdf6e3]",
-                    thoughts: "focus-visible:ring-[#1a1a1a]",
-                    artifacts: "focus-visible:ring-white",
-                  }[order[0]]
+                  "absolute inset-0 z-10 cursor-pointer outline-none rounded-sm"
                 )}
                 onClick={handleOverlayClick}
                 onKeyDown={handleOverlayKeyDown}

@@ -31,7 +31,10 @@ export function ListItem({
   const isExternal = href?.startsWith('http') || href?.startsWith('mailto')
   
   const content = (
-    <>
+    <div className={cn(
+      "transition-transform duration-200",
+      href && "group-hover:translate-x-1.5 group-focus-visible:translate-x-1.5"
+    )}>
       <div className="flex justify-between items-baseline mb-1">
         <span className={cn(
           "font-bold uppercase text-xs text-pretty",
@@ -59,12 +62,12 @@ export function ListItem({
           {subtext}
         </span>
       )}
-    </>
+    </div>
   )
 
   const baseClassName = cn(
-    "block transition-[border-color,padding-left,opacity]",
-    href && "border-l-2 border-transparent group-hover:border-current/20 group-hover:pl-2",
+    "block transition-all outline-none group",
+    href && "border-l-2 border-transparent hover:border-current/20 focus-visible:border-current/40 focus-visible:bg-current/[0.02]",
     className
   )
 
