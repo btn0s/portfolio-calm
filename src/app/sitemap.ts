@@ -1,7 +1,12 @@
 import { getBlogPosts } from '@/lib/blog'
 import type { MetadataRoute } from 'next'
 
-export const baseUrl = 'https://portfolio.example.com'
+export const baseUrl =
+  process.env.VERCEL_PROJECT_PRODUCTION_URL
+    ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+    : process.env.VERCEL_URL
+    ? `https://${process.env.VERCEL_URL}`
+    : process.env.NEXT_PUBLIC_SITE_URL || 'https://portfolio.example.com'
 
 const ARTIFACTS = [
   'echelon',
