@@ -380,7 +380,7 @@ export function ReceiptStack({
       <div
         className={cn(
           isSubpage
-            ? "fixed bottom-0 left-0 right-0 z-10 px-4 md:left-1/2 md:right-auto md:-translate-x-1/2 md:max-w-xl md:px-0"
+            ? "fixed bottom-0 left-0 right-0 z-10 px-4 w-full md:left-1/2 md:right-auto md:-translate-x-1/2 md:max-w-xl md:px-0"
             : "relative z-0 w-full max-w-xl mx-auto"
         )}
       >
