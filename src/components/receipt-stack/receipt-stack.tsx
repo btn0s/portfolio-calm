@@ -42,18 +42,47 @@ function hrefForRoute(routeId: RouteId) {
   return STACK_ROUTES.find((r) => r.id === routeId)!.href;
 }
 
-// Gesture tuning constants
-const FLICK_VELOCITY_THRESHOLD = 150; // velocity needed to change page
-const INTENT_THRESHOLD = 8; // pixels to travel before locking direction
-const VERTICAL_CONE_DEGREES = 15; // degrees from pure vertical that counts as "vertical"
-const VERTICAL_CONE_RATIO =
-  1 / Math.tan((VERTICAL_CONE_DEGREES * Math.PI) / 180);
-const HORIZONTAL_VELOCITY_RATIO = 0.5; // vx must be > vy * this for flick
-const DRAG_UNLOCK_RESET_DELAY = 50; // ms to wait before resetting drag state
-const DRAG_ELASTICITY = 1; // drag resistance (0 = stiff, 1 = loose)
+const STACK_CONFIG = {
+  // Gesture tuning
+  gesture: {
+    flickVelocityThreshold: 150,
+    intentThresholdPx: 8,
+    verticalConeDegrees: 15,
+    horizontalVelocityRatio: 0.5,
+    dragUnlockResetDelayMs: 50,
+    dragElasticity: 1,
+  },
 
-// Animation constants
-const HOVER_SPREAD_MULTIPLIER = 1.5;
+  // Animation values
+  animation: {
+    hoverSpreadMultiplier: 1.5,
+    scaleReductionPerPosition: 0.01,
+    collapsedY: "95%",
+    collapsedHoverY: "90%",
+  },
+
+  // Layout breakpoints and dimensions
+  layout: {
+    mobileBreakpoint: 768,
+    minHeightMobile: 600,
+    minHeightDesktop: 800,
+  },
+
+  // Visual styling
+  style: {
+    frontCardShadow: "0 12px 24px rgba(0,0,0,0.2)",
+    backCardShadow: "0 4px 8px rgba(0,0,0,0.1)",
+    baseZIndex: 3,
+  },
+} as const;
+
+// Derived constants
+const VERTICAL_CONE_RATIO =
+  1 / Math.tan((STACK_CONFIG.gesture.verticalConeDegrees * Math.PI) / 180);
+
+// Helper functions
+const getCardShadow = (isFront: boolean) =>
+  isFront ? STACK_CONFIG.style.frontCardShadow : STACK_CONFIG.style.backCardShadow;
 
 interface ReceiptStackProps {
   homeReceipt: React.ReactNode;
@@ -95,7 +124,7 @@ export function ReceiptStack({
   // Lock scroll during horizontal drag
   useEffect(() => {
     if (touchAction === "none" && typeof window !== "undefined") {
-      const isMobile = window.matchMedia("(max-width: 768px)").matches;
+      const isMobile = window.matchMedia(`(max-width: ${STACK_CONFIG.layout.mobileBreakpoint}px)`).matches;
       if (isMobile) {
         document.body.classList.add("dragging-horizontal");
         return () => {
@@ -154,7 +183,7 @@ export function ReceiptStack({
       const dy = Math.abs(e.clientY - gestureStartRef.current.y);
 
       // Only decide after moving past the threshold
-      if (dx > INTENT_THRESHOLD || dy > INTENT_THRESHOLD) {
+      if (dx > STACK_CONFIG.gesture.intentThresholdPx || dy > STACK_CONFIG.gesture.intentThresholdPx) {
         // Vertical cone is ~10deg from pure vertical
         const isNearlyPureVertical = dy > dx * VERTICAL_CONE_RATIO;
 
@@ -184,7 +213,7 @@ export function ReceiptStack({
       dragUnlockedRef.current = false;
       scrollCommittedRef.current = false;
       setTouchAction("pan-y"); // Re-enable native vertical scroll
-    }, DRAG_UNLOCK_RESET_DELAY);
+    }, STACK_CONFIG.gesture.dragUnlockResetDelayMs);
   }, []);
 
   // Build order from current route (derived from pathname)
@@ -263,9 +292,9 @@ export function ReceiptStack({
     const velocity = Math.sqrt(info.velocity.x ** 2 + info.velocity.y ** 2);
     const isHorizontalEnough =
       Math.abs(info.velocity.x) >
-      Math.abs(info.velocity.y) * HORIZONTAL_VELOCITY_RATIO;
+      Math.abs(info.velocity.y) * STACK_CONFIG.gesture.horizontalVelocityRatio;
 
-    if (velocity > FLICK_VELOCITY_THRESHOLD && isHorizontalEnough) {
+    if (velocity > STACK_CONFIG.gesture.flickVelocityThreshold && isHorizontalEnough) {
       rotateForward();
     }
     // Otherwise Framer Motion snaps back automatically
@@ -305,68 +334,123 @@ export function ReceiptStack({
     }
   };
 
+  // Helper functions for card rendering
+  const getCardAnimation = (
+    isFront: boolean,
+    isSubpage: boolean,
+    offset: ReturnType<typeof getStackOffset>,
+    breathe: number,
+    position: number
+  ) => {
+    if (isFront) {
+      return isSubpage
+        ? { x: 0, rotate: 0, scale: 1 }
+        : { x: 0, y: 0, rotate: 0, scale: 1 };
+    }
+    if (isSubpage) {
+      return { x: 0, y: 0, rotate: 0, scale: 1 };
+    }
+    return {
+      x: offset.x * breathe,
+      y: offset.y * breathe,
+      rotate: offset.rotate * breathe,
+      scale: 1 - position * STACK_CONFIG.animation.scaleReductionPerPosition,
+    };
+  };
+
+  const getBackStageContainerClassName = (isSubpage: boolean) => {
+    const baseClasses = "fixed z-10";
+    return isSubpage
+      ? cn(baseClasses, "bottom-0 left-0 right-0 px-4 w-full md:left-1/2 md:right-auto md:-translate-x-1/2 md:max-w-xl md:px-0")
+      : cn(baseClasses, "top-20 left-0 right-0 w-full max-w-xl mx-auto");
+  };
+
+  const getFrontSlotClassName = (isSubpage: boolean) => {
+    const baseClasses = "z-20 w-full max-w-xl mx-auto";
+    return isSubpage
+      ? cn(baseClasses, "fixed left-0 right-0 px-4 md:left-1/2 md:right-auto md:-translate-x-1/2 md:px-0")
+      : cn(baseClasses, "relative -mt-8");
+  };
+
+  const getFrontSlotStyle = (isSubpage: boolean) => {
+    return isSubpage
+      ? { top: "calc(100dvh - 1.5rem)" }
+      : undefined;
+  };
+
+  const getFrontSlotAnimation = (isSubpage: boolean, hasHover: boolean, isFrontCardHovered: boolean) => {
+    return {
+      y: isSubpage && hasHover && isFrontCardHovered ? "-0.5rem" : 0,
+    };
+  };
+
+  const getCardClassName = (isFront: boolean, lockStackInteractions: boolean) => {
+    const baseClasses = "w-full";
+    if (isFront) {
+      const frontClasses = lockStackInteractions
+        ? "cursor-default"
+        : "cursor-grab active:cursor-grabbing focus:outline-none focus:ring-2 focus:ring-black/20 focus:ring-offset-2 focus:ring-offset-transparent rounded-sm select-none";
+      return cn(frontClasses, baseClasses);
+    }
+    return cn("cursor-pointer", baseClasses);
+  };
+
+  const getCardStyle = (
+    isFront: boolean,
+    isInBackStage: boolean,
+    position: number,
+    lockStackInteractions: boolean,
+    touchAction: "pan-y" | "none",
+    wantsWillChange: boolean
+  ) => ({
+    zIndex: STACK_CONFIG.style.baseZIndex - position,
+    position: isInBackStage ? ("absolute" as const) : ("relative" as const),
+    top: isInBackStage ? 0 : undefined,
+    left: isInBackStage ? 0 : undefined,
+    right: isInBackStage ? 0 : undefined,
+    willChange: wantsWillChange ? "transform" : "auto",
+    touchAction: isFront && !lockStackInteractions ? touchAction : undefined,
+    boxShadow: getCardShadow(isFront),
+  });
+
+  const canDrag = (isFront: boolean, lockStackInteractions: boolean) =>
+    isFront && !lockStackInteractions;
+
   // Render a single card with shared layout
   const renderCard = (routeId: RouteId, position: number, isInBackStage: boolean) => {
     const isFront = position === 0;
     const offset = getStackOffset(position);
-    const breathe = showSpread && !isFront ? HOVER_SPREAD_MULTIPLIER : 1;
+    const breathe = showSpread && !isFront ? STACK_CONFIG.animation.hoverSpreadMultiplier : 1;
     // Only apply willChange when actively animating (front card dragable or back cards spreading)
     const wantsWillChange = (isFront && !lockStackInteractions) || showSpread;
+    const dragEnabled = canDrag(isFront, lockStackInteractions);
 
     return (
       <motion.div
         key={routeId}
         layoutId={routeId}
-        style={{
-          zIndex: 3 - position,
-          position: isInBackStage ? "absolute" : "relative",
-          top: isInBackStage ? 0 : undefined,
-          left: isInBackStage ? 0 : undefined,
-          right: isInBackStage ? 0 : undefined,
-          willChange: wantsWillChange ? "transform" : "auto",
-          touchAction: isFront && !lockStackInteractions ? touchAction : undefined,
-        }}
-        drag={isFront && !lockStackInteractions ? true : false}
-        dragControls={isFront && !lockStackInteractions ? dragControls : undefined}
+        layout="position"
+        style={getCardStyle(isFront, isInBackStage, position, lockStackInteractions, touchAction, wantsWillChange)}
+        drag={dragEnabled}
+        dragControls={dragEnabled ? dragControls : undefined}
         dragListener={false}
         dragSnapToOrigin={true}
-        dragElastic={DRAG_ELASTICITY}
-        onPointerDown={isFront && !lockStackInteractions ? handlePointerDown : undefined}
-        onPointerMove={isFront && !lockStackInteractions ? handlePointerMove : undefined}
-          onPointerUp={isFront && !lockStackInteractions ? (e) => handlePointerUp(e) : undefined}
-          onPointerCancel={isFront && !lockStackInteractions ? (e) => handlePointerUp(e) : undefined}
-        onDragEnd={isFront && !lockStackInteractions ? handleDragEnd : undefined}
-        animate={
-          isFront
-            ? isSubpage
-              ? { x: 0, rotate: 0, scale: 1 }
-              : { x: 0, y: 0, rotate: 0, scale: 1 }
-            : isSubpage
-            ? { x: 0, y: 0, rotate: 0, scale: 1 }
-            : {
-                x: offset.x * breathe,
-                y: offset.y * breathe,
-                rotate: offset.rotate * breathe,
-                scale: 1 - position * 0.01,
-              }
-        }
+        dragElastic={STACK_CONFIG.gesture.dragElasticity}
+        onPointerDown={dragEnabled ? handlePointerDown : undefined}
+        onPointerMove={dragEnabled ? handlePointerMove : undefined}
+        onPointerUp={dragEnabled ? (e) => handlePointerUp(e) : undefined}
+        onPointerCancel={dragEnabled ? (e) => handlePointerUp(e) : undefined}
+        onDragEnd={dragEnabled ? handleDragEnd : undefined}
+        animate={getCardAnimation(isFront, isSubpage, offset, breathe, position)}
         transition={STACK_SPRING}
         onClick={() => handleCardClick(routeId, position)}
-        tabIndex={isFront && !lockStackInteractions ? 0 : -1}
+        tabIndex={dragEnabled ? 0 : -1}
         aria-label={
-          isFront && !lockStackInteractions
+          dragEnabled
             ? `Receipt stack navigation. Use Left and Right arrow keys to switch routes.`
             : undefined
         }
-        className={cn(
-          isFront
-            ? lockStackInteractions
-              ? "cursor-default"
-              : "cursor-grab active:cursor-grabbing focus:outline-none focus:ring-2 focus:ring-black/20 focus:ring-offset-2 focus:ring-offset-transparent rounded-sm select-none"
-            : "cursor-pointer",
-          isFront ? "card-shadow-front" : "card-shadow-back",
-          "w-full"
-        )}
+        className={getCardClassName(isFront, lockStackInteractions)}
       >
         {/* Paint layer: contains clip-path and texture, not animated */}
         <div
@@ -393,14 +477,7 @@ export function ReceiptStack({
       />
       
       {/* BackStage: Fixed container for back cards */}
-      <div
-        className={cn(
-          "fixed z-10",
-          isSubpage
-            ? "bottom-0 left-0 right-0 px-4 w-full md:left-1/2 md:right-auto md:-translate-x-1/2 md:max-w-xl md:px-0"
-            : "top-20 left-0 right-0 w-full max-w-xl mx-auto"
-        )}
-      >
+      <div className={getBackStageContainerClassName(isSubpage)}>
         <motion.div
           className="flex flex-col items-center justify-center isolate pb-12 min-h-[600px] md:min-h-[800px]"
           animate={{
@@ -441,22 +518,9 @@ export function ReceiptStack({
       {/* FrontSlot: In-flow container for front card - this moves with page scroll */}
       <motion.div
         ref={frontCardRef}
-        className={cn(
-          "z-20 w-full max-w-xl mx-auto",
-          isSubpage 
-            ? "fixed left-0 right-0 px-4 md:left-1/2 md:right-auto md:-translate-x-1/2 md:px-0" 
-            : "relative -mt-8"
-        )}
-        style={
-          isSubpage
-            ? {
-                top: "calc(100dvh - 1.5rem)",
-              }
-            : undefined
-        }
-        animate={{
-          y: isSubpage && hasHover && isFrontCardHovered ? "-0.5rem" : 0,
-        }}
+        className={getFrontSlotClassName(isSubpage)}
+        style={getFrontSlotStyle(isSubpage)}
+        animate={getFrontSlotAnimation(isSubpage, hasHover, isFrontCardHovered)}
         transition={STACK_SPRING}
       >
         <div className="flex flex-col items-center justify-center pb-12 min-h-[600px] md:min-h-[800px]">
