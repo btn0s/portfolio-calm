@@ -10,6 +10,7 @@ import { ReceiptStack } from "@/components/receipt-stack/receipt-stack";
 import { HomeReceipt } from "./(stack)/_receipts/home-receipt";
 import { ThoughtsReceipt } from "./(stack)/_receipts/thoughts-receipt";
 import { ArtifactsReceipt } from "./(stack)/_receipts/artifacts-receipt";
+import { ScrollToTop } from "@/components/scroll-to-top";
 import React from "react";
 import { cn } from "@/lib/utils";
 
@@ -153,6 +154,7 @@ export default function RootLayout({
             `,
           }}
         />
+        <ScrollToTop />
         <main className="min-w-0 pt-16 flex flex-col px-4 overflow-x-clip overflow-y-visible md:overflow-visible">
           <Navbar />
           <div
