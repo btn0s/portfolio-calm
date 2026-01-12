@@ -148,7 +148,7 @@ export default function RootLayout({
             `,
           }}
         />
-        <main className="min-w-0 pt-4 flex flex-col px-4 overflow-x-clip overflow-y-visible md:overflow-visible">
+        <main className="min-w-0 pt-16 flex flex-col px-4 overflow-x-clip overflow-y-visible md:overflow-visible">
           <Navbar />
           <div
             className={cn(

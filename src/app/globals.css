@@ -132,6 +132,9 @@
     body {
       overflow: hidden;
     }
+    body.scroll-enabled {
+      overflow: auto;
+    }
   }
   h1 {
     @apply font-mono;
