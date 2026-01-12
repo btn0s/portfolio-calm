@@ -69,7 +69,7 @@ export function HomeReceipt() {
       <div className="flex flex-col mb-10 gap-4">
         <div className="flex justify-between items-start">
           <div className="flex flex-col">
-            <h1 className="text-2xl font-bold uppercase tracking-tight leading-none mb-1">
+            <h1 className="text-2xl font-sans-header font-bold uppercase tracking-tight leading-none mb-1">
               OPERATIONAL MANIFEST
             </h1>
             <p className="text-[10px] leading-none opacity-40 font-mono uppercase tracking-widest">
@@ -101,13 +101,13 @@ export function HomeReceipt() {
       <div className="flex flex-col flex-1">
         <section>
           <div className="flex items-center gap-2 mb-4">
-            <h2 className="bg-[#fdf6e3] text-[#2c3e2d] px-1.5 py-0.5 uppercase font-bold tracking-tighter text-[10px]">
+            <h2 className="bg-[#fdf6e3] text-[#2c3e2d] px-1.5 py-0.5 uppercase font-sans-header font-bold tracking-tighter text-[10px]">
               01 // PROFILE_SUMMARY
             </h2>
             <div className="h-px bg-current/10 flex-1" />
           </div>
           <div className="pl-2 border-l-2 border-current/20">
-            <p className="text-xs leading-relaxed opacity-90 italic">
+            <p className="text-xs leading-relaxed opacity-90 italic font-sans">
               "Product designer, coder, tinkerer. Specialized in building
               interfaces that bridge the gap between design and engineering."
             </p>
@@ -116,7 +116,7 @@ export function HomeReceipt() {
 
         <section className="mt-8">
           <div className="flex items-center gap-2 mb-4">
-            <h2 className="bg-[#fdf6e3] text-[#2c3e2d] px-1.5 py-0.5 uppercase font-bold tracking-tighter text-[10px]">
+            <h2 className="bg-[#fdf6e3] text-[#2c3e2d] px-1.5 py-0.5 uppercase font-sans-header font-bold tracking-tighter text-[10px]">
               02 // OPERATIONAL_HISTORY
             </h2>
             <div className="h-px bg-current/10 flex-1" />
@@ -131,6 +131,7 @@ export function HomeReceipt() {
                   date={item.date}
                   href={item.href}
                   className="text-current"
+                  titleClassName="font-sans-header"
                 />
               </div>
             ))}
@@ -148,7 +149,7 @@ export function HomeReceipt() {
 
         <section className="mt-10">
           <div className="flex items-center gap-2 mb-4">
-            <h2 className="bg-[#fdf6e3] text-[#2c3e2d] px-1.5 py-0.5 uppercase font-bold tracking-tighter text-[10px]">
+            <h2 className="bg-[#fdf6e3] text-[#2c3e2d] px-1.5 py-0.5 uppercase font-sans-header font-bold tracking-tighter text-[10px]">
               03 // DEPLOYED_ASSETS
             </h2>
             <div className="h-px bg-current/10 flex-1" />
@@ -164,6 +165,8 @@ export function HomeReceipt() {
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-current"
+                  titleClassName="font-sans-header"
+                  descriptionClassName="font-sans"
                 />
               </div>
             ))}
@@ -172,7 +175,7 @@ export function HomeReceipt() {
 
         <section className="mt-10">
           <div className="flex items-center gap-2 mb-4">
-            <h2 className="bg-[#fdf6e3] text-[#2c3e2d] px-1.5 py-0.5 uppercase font-bold tracking-tighter text-[10px]">
+            <h2 className="bg-[#fdf6e3] text-[#2c3e2d] px-1.5 py-0.5 uppercase font-sans-header font-bold tracking-tighter text-[10px]">
               04 // CAPABILITY_MATRIX
             </h2>
             <div className="h-px bg-current/10 flex-1" />
@@ -224,7 +227,7 @@ export function HomeReceipt() {
           <div className="mt-10 pt-6 flex justify-between items-end border-t-2 border-current">
             <div className="flex flex-col">
               <span className="text-[8px] opacity-40 font-mono tracking-widest">XP_TOTAL</span>
-              <span className="text-lg font-bold tracking-tighter leading-none">TEN_PLUS_YEARS</span>
+              <span className="text-lg font-sans-header font-bold tracking-tighter leading-none">TEN_PLUS_YEARS</span>
             </div>
             <div className="flex flex-col items-end">
               <span className="text-[8px] opacity-40 font-mono">REV_2026.04</span>
@@ -239,7 +242,7 @@ export function HomeReceipt() {
           <div className="w-full h-px bg-current/20 border-b border-current/10" />
           
           <div className="flex flex-col items-center text-center">
-            <p className="uppercase font-bold text-[10px] tracking-[0.4em] mb-1">
+            <p className="uppercase font-sans-header font-bold text-[10px] tracking-[0.4em] mb-1">
               MANIFEST_END
             </p>
             <div className="flex items-center gap-4 mt-2">
@@ -249,7 +252,7 @@ export function HomeReceipt() {
             </div>
           </div>
 
-          <div className="text-[8px] opacity-20 text-center uppercase tracking-[0.8em] font-mono mt-2">
+          <div className="text-[10px] opacity-60 text-center uppercase tracking-[0.6em] font-mono mt-2">
             STAY_CURIOUS
           </div>
         </div>

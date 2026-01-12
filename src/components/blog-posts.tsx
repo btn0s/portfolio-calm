@@ -77,6 +77,8 @@ export function BlogPosts({ posts }: BlogPostsProps) {
               date={formatDate(post.metadata.publishedAt, false)}
               subtext={`log/${post.slug}`}
               href={`/thoughts/${post.slug}`}
+              titleClassName="font-serif italic capitalize tracking-normal text-sm"
+              descriptionClassName="font-serif italic opacity-60"
             />
           </div>
         ))}

@@ -69,7 +69,7 @@ export function ArtifactsReceipt() {
         </div>
         
         <div className="flex flex-col gap-1">
-          <h1 className="text-3xl font-black uppercase tracking-tighter leading-none text-white">
+          <h1 className="text-3xl font-mono font-black uppercase tracking-tighter leading-none text-white">
             SYSTEM_ARCHIVE
           </h1>
           <div className="flex justify-between items-end">
@@ -115,6 +115,8 @@ export function ArtifactsReceipt() {
                 date={artifact.date}
                 subtext={`artifacts/${artifact.href.split('/').pop()?.toLowerCase()}`}
                 className="bg-[#0047ab] p-5 hover:bg-white/5 transition-colors group relative border-b border-white/5 last:border-0 cursor-pointer text-white"
+                titleClassName="font-mono"
+                descriptionClassName="font-mono"
               />
             ))}
           </div>

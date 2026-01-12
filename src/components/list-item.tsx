@@ -9,6 +9,8 @@ interface ListItemProps {
   href?: string
   underline?: boolean
   className?: string
+  titleClassName?: string
+  descriptionClassName?: string
   target?: string
   rel?: string
 }
@@ -21,6 +23,8 @@ export function ListItem({
   href,
   underline = true,
   className,
+  titleClassName,
+  descriptionClassName,
   target,
   rel,
 }: ListItemProps) {
@@ -31,7 +35,8 @@ export function ListItem({
       <div className="flex justify-between items-baseline mb-1">
         <span className={cn(
           "font-bold uppercase text-xs text-pretty",
-          href && underline && "underline decoration-dotted underline-offset-2 group-hover:decoration-solid"
+          href && underline && "underline decoration-dotted underline-offset-2 group-hover:decoration-solid",
+          titleClassName
         )}>
           {title}
         </span>
@@ -42,7 +47,10 @@ export function ListItem({
         )}
       </div>
       {description && (
-        <p className="text-[10px] leading-tight opacity-70 mb-1 max-w-[75%]">
+        <p className={cn(
+          "text-[10px] leading-tight opacity-70 mb-1 max-w-[75%]",
+          descriptionClassName
+        )}>
           {description}
         </p>
       )}
