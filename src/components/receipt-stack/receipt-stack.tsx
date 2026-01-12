@@ -45,7 +45,7 @@ function hrefForRoute(routeId: RouteId) {
 const STACK_CONFIG = {
   // Gesture tuning
   gesture: {
-    flickVelocityThreshold: 150,
+    flickVelocityThreshold: 50,
     intentThresholdPx: 8,
     verticalConeDegrees: 15,
     horizontalVelocityRatio: 0.5,
