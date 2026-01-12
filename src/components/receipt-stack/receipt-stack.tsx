@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState, useCallback, useEffect } from "react";
-import { motion, PanInfo, useDragControls } from "framer-motion";
+import { motion, PanInfo, useDragControls, LayoutGroup } from "framer-motion";
 import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { STACK_SPRING, getStackOffset } from "@/lib/motion/stack";
@@ -73,6 +73,7 @@ export function ReceiptStack({
   // Only state needed for rendering: touchAction needs to update when intent is confirmed
   const [touchAction, setTouchAction] = useState<"pan-y" | "none">("pan-y");
   const [hasHover, setHasHover] = useState(false);
+  const frontCardRef = useRef<HTMLDivElement>(null);
 
   const { route, isSubpage, lockStackInteractions, shouldHideStack } =
     classifyPath(pathname);
@@ -90,25 +91,23 @@ export function ReceiptStack({
     return () => mediaQuery.removeEventListener("change", handleChange);
   }, []);
 
-  // Enable scrolling on subpages (mobile) without body class manipulation
+  // Lock scroll during horizontal drag
   useEffect(() => {
-    if (isSubpage && typeof window !== "undefined") {
-      // On mobile, body has overflow: hidden by default
-      // Enable scrolling for subpages by setting overflow directly
+    if (touchAction === "none" && typeof window !== "undefined") {
       const isMobile = window.matchMedia("(max-width: 768px)").matches;
       if (isMobile) {
-        document.body.style.overflow = "auto";
+        document.body.classList.add("dragging-horizontal");
         return () => {
-          document.body.style.overflow = "";
+          document.body.classList.remove("dragging-horizontal");
         };
       }
     }
-  }, [isSubpage]);
+  }, [touchAction]);
 
   // "Intent Gatekeeper" - only unlock drag after confirming horizontal intent
   // Using refs instead of state to avoid React re-renders in the hot path
   const dragUnlockedRef = useRef(false);
-  const verticalLockedRef = useRef(false);
+  const scrollCommittedRef = useRef(false);
   const gestureStartRef = useRef<{ x: number; y: number } | null>(null);
   const dragControls = useDragControls();
   const dragConstraintsRef = useRef<HTMLDivElement>(null);
@@ -116,7 +115,7 @@ export function ReceiptStack({
   const handlePointerDown = useCallback((e: React.PointerEvent) => {
     gestureStartRef.current = { x: e.clientX, y: e.clientY };
     dragUnlockedRef.current = false;
-    verticalLockedRef.current = false;
+    scrollCommittedRef.current = false;
   }, []);
 
   const handlePointerMove = useCallback(
@@ -124,8 +123,8 @@ export function ReceiptStack({
       if (!gestureStartRef.current) {
         return;
       }
-      if (dragUnlockedRef.current) {
-        // Already unlocked, Framer Motion handles it
+      if (dragUnlockedRef.current || scrollCommittedRef.current) {
+        // Already committed to drag or scroll, let browser/Framer handle it
         return;
       }
 
@@ -138,11 +137,8 @@ export function ReceiptStack({
         const isNearlyPureVertical = dy > dx * VERTICAL_CONE_RATIO;
 
         if (isNearlyPureVertical) {
-          // Vertical intent - still allow drag but lock to vertical only
-          verticalLockedRef.current = true;
-          dragUnlockedRef.current = true;
-          setTouchAction("none"); // Block native scrolling once drag starts
-          dragControls.start(e, { snapToCursor: false });
+          // Vertical intent - commit to scroll, do nothing (let browser handle it)
+          scrollCommittedRef.current = true;
         } else {
           // Horizontal intent confirmed - start drag with the current event
           dragUnlockedRef.current = true;
@@ -160,7 +156,7 @@ export function ReceiptStack({
     // Small delay to let Framer Motion's dragEnd fire first
     setTimeout(() => {
       dragUnlockedRef.current = false;
-      verticalLockedRef.current = false;
+      scrollCommittedRef.current = false;
       setTouchAction("pan-y"); // Re-enable native vertical scroll
     }, DRAG_UNLOCK_RESET_DELAY);
   }, []);
@@ -190,11 +186,19 @@ export function ReceiptStack({
 
   const rotateForward = useCallback(() => {
     const nextRoute = order[1];
+    // Reset scroll to top when rotating routes
+    if (typeof window !== "undefined") {
+      window.scrollTo({ top: 0, behavior: "instant" });
+    }
     router.push(hrefForRoute(nextRoute));
   }, [order, router]);
 
   const rotateBackward = useCallback(() => {
     const prevRoute = order[2];
+    // Reset scroll to top when rotating routes
+    if (typeof window !== "undefined") {
+      window.scrollTo({ top: 0, behavior: "instant" });
+    }
     router.push(hrefForRoute(prevRoute));
   }, [order, router]);
 
@@ -275,113 +279,99 @@ export function ReceiptStack({
     }
   };
 
-  // Render cards - shared between subpage and main page
-  const renderCards = () => (
-    <>
-      {/* Stack-area overlay for subpages - intercepts clicks to navigate back */}
-      {lockStackInteractions && (
-        <button
-          type="button"
-          className="absolute inset-0 z-10 cursor-pointer focus:outline-none focus:ring-2 focus:ring-black/20 focus:ring-offset-2 focus:ring-offset-transparent rounded-sm"
-          onClick={handleOverlayClick}
-          onKeyDown={handleOverlayKeyDown}
-          aria-label={`Go to ${order[0]} page`}
-        />
-      )}
-      {order.map((routeId, position) => {
-            const isFront = position === 0;
-            const offset = getStackOffset(position);
-            const breathe =
-              showSpread && !isFront ? HOVER_SPREAD_MULTIPLIER : 1;
+  // Render a single card with shared layout
+  const renderCard = (routeId: RouteId, position: number, isInBackStage: boolean) => {
+    const isFront = position === 0;
+    const offset = getStackOffset(position);
+    const breathe = showSpread && !isFront ? HOVER_SPREAD_MULTIPLIER : 1;
 
-            // Shadow values: front card gets stronger shadow, back cards get lighter
-            const shadowStyle = isFront
-              ? { boxShadow: "0 12px 24px rgba(0,0,0,0.2)" }
-              : { boxShadow: "0 4px 8px rgba(0,0,0,0.1)" };
+    // Shadow values: front card gets stronger shadow, back cards get lighter
+    const shadowStyle = isFront
+      ? { boxShadow: "0 12px 24px rgba(0,0,0,0.2)" }
+      : { boxShadow: "0 4px 8px rgba(0,0,0,0.1)" };
 
-            return (
-              <motion.div
-                key={routeId}
-                style={{
-                  zIndex: 3 - position,
-                  position: "absolute",
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  willChange: "transform",
-                  // Start with pan-y to allow native vertical scroll until horizontal intent confirmed
-                  touchAction: isFront && !lockStackInteractions ? touchAction : undefined,
-                  ...shadowStyle,
-                }}
-                drag={isFront && !lockStackInteractions ? (verticalLockedRef.current ? "y" : true) : false}
-                dragControls={isFront && !lockStackInteractions ? dragControls : undefined}
-                dragListener={false} // We manually start drag via dragControls
-                dragSnapToOrigin={!verticalLockedRef.current} // Don't snap in vertical mode
-                dragElastic={DRAG_ELASTICITY}
-                dragConstraints={
-                  isFront && verticalLockedRef.current && !lockStackInteractions ? dragConstraintsRef : undefined
-                }
-                onPointerDown={isFront && !lockStackInteractions ? handlePointerDown : undefined}
-                onPointerMove={isFront && !lockStackInteractions ? handlePointerMove : undefined}
-                onPointerUp={isFront && !lockStackInteractions ? handlePointerUp : undefined}
-                onPointerCancel={isFront && !lockStackInteractions ? handlePointerUp : undefined}
-                onDragEnd={isFront && !lockStackInteractions ? handleDragEnd : undefined}
-                animate={
-                  isFront
-                    ? { x: 0, y: 0, rotate: 0, scale: 1 }
-                    : isSubpage
-                    ? { x: 0, y: 0, rotate: 0, scale: 1 }
-                    : {
-                        x: offset.x * breathe,
-                        y: offset.y * breathe,
-                        rotate: offset.rotate * breathe,
-                        scale: 1 - position * 0.01,
-                      }
-                }
-                transition={STACK_SPRING}
-                onClick={() => handleCardClick(routeId, position)}
-                tabIndex={isFront && !lockStackInteractions ? 0 : -1}
-                aria-label={
-                  isFront && !lockStackInteractions
-                    ? `Receipt stack navigation. Use Left and Right arrow keys to switch routes.`
-                    : undefined
-                }
-                className={cn(
-                  isFront
-                    ? lockStackInteractions
-                      ? "cursor-default"
-                      : "cursor-grab active:cursor-grabbing focus:outline-none focus:ring-2 focus:ring-black/20 focus:ring-offset-2 focus:ring-offset-transparent rounded-sm"
-                    : "cursor-pointer"
-                )}
-              >
-                {/* Paint layer: contains clip-path and texture, not animated */}
-                <div
-                  className={cn(
-                    "relative h-full w-full",
-                    !isFront && "pointer-events-none"
-                  )}
-                  aria-hidden={!isFront}
-                >
-                  {receiptMap[routeId]}
-                </div>
-              </motion.div>
-            );
-          })}
-    </>
-  );
+    return (
+      <motion.div
+        key={routeId}
+        layoutId={routeId}
+        style={{
+          zIndex: 3 - position,
+          position: isInBackStage ? "absolute" : "relative",
+          top: isInBackStage ? 0 : undefined,
+          left: isInBackStage ? 0 : undefined,
+          right: isInBackStage ? 0 : undefined,
+          willChange: "transform",
+          touchAction: isFront && !lockStackInteractions ? touchAction : undefined,
+          ...shadowStyle,
+        }}
+        drag={isFront && !lockStackInteractions ? "x" : false}
+        dragControls={isFront && !lockStackInteractions ? dragControls : undefined}
+        dragListener={false}
+        dragSnapToOrigin={true}
+        dragElastic={DRAG_ELASTICITY}
+        onPointerDown={isFront && !lockStackInteractions ? handlePointerDown : undefined}
+        onPointerMove={isFront && !lockStackInteractions ? handlePointerMove : undefined}
+        onPointerUp={isFront && !lockStackInteractions ? handlePointerUp : undefined}
+        onPointerCancel={isFront && !lockStackInteractions ? handlePointerUp : undefined}
+        onDragEnd={isFront && !lockStackInteractions ? handleDragEnd : undefined}
+        animate={
+          isFront
+            ? { x: 0, y: 0, rotate: 0, scale: 1 }
+            : isSubpage
+            ? { x: 0, y: 0, rotate: 0, scale: 1 }
+            : {
+                x: offset.x * breathe,
+                y: offset.y * breathe,
+                rotate: offset.rotate * breathe,
+                scale: 1 - position * 0.01,
+              }
+        }
+        transition={STACK_SPRING}
+        onClick={() => handleCardClick(routeId, position)}
+        tabIndex={isFront && !lockStackInteractions ? 0 : -1}
+        aria-label={
+          isFront && !lockStackInteractions
+            ? `Receipt stack navigation. Use Left and Right arrow keys to switch routes.`
+            : undefined
+        }
+        className={cn(
+          isFront
+            ? lockStackInteractions
+              ? "cursor-default"
+              : "cursor-grab active:cursor-grabbing focus:outline-none focus:ring-2 focus:ring-black/20 focus:ring-offset-2 focus:ring-offset-transparent rounded-sm"
+            : "cursor-pointer",
+          "w-full"
+        )}
+      >
+        {/* Paint layer: contains clip-path and texture, not animated */}
+        <div
+          className={cn(
+            "relative h-full w-full",
+            !isFront && isInBackStage && "pointer-events-none"
+          )}
+          aria-hidden={!isFront}
+        >
+          {receiptMap[routeId]}
+        </div>
+      </motion.div>
+    );
+  };
 
   return (
-    <>
+    <LayoutGroup>
       {/* Fixed drag constraints area */}
       <div
         ref={dragConstraintsRef}
         className="fixed top-20 left-6 right-6 bottom-6 pointer-events-none"
       />
+      
+      {/* BackStage: Fixed container for back cards */}
       <div
         className={cn(
+          "fixed z-10",
           isSubpage
-            ? "fixed bottom-0 left-0 right-0 z-10 px-4 w-full md:left-1/2 md:right-auto md:-translate-x-1/2 md:max-w-xl md:px-0"
-            : "relative z-0 w-full max-w-xl mx-auto"
+            ? "bottom-0 left-0 right-0 px-4 w-full md:left-1/2 md:right-auto md:-translate-x-1/2 md:max-w-xl md:px-0"
+            : "top-32 left-0 right-0 w-full max-w-xl mx-auto"
         )}
       >
         <motion.div
@@ -399,10 +389,52 @@ export function ReceiptStack({
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
           >
-            {renderCards()}
+            {/* Back slots - render cards that are NOT front */}
+            {order.map((routeId, position) => {
+              if (position === 0) return null; // Front card goes in FrontSlot
+              return (
+                <div key={`back-slot-${routeId}`} className="absolute inset-0">
+                  {renderCard(routeId, position, true)}
+                </div>
+              );
+            })}
+            
+            {/* Stack-area overlay for subpages - intercepts clicks to navigate back */}
+            {lockStackInteractions && (
+              <button
+                type="button"
+                className="absolute inset-0 z-10 cursor-pointer focus:outline-none focus:ring-2 focus:ring-black/20 focus:ring-offset-2 focus:ring-offset-transparent rounded-sm"
+                onClick={handleOverlayClick}
+                onKeyDown={handleOverlayKeyDown}
+                aria-label={`Go to ${order[0]} page`}
+              />
+            )}
           </div>
         </motion.div>
       </div>
-    </>
+
+      {/* FrontSlot: In-flow container for front card - this moves with page scroll */}
+      <div
+        ref={frontCardRef}
+        className={cn(
+          "relative z-20 w-full max-w-xl mx-auto -mt-8",
+          isSubpage && "md:mx-auto"
+        )}
+      >
+        <div className="flex flex-col items-center justify-center pb-12 min-h-[600px] md:min-h-[800px]">
+          <div className="relative w-full max-w-xl flex items-center justify-center">
+            {/* Front card - only render if position is 0 */}
+            {order.map((routeId, position) => {
+              if (position !== 0) return null;
+              return (
+                <div key={`front-slot-${routeId}`} className="w-full">
+                  {renderCard(routeId, position, false)}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    </LayoutGroup>
   );
 }

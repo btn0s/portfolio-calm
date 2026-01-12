@@ -130,10 +130,10 @@
   }
   @media (max-width: 768px) {
     body {
-      overflow: hidden;
-    }
-    body.scroll-enabled {
       overflow: auto;
+    }
+    body.dragging-horizontal {
+      overflow: hidden;
     }
   }
   h1 {
