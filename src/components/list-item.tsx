@@ -84,6 +84,7 @@ export function ListItem({
   return (
     <SoundPlayingLink
       href={href}
+      sound="click"
       className={baseClassName}
     >
       {content}

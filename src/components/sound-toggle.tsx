@@ -5,7 +5,7 @@ import { useSoundSettings } from "@/contexts/sound-context";
 import { useEffect, useState } from "react";
 
 export function SoundToggle() {
-  const { isMuted, toggleMute } = useSoundSettings();
+  const { isMuted, toggleMute, playSound } = useSoundSettings();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -23,8 +23,16 @@ export function SoundToggle() {
     );
   }
 
+  const handlePointerDown = () => {
+    // Only play sound if not currently muted
+    if (!isMuted) {
+      playSound("click", true);
+    }
+  };
+
   return (
     <button
+      onPointerDown={handlePointerDown}
       onClick={toggleMute}
       className="p-1 text-muted-foreground hover:text-foreground transition-colors"
       aria-label={isMuted ? "Unmute sounds" : "Mute sounds"}

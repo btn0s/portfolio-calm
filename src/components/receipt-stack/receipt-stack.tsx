@@ -324,10 +324,9 @@ export function ReceiptStack({
 
   const bringToFront = useCallback(
     (routeId: RouteId) => {
-      playSound("rustle"); // Play rustle when bringing card to front
       router.push(hrefForRoute(routeId));
     },
-    [router, playSound]
+    [router]
   );
 
   const handleCardClick = (e: React.MouseEvent, routeId: RouteId, position: number) => {
@@ -343,6 +342,7 @@ export function ReceiptStack({
     
     if (position === 0) return; // Front card is not clickable
 
+    playSound("rustle"); // Play rustle on mouseup when clicking back card
     bringToFront(routeId);
   };
 

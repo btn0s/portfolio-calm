@@ -137,19 +137,12 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${abcOracle.variable} ${abcDiatype.variable} ${departureMono.variable}`}
-      suppressHydrationWarning
+      className={`dark ${abcOracle.variable} ${abcDiatype.variable} ${departureMono.variable}`}
     >
       <head>
         <meta
           name="theme-color"
-          content="#ffffff"
-          media="(prefers-color-scheme: light)"
-        />
-        <meta
-          name="theme-color"
           content="#252525"
-          media="(prefers-color-scheme: dark)"
         />
         <meta
           name="viewport"
@@ -162,20 +155,6 @@ export default function RootLayout({
           <RouteIntroHandler />
           <ClickHandler />
           <SafariBar />
-          <script
-            dangerouslySetInnerHTML={{
-              __html: `
-              (function() {
-                const stored = localStorage.getItem('theme');
-                const prefersLight = window.matchMedia('(prefers-color-scheme: light)').matches;
-                const theme = stored || (prefersLight ? 'light' : 'dark');
-                if (theme === 'dark') {
-                  document.documentElement.classList.add('dark');
-                }
-              })();
-            `,
-            }}
-          />
           <ScrollToTop />
           <main className="min-w-0 pt-16 flex flex-col px-4 overflow-x-clip overflow-y-visible md:overflow-visible">
             <Navbar />

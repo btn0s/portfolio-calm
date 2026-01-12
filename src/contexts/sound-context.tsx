@@ -18,8 +18,8 @@ export type RouteId = "home" | "thoughts" | "artifacts";
 // Sound configuration
 export const SOUND_CONFIG = {
   interaction: {
-    click: "/assets/audio/click.wav",
-    clickAlt: "/assets/audio/click-alt.mp3",
+    click: "/assets/audio/click-alt.mp3",
+    clickAlt: "/assets/audio/click.wav",
     confetti: "/assets/audio/sad-party-horn.wav",
     drop: "/assets/audio/drop.mp3",
     rustle: "/assets/audio/Paper Rustle Sound Effect.mp3",
@@ -45,10 +45,12 @@ export const SOUND_CONFIG = {
 export const SOUNDS = SOUND_CONFIG.interaction;
 
 // Types
+type InteractionSound = keyof typeof SOUND_CONFIG.interaction | "navigate";
+
 type SoundContextType = {
   isMuted: boolean;
   toggleMute: () => void;
-  playSound: (sound: keyof typeof SOUND_CONFIG.interaction, alt?: boolean) => void;
+  playSound: (sound: InteractionSound, alt?: boolean) => void;
   playIntro: (route: RouteId) => void;
   playTransition: (direction: "forward" | "backward") => void;
   getSoundUrl: (category: SoundCategory, key: string) => string;
@@ -319,8 +321,12 @@ export const SoundProvider = ({ children }: { children: React.ReactNode }) => {
   }, [isMuted]);
 
   // Sound player utility
-  const playSound = useCallback((sound: keyof typeof SOUND_CONFIG.interaction, alt?: boolean) => {
-    if (alt && sound === "click") {
+  const playSound = useCallback((sound: InteractionSound, alt?: boolean) => {
+    if (sound === "navigate") {
+      // Navigate plays both click (alt) for immediate feedback + rustle for stack animation
+      playSoundWithOverride("interaction", "clickAlt", SOUND_VOLUME, playClickAlt);
+      playRustleSound();
+    } else if (alt && sound === "click") {
       playSoundWithOverride("interaction", "clickAlt", SOUND_VOLUME, playClickAlt);
     } else if (sound === "rustle") {
       playRustleSound();

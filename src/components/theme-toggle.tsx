@@ -2,10 +2,12 @@
 
 import { useEffect, useState } from 'react'
 import { Moon, Sun } from 'lucide-react'
+import { useSoundSettings } from '@/contexts/sound-context'
 
 export function ThemeToggle() {
   const [theme, setTheme] = useState<'light' | 'dark'>('dark')
   const [mounted, setMounted] = useState(false)
+  const { playSound } = useSoundSettings()
 
   useEffect(() => {
     setMounted(true)
@@ -43,6 +45,7 @@ export function ThemeToggle() {
 
   return (
     <button
+      onPointerDown={() => playSound("click", true)}
       onClick={toggleTheme}
       className="p-1 text-muted-foreground hover:text-foreground transition-colors"
       aria-label="Toggle theme"

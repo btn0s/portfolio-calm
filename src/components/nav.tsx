@@ -1,6 +1,5 @@
 import Image from "next/image";
 import logo from "@/assets/images/logo-pixel.svg";
-import { ThemeToggle } from "@/components/theme-toggle";
 import { SoundToggle } from "@/components/sound-toggle";
 import { SoundPlayingLink } from "@/components/sound-playing-link";
 
@@ -27,7 +26,7 @@ export function Navbar() {
           <SoundPlayingLink
             href="/"
             prefetch
-            sound="rustle"
+            sound="navigate"
             className="flex items-center gap-1 mr-6 text-foreground"
           >
             <Image
@@ -45,7 +44,7 @@ export function Navbar() {
                   key={path}
                   href={path}
                   prefetch
-                  sound="rustle"
+                  sound="navigate"
                   className="transition-all hover:text-foreground text-sm flex align-middle relative py-1 px-2 m-1 text-muted-foreground"
                 >
                   {name}
@@ -56,7 +55,6 @@ export function Navbar() {
         </div>
         <div className="flex items-center gap-2">
           <SoundToggle />
-          <ThemeToggle />
         </div>
       </nav>
     </aside>
