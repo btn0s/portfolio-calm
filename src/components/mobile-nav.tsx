@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 const navItems = [
   { href: "/", name: "home" },
@@ -13,66 +14,78 @@ const navItems = [
 
 export function MobileNav() {
   const pathname = usePathname();
+  const router = useRouter();
+
+  const getCurrentIndex = () => {
+    // Default to home if no match or on subpages
+    const index = navItems.findIndex(
+      (item) =>
+        item.href === pathname ||
+        (item.href !== "/" && pathname.startsWith(item.href))
+    );
+    return index === -1 ? 0 : index;
+  };
+
+  const currentIndex = getCurrentIndex();
+  const currentItem = navItems[currentIndex];
+
+  const handlePrev = () => {
+    const prevIndex = (currentIndex - 1 + navItems.length) % navItems.length;
+    router.push(navItems[prevIndex].href);
+  };
+
+  const handleNext = () => {
+    const nextIndex = (currentIndex + 1) % navItems.length;
+    router.push(navItems[nextIndex].href);
+  };
 
   return (
-    <nav className="fixed bottom-10 inset-x-0 z-50 md:hidden pointer-events-none flex justify-center px-6">
-      <motion.div 
-        className="flex items-center bg-[#f2f2f2] dark:bg-[#111] border border-[#d8d8d8] dark:border-[#1d1d1d] shadow-[0_16px_48px_-12px_rgba(0,0,0,0.12)] dark:shadow-[0_16px_56px_-12px_rgba(0,0,0,0.7)] rounded-full pointer-events-auto relative overflow-hidden"
-      >
-        {/* Fine-grained texture */}
-        <div className="absolute inset-0 opacity-[0.02] pointer-events-none paper-texture" />
-        
-        {/* Top edge highlight (rim light) */}
-        <div className="absolute inset-x-5 top-0 h-[0.5px] bg-white opacity-40 dark:opacity-10 pointer-events-none" />
-        
-        <div className="flex items-center gap-0 relative z-10 px-1">
-          {navItems.map(({ href, name }) => {
-            const isActive = pathname === href || (href !== "/" && pathname.startsWith(href));
-            
-            return (
-              <Link
-                key={href}
-                href={href}
-                className={cn(
-                  "relative px-5 py-3.5 flex flex-col items-center justify-center min-w-[88px] group/item transition-all",
-                  "active:scale-95"
-                )}
-              >
-                {/* Tactical Recess (Active State) */}
-                {isActive && (
-                  <motion.div 
-                    layoutId="te-active-well"
-                    className="absolute inset-[5px] rounded-full bg-[#ebebeb] dark:bg-[#080808] shadow-[inset_0_2px_4px_rgba(0,0,0,0.1),0_0.5px_0_rgba(255,255,255,1)] dark:shadow-[inset_0_2px_4px_rgba(0,0,0,0.6),0_0.5px_0_rgba(255,255,255,0.05)]"
-                    transition={{ type: "spring", bounce: 0.2, duration: 0.5 }}
-                  />
-                )}
+    <nav className="fixed bottom-6 inset-x-0 z-50 md:hidden pointer-events-none flex justify-center px-4">
+      <motion.div className="flex gap-1.5 items-center justify-between w-full max-w-[320px] bg-[#e6e6e6] dark:bg-[#1a1a1a] border border-[#d4d4d4] dark:border-[#262626] shadow-[0_20px_40px_-12px_rgba(0,0,0,0.2),inset_0_1px_0_rgba(255,255,255,0.4)] dark:shadow-[0_20px_40px_-12px_rgba(0,0,0,0.6),inset_0_1px_0_rgba(255,255,255,0.05)] rounded-2xl pointer-events-auto relative p-1.5">
+        {/* Fine Texture */}
+        <div className="absolute inset-0 opacity-[0.03] pointer-events-none paper-texture rounded-2xl" />
 
-                {/* Button Surface Bevel (Inactive) */}
-                {!isActive && (
-                  <div className="absolute inset-[8px] rounded-full bg-[#f8f8f8] dark:bg-[#151515] opacity-0 group-hover/item:opacity-100 transition-opacity shadow-[0_1px_2px_rgba(0,0,0,0.05),inset_0_1px_0_white] dark:shadow-[0_1px_2px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.05)]" />
-                )}
+        {/* Screen Display Area */}
+        <div className="flex-1 h-full flex items-center">
+          <div className="w-full h-full bg-[#9ea792] dark:bg-[#202020] rounded-lg shadow-[inset_0_2px_4px_rgba(0,0,0,0.2),0_1px_0_rgba(255,255,255,0.5)] dark:shadow-[inset_0_2px_4px_rgba(0,0,0,0.5),0_1px_0_rgba(255,255,255,0.05)] flex items-center px-3 relative overflow-hidden border border-black/10 dark:border-black/50 group/screen">
+            {/* Dot Matrix Texture */}
+            <div className="absolute inset-0 opacity-[0.15] dark:opacity-[0.2] bg-[radial-gradient(#000_1px,transparent_1px)] dark:bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:2px_2px] pointer-events-none" />
 
-                <span className={cn(
-                  "font-mono text-[8px] uppercase tracking-[0.3em] relative z-10 transition-colors duration-300 leading-none mb-1",
-                  isActive ? "text-foreground font-bold" : "text-muted-foreground font-medium group-hover/item:text-foreground"
-                )}>
-                  {name}
-                </span>
+            {/* Screen inner glow/vignette */}
+            <div className="absolute inset-0 shadow-[inset_0_0_12px_rgba(0,0,0,0.1)] dark:shadow-[inset_0_0_12px_rgba(0,0,0,0.5)] pointer-events-none" />
 
-                {/* Precision Pinhole LED with Bevel */}
-                <div className="relative z-10 flex items-center justify-center p-[1px] rounded-full bg-black/5 dark:bg-white/5 shadow-[inset_0_0.5px_1px_rgba(0,0,0,0.1)] dark:shadow-[inset_0_0.5px_1px_rgba(0,0,0,0.5)]">
-                  <div className="size-[4px] rounded-full bg-[#333] dark:bg-[#000] p-[0.5px] shadow-[0_0.5px_0_rgba(255,255,255,0.5)] dark:shadow-[0_0.5px_0_rgba(255,255,255,0.02)]">
-                    <div className={cn(
-                      "size-full rounded-full transition-all duration-700 ease-out",
-                      isActive 
-                        ? "bg-[#ff2d55] shadow-[0_0_5px_#ff2d55,0_0_2px_#ff2d55]" 
-                        : "bg-[#888] dark:bg-[#222]"
-                    )} />
-                  </div>
-                </div>
-              </Link>
-            );
-          })}
+            <div className="flex flex-col relative z-10 w-full">
+              <span className="text-[6px] uppercase tracking-[0.2em] text-black/50 dark:text-white/40 font-mono leading-none mb-0.5">
+                Current View
+              </span>
+              <span className="text-xs font-bold uppercase tracking-[0.15em] text-black/80 dark:text-white/90 font-mono leading-none truncate">
+                {currentItem.name}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Physical Button Group */}
+        <div className="flex gap-1.5 bg-[#d6d6d6] dark:bg-[#111] p-1 rounded-xl shadow-[inset_0_1px_3px_rgba(0,0,0,0.1)] dark:shadow-[inset_0_1px_3px_rgba(0,0,0,0.4)]">
+          {/* Prev Button */}
+          <button
+            onClick={handlePrev}
+            className="group relative w-16 h-10 flex items-center justify-center rounded-lg active:scale-95 transition-transform outline-none"
+            aria-label="Previous page"
+          >
+            <div className="absolute inset-0 bg-[#f0f0f0] dark:bg-[#222] rounded-lg shadow-[0_2px_0_#bbb,0_3px_3px_rgba(0,0,0,0.1),inset_0_1px_0_rgba(255,255,255,0.5)] dark:shadow-[0_2px_0_#000,0_3px_3px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.05)] group-active:translate-y-[2px] group-active:shadow-[inset_0_1px_2px_rgba(0,0,0,0.1)] transition-all" />
+            <ChevronLeft className="w-5 h-5 text-foreground/70 relative z-10 group-active:opacity-80" />
+          </button>
+
+          {/* Next Button */}
+          <button
+            onClick={handleNext}
+            className="group relative w-16 h-10 flex items-center justify-center rounded-lg active:scale-95 transition-transform outline-none"
+            aria-label="Next page"
+          >
+            <div className="absolute inset-0 bg-[#f0f0f0] dark:bg-[#222] rounded-lg shadow-[0_2px_0_#bbb,0_3px_3px_rgba(0,0,0,0.1),inset_0_1px_0_rgba(255,255,255,0.5)] dark:shadow-[0_2px_0_#000,0_3px_3px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.05)] group-active:translate-y-[2px] group-active:shadow-[inset_0_1px_2px_rgba(0,0,0,0.1)] transition-all" />
+            <ChevronRight className="w-5 h-5 text-foreground/70 relative z-10 group-active:opacity-80" />
+          </button>
         </div>
       </motion.div>
     </nav>

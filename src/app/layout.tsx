@@ -152,7 +152,7 @@ export default function RootLayout({
         />
       </head>
       <body className="antialiased">
-        <div className="isolate fixed inset-x-0 h-2 bg-background z-9999 bottom-0" />
+        <div className="isolate fixed inset-x-0 h-2 bg-[#e6e6e6] dark:bg-[#1a1a1a] border-t z-9999 bottom-0" />
         <script
           dangerouslySetInnerHTML={{
             __html: `
