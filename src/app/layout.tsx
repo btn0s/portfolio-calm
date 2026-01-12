@@ -13,6 +13,7 @@ import { ArtifactsReceipt } from "./(stack)/_receipts/artifacts-receipt";
 import { ScrollToTop } from "@/components/scroll-to-top";
 import React from "react";
 import { cn } from "@/lib/utils";
+import { MobileNav } from "@/components/mobile-nav";
 
 const abcOracle = localFont({
   src: "../assets/fonts/ABC-Stefan/ABCOracleVariable-Trial.ttf",
@@ -169,6 +170,7 @@ export default function RootLayout({
         <ScrollToTop />
         <main className="min-w-0 pt-16 flex flex-col px-4 overflow-x-clip overflow-y-visible md:overflow-visible">
           <Navbar />
+          <MobileNav />
           <div
             className={cn(
               "max-w-full md:max-w-xl mx-auto",

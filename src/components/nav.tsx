@@ -30,13 +30,13 @@ export function Navbar() {
           >
             <Image
               src={logo}
-              alt="bt norris"
+              alt="btn0s"
               className="size-3 dark:invert relative top-px"
               priority
             />
-            <span className="font-bold">bt norris</span>
+            <span className="font-bold">btn0s</span>
           </Link>
-          <div className="flex flex-row space-x-0 pr-10">
+          <div className="hidden md:flex flex-row space-x-0 pr-10">
             {Object.entries(navItems).map(([path, { name }]) => {
               return (
                 <Link
