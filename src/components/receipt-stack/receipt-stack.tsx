@@ -114,20 +114,20 @@ export function ReceiptStack({
   const dragConstraintsRef = useRef<HTMLDivElement>(null);
 
   const handlePointerDown = useCallback((e: React.PointerEvent) => {
-    // Check if the click target is a link or inside a link
+    // Check if the click target is an interactive element (link, button, input, etc.)
     const target = e.target as HTMLElement;
-    const isLink = target.closest('a[href], [role="link"]');
+    const isInteractive = target.closest('a[href], button, input, textarea, select, [role="link"], [role="button"], [contenteditable="true"]');
     
-    // If clicking on a link, don't interfere with the click
-    if (isLink) {
+    // If clicking on an interactive element, don't interfere with the click
+    if (isInteractive) {
       return;
     }
     
-    // Don't prevent default here - we want links to work if it's just a click
+    // Don't prevent default here - we want interactive elements to work if it's just a click
     gestureStartRef.current = { x: e.clientX, y: e.clientY };
     dragUnlockedRef.current = false;
     scrollCommittedRef.current = false;
-    // Capture pointer to get all events even over links
+    // Capture pointer to get all events even over interactive elements
     if (e.currentTarget instanceof HTMLElement) {
       e.currentTarget.setPointerCapture(e.pointerId);
     }
@@ -143,10 +143,10 @@ export function ReceiptStack({
         return;
       }
 
-      // Check if we started on a link - if so, don't interfere
+      // Check if we started on an interactive element - if so, don't interfere
       const target = e.target as HTMLElement;
-      const isLink = target.closest('a[href], [role="link"]');
-      if (isLink) {
+      const isInteractive = target.closest('a[href], button, input, textarea, select, [role="link"], [role="button"], [contenteditable="true"]');
+      if (isInteractive) {
         return;
       }
 
