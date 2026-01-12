@@ -1,8 +1,8 @@
-import Link from 'next/link'
 import Image from "next/image";
 import logo from "@/assets/images/logo-pixel.svg";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { SoundToggle } from "@/components/sound-toggle";
+import { SoundPlayingLink } from "@/components/sound-playing-link";
 
 const navItems = {
   "/": {
@@ -24,7 +24,7 @@ export function Navbar() {
         className="flex flex-row items-center justify-between relative px-0 pb-0 fade md:overflow-auto scroll-pr-6 pointer-events-auto"
       >
         <div className="flex flex-row items-baseline">
-          <Link
+          <SoundPlayingLink
             href="/"
             prefetch
             className="flex items-center gap-1 mr-6 text-foreground"
@@ -36,18 +36,18 @@ export function Navbar() {
               priority
             />
             <span className="font-bold">btn0s</span>
-          </Link>
+          </SoundPlayingLink>
           <div className="hidden md:flex flex-row space-x-0 pr-10">
             {Object.entries(navItems).map(([path, { name }]) => {
               return (
-                <Link
+                <SoundPlayingLink
                   key={path}
                   href={path}
                   prefetch
                   className="transition-all hover:text-foreground text-sm flex align-middle relative py-1 px-2 m-1 text-muted-foreground"
                 >
                   {name}
-                </Link>
+                </SoundPlayingLink>
               );
             })}
           </div>

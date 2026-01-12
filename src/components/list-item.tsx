@@ -1,5 +1,5 @@
-import Link from 'next/link'
 import { cn } from "@/lib/utils"
+import { SoundPlayingLink } from "@/components/sound-playing-link"
 
 interface ListItemProps {
   title: string
@@ -25,7 +25,6 @@ export function ListItem({
   rel,
 }: ListItemProps) {
   const isExternal = href?.startsWith('http') || href?.startsWith('mailto')
-  const Component = href ? (isExternal ? 'a' : Link) : 'div'
   
   const content = (
     <>
@@ -55,18 +54,39 @@ export function ListItem({
     </>
   )
 
+  const baseClassName = cn(
+    "block transition-all",
+    href && "border-l-2 border-transparent group-hover:border-current/20 group-hover:pl-2",
+    className
+  )
+
+  if (!href) {
+    return (
+      <div className={baseClassName}>
+        {content}
+      </div>
+    )
+  }
+
+  if (isExternal) {
+    return (
+      <a
+        href={href}
+        target={target}
+        rel={rel}
+        className={baseClassName}
+      >
+        {content}
+      </a>
+    )
+  }
+
   return (
-    <Component
-      href={href as any}
-      target={target}
-      rel={rel}
-      className={cn(
-        "block transition-all",
-        href && "border-l-2 border-transparent group-hover:border-current/20 group-hover:pl-2",
-        className
-      )}
+    <SoundPlayingLink
+      href={href}
+      className={baseClassName}
     >
       {content}
-    </Component>
+    </SoundPlayingLink>
   )
 }

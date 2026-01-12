@@ -18,6 +18,7 @@ import { SoundProvider } from "@/contexts/sound-context";
 import { ClickHandler } from "@/components/click-handler";
 import { AmbientSoundManager } from "@/components/ambient-sound-manager";
 import { RouteIntroHandler } from "@/components/route-intro-handler";
+import { SafariBar } from "@/components/safari-bar";
 
 const abcOracle = localFont({
   src: "../assets/fonts/ABC-Stefan/ABCOracleVariable-Trial.ttf",
@@ -160,7 +161,7 @@ export default function RootLayout({
           <AmbientSoundManager />
           <RouteIntroHandler />
           <ClickHandler />
-          <div className="isolate fixed inset-x-0 h-2 bg-[#e6e6e6] dark:bg-[#1a1a1a] border-t z-9999 bottom-0" />
+          <SafariBar />
           <script
             dangerouslySetInnerHTML={{
               __html: `

@@ -1,11 +1,11 @@
 "use client";
 
-import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useRef } from "react";
+import { SoundPlayingLink } from "@/components/sound-playing-link";
 
 const navItems = [
   { href: "/", name: "home" },
@@ -15,8 +15,7 @@ const navItems = [
 
 export function MobileNav() {
   const pathname = usePathname();
-  const router = useRouter();
-  const [direction, setDirection] = useState(0);
+  const prevIndexRef = useRef<number>(0);
 
   const getCurrentIndex = () => {
     // Default to home if no match or on subpages
@@ -30,18 +29,16 @@ export function MobileNav() {
 
   const currentIndex = getCurrentIndex();
   const currentItem = navItems[currentIndex];
+  
+  // Derive direction from index comparison
+  const direction = currentIndex > prevIndexRef.current ? 1 : 
+                   currentIndex < prevIndexRef.current ? -1 : 0;
+  prevIndexRef.current = currentIndex;
 
-  const handlePrev = () => {
-    setDirection(-1);
-    const prevIndex = (currentIndex - 1 + navItems.length) % navItems.length;
-    router.push(navItems[prevIndex].href);
-  };
-
-  const handleNext = () => {
-    setDirection(1);
-    const nextIndex = (currentIndex + 1) % navItems.length;
-    router.push(navItems[nextIndex].href);
-  };
+  const prevIndex = (currentIndex - 1 + navItems.length) % navItems.length;
+  const nextIndex = (currentIndex + 1) % navItems.length;
+  const prevHref = navItems[prevIndex].href;
+  const nextHref = navItems[nextIndex].href;
 
   return (
     <nav className="fixed bottom-6 inset-x-0 z-50 md:hidden pointer-events-none flex justify-center px-4">
@@ -101,24 +98,24 @@ export function MobileNav() {
         {/* Physical Button Group */}
         <div className="flex gap-1.5 bg-[#d6d6d6] dark:bg-[#111] p-1 rounded-xl shadow-[inset_0_1px_3px_rgba(0,0,0,0.1)] dark:shadow-[inset_0_1px_3px_rgba(0,0,0,0.4)] h-full">
           {/* Prev Button */}
-          <button
-            onClick={handlePrev}
+          <SoundPlayingLink
+            href={prevHref}
             className="group relative w-16 h-full flex items-center justify-center rounded-lg active:scale-95 transition-transform outline-none"
             aria-label="Previous page"
           >
             <div className="absolute inset-0 bg-[#f0f0f0] dark:bg-[#222] rounded-lg shadow-[0_2px_0_#bbb,0_3px_3px_rgba(0,0,0,0.1),inset_0_1px_0_rgba(255,255,255,0.5)] dark:shadow-[0_2px_0_#000,0_3px_3px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.05)] group-active:translate-y-[2px] group-active:shadow-[inset_0_1px_2px_rgba(0,0,0,0.1)] transition-all" />
             <ChevronLeft className="w-5 h-5 text-foreground/70 relative z-10 group-active:opacity-80" />
-          </button>
+          </SoundPlayingLink>
 
           {/* Next Button */}
-          <button
-            onClick={handleNext}
+          <SoundPlayingLink
+            href={nextHref}
             className="group relative w-16 h-full flex items-center justify-center rounded-lg active:scale-95 transition-transform outline-none"
             aria-label="Next page"
           >
             <div className="absolute inset-0 bg-[#f0f0f0] dark:bg-[#222] rounded-lg shadow-[0_2px_0_#bbb,0_3px_3px_rgba(0,0,0,0.1),inset_0_1px_0_rgba(255,255,255,0.5)] dark:shadow-[0_2px_0_#000,0_3px_3px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.05)] group-active:translate-y-[2px] group-active:shadow-[inset_0_1px_2px_rgba(0,0,0,0.1)] transition-all" />
             <ChevronRight className="w-5 h-5 text-foreground/70 relative z-10 group-active:opacity-80" />
-          </button>
+          </SoundPlayingLink>
         </div>
       </motion.div>
     </nav>

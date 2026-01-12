@@ -105,9 +105,55 @@ export function ReceiptStack({
   const [touchAction, setTouchAction] = useState<"pan-y" | "none">("pan-y");
   const [hasHover, setHasHover] = useState(false);
   const frontCardRef = useRef<HTMLDivElement>(null);
+  const audioPoolRef = useRef<HTMLAudioElement[]>([]);
 
   const { route, isSubpage, lockStackInteractions, shouldHideStack } =
     classifyPath(pathname);
+
+  // Initialize audio pool with multiple instances for variation
+  useEffect(() => {
+    // Create 3 audio instances for variation
+    audioPoolRef.current = Array.from({ length: 3 }, () => {
+      const audio = new Audio("/assets/audio/Paper Rustle Sound Effect.mp3");
+      audio.volume = 0.5;
+      return audio;
+    });
+    return () => {
+      audioPoolRef.current.forEach((audio) => {
+        audio.pause();
+      });
+      audioPoolRef.current = [];
+    };
+  }, []);
+
+  const playCardChangeSound = useCallback(() => {
+    if (audioPoolRef.current.length === 0) return;
+
+    // Find an available audio instance (not currently playing)
+    let audio = audioPoolRef.current.find((a) => a.paused);
+    
+    // If all are playing, use a random one
+    if (!audio) {
+      audio = audioPoolRef.current[Math.floor(Math.random() * audioPoolRef.current.length)];
+    }
+
+    // Vary playback rate between 0.85x and 1.15x for natural variation
+    const playbackRate = 0.85 + Math.random() * 0.3;
+    audio.playbackRate = playbackRate;
+    audio.currentTime = 0;
+    
+    audio.play().catch(() => {
+      // Ignore play errors (e.g., user hasn't interacted with page yet)
+    });
+    
+    // Stop after 1 second
+    setTimeout(() => {
+      if (audio) {
+        audio.pause();
+        audio.currentTime = 0;
+      }
+    }, 1000);
+  }, []);
 
   // Detect if device supports hover (not touch-only)
   useEffect(() => {
@@ -257,8 +303,9 @@ export function ReceiptStack({
     if (typeof window !== "undefined") {
       window.scrollTo({ top: 0, behavior: "instant" });
     }
+    playCardChangeSound();
     router.push(hrefForRoute(nextRoute));
-  }, [route, router, playTransition]);
+  }, [route, router, playTransition, playCardChangeSound]);
 
   const rotateBackward = useCallback(() => {
     playTransition("backward");
@@ -268,8 +315,9 @@ export function ReceiptStack({
     if (typeof window !== "undefined") {
       window.scrollTo({ top: 0, behavior: "instant" });
     }
+    playCardChangeSound();
     router.push(hrefForRoute(prevRoute));
-  }, [route, router, playTransition]);
+  }, [route, router, playTransition, playCardChangeSound]);
 
   // Global arrow key handler for route switching
   useEffect(() => {
@@ -316,14 +364,22 @@ export function ReceiptStack({
 
   const bringToFront = useCallback(
     (routeId: RouteId) => {
+      playCardChangeSound();
       router.push(hrefForRoute(routeId));
     },
-    [router]
+    [router, playCardChangeSound]
   );
 
-  const handleCardClick = (routeId: RouteId, position: number) => {
+  const handleCardClick = (e: React.MouseEvent, routeId: RouteId, position: number) => {
     // Disable card clicks when interactions are locked
     if (lockStackInteractions) return;
+    
+    // If clicking on a link inside the card, let it handle the click
+    const target = e.target as HTMLElement;
+    const link = target.closest('a');
+    if (link) {
+      return; // Allow link to work normally
+    }
     
     if (position === 0) return; // Front card is not clickable
 
@@ -337,6 +393,7 @@ export function ReceiptStack({
 
   const handleOverlayClick = () => {
     if (isSubpage) {
+      playCardChangeSound();
       router.push(hrefForRoute(order[0]));
     }
   };
@@ -344,6 +401,7 @@ export function ReceiptStack({
   const handleOverlayKeyDown = (e: React.KeyboardEvent) => {
     if (isSubpage && (e.key === "Enter" || e.key === " ")) {
       e.preventDefault();
+      playCardChangeSound();
       router.push(hrefForRoute(order[0]));
     }
   };
@@ -465,7 +523,7 @@ export function ReceiptStack({
         initial={initialAnimation}
         animate={animation}
         transition={STACK_SPRING}
-        onClick={() => handleCardClick(routeId, position)}
+        onClick={(e) => handleCardClick(e, routeId, position)}
         tabIndex={dragEnabled ? 0 : -1}
         aria-label={
           dragEnabled

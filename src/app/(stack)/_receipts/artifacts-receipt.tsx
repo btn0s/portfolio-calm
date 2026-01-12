@@ -2,7 +2,6 @@ import { ReceiptShell } from "@/components/receipt/receipt-shell";
 import { Barcode } from "@/components/barcode";
 import { ListItem } from "@/components/list-item";
 import { Signature } from "@/components/signature";
-import Link from "next/link";
 
 const ARTIFACTS = [
   {
@@ -108,19 +107,15 @@ export function ArtifactsReceipt() {
 
           <div className="grid grid-cols-1 gap-px bg-white/10 border border-white/10">
             {ARTIFACTS.map((artifact) => (
-              <Link
+              <ListItem
                 key={artifact.title}
                 href={artifact.href}
-                className="bg-[#0047ab] p-5 hover:bg-white/5 transition-colors group relative border-b border-white/5 last:border-0 cursor-pointer block"
-              >
-                <ListItem
-                  title={artifact.title}
-                  description={artifact.description}
-                  date={artifact.date}
-                  subtext={`artifacts/${artifact.href.split('/').pop()?.toLowerCase()}`}
-                  className="text-white"
-                />
-              </Link>
+                title={artifact.title}
+                description={artifact.description}
+                date={artifact.date}
+                subtext={`artifacts/${artifact.href.split('/').pop()?.toLowerCase()}`}
+                className="bg-[#0047ab] p-5 hover:bg-white/5 transition-colors group relative border-b border-white/5 last:border-0 cursor-pointer text-white"
+              />
             ))}
           </div>
         </section>
