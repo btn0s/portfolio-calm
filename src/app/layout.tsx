@@ -14,6 +14,8 @@ import { ScrollToTop } from "@/components/scroll-to-top";
 import React from "react";
 import { cn } from "@/lib/utils";
 import { MobileNav } from "@/components/mobile-nav";
+import { SoundProvider } from "@/contexts/sound-context";
+import { ClickHandler } from "@/components/click-handler";
 
 const abcOracle = localFont({
   src: "../assets/fonts/ABC-Stefan/ABCOracleVariable-Trial.ttf",
@@ -152,10 +154,12 @@ export default function RootLayout({
         />
       </head>
       <body className="antialiased">
-        <div className="isolate fixed inset-x-0 h-2 bg-[#e6e6e6] dark:bg-[#1a1a1a] border-t z-9999 bottom-0" />
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
+        <SoundProvider>
+          <ClickHandler />
+          <div className="isolate fixed inset-x-0 h-2 bg-[#e6e6e6] dark:bg-[#1a1a1a] border-t z-9999 bottom-0" />
+          <script
+            dangerouslySetInnerHTML={{
+              __html: `
               (function() {
                 const stored = localStorage.getItem('theme');
                 const prefersLight = window.matchMedia('(prefers-color-scheme: light)').matches;
@@ -165,29 +169,30 @@ export default function RootLayout({
                 }
               })();
             `,
-          }}
-        />
-        <ScrollToTop />
-        <main className="min-w-0 pt-16 flex flex-col px-4 overflow-x-clip overflow-y-visible md:overflow-visible">
-          <Navbar />
-          <MobileNav />
-          <div
-            className={cn(
-              "max-w-full md:max-w-xl mx-auto",
-              hasChildren ? "pb-24" : "pb-8"
-            )}
-          >
-            {children}
-          </div>
-          <ReceiptStack
-            homeReceipt={<HomeReceipt />}
-            thoughtsReceipt={<ThoughtsReceipt />}
-            artifactsReceipt={<ArtifactsReceipt />}
+            }}
           />
-          <Analytics />
-          <SpeedInsights />
-        </main>
-        <Footer />
+          <ScrollToTop />
+          <main className="min-w-0 pt-16 flex flex-col px-4 overflow-x-clip overflow-y-visible md:overflow-visible">
+            <Navbar />
+            <MobileNav />
+            <div
+              className={cn(
+                "max-w-full md:max-w-xl mx-auto",
+                hasChildren ? "pb-24" : "pb-8"
+              )}
+            >
+              {children}
+            </div>
+            <ReceiptStack
+              homeReceipt={<HomeReceipt />}
+              thoughtsReceipt={<ThoughtsReceipt />}
+              artifactsReceipt={<ArtifactsReceipt />}
+            />
+            <Analytics />
+            <SpeedInsights />
+          </main>
+          <Footer />
+        </SoundProvider>
       </body>
     </html>
   );

@@ -2,6 +2,7 @@ import Link from 'next/link'
 import Image from "next/image";
 import logo from "@/assets/images/logo-pixel.svg";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { SoundToggle } from "@/components/sound-toggle";
 
 const navItems = {
   "/": {
@@ -51,7 +52,10 @@ export function Navbar() {
             })}
           </div>
         </div>
-        <ThemeToggle />
+        <div className="flex items-center gap-2">
+          <SoundToggle />
+          <ThemeToggle />
+        </div>
       </nav>
     </aside>
   );
