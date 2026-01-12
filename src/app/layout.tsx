@@ -133,14 +133,19 @@ export default function RootLayout({
       className={`${abcOracle.variable} ${abcDiatype.variable} ${departureMono.variable}`}
       suppressHydrationWarning
     >
+      <head>
+        <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
+        <meta name="theme-color" content="#252525" media="(prefers-color-scheme: dark)" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+      </head>
       <body className="antialiased">
         <script
           dangerouslySetInnerHTML={{
             __html: `
               (function() {
                 const stored = localStorage.getItem('theme');
-                const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-                const theme = stored || (prefersDark ? 'dark' : 'light');
+                const prefersLight = window.matchMedia('(prefers-color-scheme: light)').matches;
+                const theme = stored || (prefersLight ? 'light' : 'dark');
                 if (theme === 'dark') {
                   document.documentElement.classList.add('dark');
                 }
