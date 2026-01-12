@@ -80,7 +80,7 @@ export function ArtifactsReceipt() {
           </div>
         </div>
 
-        <div className="mt-5 pt-5 border-t border-white/20 grid grid-cols-3 gap-5 text-[10px] font-mono text-white">
+        <div className="mt-3 pt-2.5 border-t border-white/20 grid grid-cols-3 gap-5 text-[10px] font-mono text-white">
           <div className="flex flex-col gap-0.5">
             <span className="opacity-40 text-[8px] uppercase font-bold">DATE</span>
             <span className="font-bold">{today.toUpperCase()}</span>
