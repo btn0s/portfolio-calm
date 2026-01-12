@@ -194,22 +194,28 @@ export function ReceiptStack({
         dx > STACK_CONFIG.gesture.intentThresholdPx ||
         dy > STACK_CONFIG.gesture.intentThresholdPx
       ) {
-        // Vertical cone is ~10deg from pure vertical
-        const isNearlyPureVertical = dy > dx * VERTICAL_CONE_RATIO;
+        // Check if this is a touch device (mobile/tablet)
+        const isTouchDevice = e.pointerType === "touch" || e.pointerType === "pen";
+        
+        if (isTouchDevice) {
+          // On touch devices, filter vertical movements to allow native scrolling
+          const isNearlyPureVertical = dy > dx * VERTICAL_CONE_RATIO;
 
-        if (isNearlyPureVertical) {
-          // Vertical intent - commit to scroll, do nothing (let browser handle it)
-          scrollCommittedRef.current = true;
-        } else {
-          // Horizontal intent confirmed - start drag with the current event
-          dragUnlockedRef.current = true;
-          setTouchAction("none"); // Block native scrolling once drag starts
-          // Start drag with the CURRENT move event (not the original down event)
-          dragControls.start(e, { snapToCursor: false });
+          if (isNearlyPureVertical) {
+            // Vertical intent - commit to scroll, do nothing (let browser handle it)
+            scrollCommittedRef.current = true;
+            return;
+          }
         }
+        
+        // Desktop or non-vertical touch movement - start drag
+        dragUnlockedRef.current = true;
+        setTouchAction("none"); // Block native scrolling once drag starts
+        // Start drag with the CURRENT move event (not the original down event)
+        dragControls.start(e, { snapToCursor: false });
       }
     },
-    [dragControls]
+    [dragControls, playSound]
   );
 
   const handlePointerUp = useCallback((e?: React.PointerEvent) => {

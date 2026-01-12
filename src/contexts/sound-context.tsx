@@ -216,6 +216,9 @@ export const SoundProvider = ({ children }: { children: React.ReactNode }) => {
     rustleAudioPoolRef.current = Array.from({ length: 3 }, () => {
       const audio = new Audio(SOUND_CONFIG.interaction.rustle);
       audio.volume = isMuted ? 0 : SOUND_VOLUME;
+      audio.preload = "auto";
+      // Preload the audio to ensure immediate playback
+      audio.load();
       return audio;
     });
 
@@ -267,6 +270,7 @@ export const SoundProvider = ({ children }: { children: React.ReactNode }) => {
   const playRustleSound = useCallback(() => {
     if (isMuted || rustleAudioPoolRef.current.length === 0) return;
 
+    // Unlock audio context immediately - this is a user interaction so it should work
     if (!audioUnlockedRef.current) {
       unlockAudioContext();
       audioUnlockedRef.current = true;
@@ -275,22 +279,35 @@ export const SoundProvider = ({ children }: { children: React.ReactNode }) => {
     // Find an available audio instance (not currently playing)
     let audio = rustleAudioPoolRef.current.find((a) => a.paused);
 
-    // If all are playing, use a random one
+    // If all are playing, use a random one and stop it first
     if (!audio) {
       audio =
         rustleAudioPoolRef.current[
           Math.floor(Math.random() * rustleAudioPoolRef.current.length)
         ];
+      audio.pause();
+      audio.currentTime = 0;
     }
 
     // Vary playback rate between 0.85x and 1.15x for natural variation
     const playbackRate = 0.85 + Math.random() * 0.3;
+    
+    // Set playback properties before playing for immediate start
     audio.playbackRate = playbackRate;
     audio.currentTime = 0;
+    audio.volume = isMuted ? 0 : SOUND_VOLUME;
 
-    audio.play().catch(() => {
-      // Ignore play errors (e.g., user hasn't interacted with page yet)
-    });
+    // Play immediately - this is a user interaction so audio should be unlocked
+    try {
+      const playPromise = audio.play();
+      if (playPromise !== undefined) {
+        playPromise.catch(() => {
+          // Ignore play errors
+        });
+      }
+    } catch (error) {
+      // Ignore errors
+    }
 
     // Stop after 1 second
     setTimeout(() => {

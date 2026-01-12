@@ -4,7 +4,7 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { useRef } from "react";
+import { useRef, useEffect, useState } from "react";
 import { SoundPlayingLink } from "@/components/sound-playing-link";
 
 const navItems = [
@@ -15,7 +15,8 @@ const navItems = [
 
 export function MobileNav() {
   const pathname = usePathname();
-  const prevIndexRef = useRef<number>(0);
+  const prevIndexRef = useRef<number | null>(null);
+  const [direction, setDirection] = useState(0);
 
   const getCurrentIndex = () => {
     // Default to home if no match or on subpages
@@ -29,11 +30,16 @@ export function MobileNav() {
 
   const currentIndex = getCurrentIndex();
   const currentItem = navItems[currentIndex];
-  
-  // Derive direction from index comparison
-  const direction = currentIndex > prevIndexRef.current ? 1 : 
-                   currentIndex < prevIndexRef.current ? -1 : 0;
-  prevIndexRef.current = currentIndex;
+
+  // Update direction when pathname changes (after initial mount)
+  useEffect(() => {
+    if (prevIndexRef.current !== null) {
+      const newDirection = currentIndex > prevIndexRef.current ? 1 : 
+                          currentIndex < prevIndexRef.current ? -1 : 0;
+      setDirection(newDirection);
+    }
+    prevIndexRef.current = currentIndex;
+  }, [currentIndex]);
 
   const prevIndex = (currentIndex - 1 + navItems.length) % navItems.length;
   const nextIndex = (currentIndex + 1) % navItems.length;
