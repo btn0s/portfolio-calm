@@ -67,7 +67,7 @@ export function HomeReceipt() {
   return (
     <ReceiptShell variant="dossier" className="flex flex-col">
       <div className="flex flex-col mb-10 gap-4">
-        <div className="flex justify-between items-start">
+        <div className="flex justify-between items-start gap-4">
           <div className="flex flex-col">
             <h1 className="text-2xl font-sans-header font-bold uppercase tracking-tight leading-none mb-1">
               OPERATIONAL MANIFEST

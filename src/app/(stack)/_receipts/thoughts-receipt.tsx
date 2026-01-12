@@ -24,7 +24,7 @@ export function ThoughtsReceipt() {
       <div className="absolute left-8 top-0 bottom-0 w-px bg-red-500/10 z-0 pointer-events-none sm:left-12" />
       
       <div className="flex flex-col mb-12 gap-8 relative z-10">
-        <div className="flex justify-between items-end border-b border-black/10 pb-6">
+        <div className="flex justify-between items-end border-b border-black/10 pb-6 gap-4">
           <div className="flex flex-col">
             <h1 className="text-4xl font-serif italic tracking-tight leading-none text-[#1a1a1a]">
               Field Log

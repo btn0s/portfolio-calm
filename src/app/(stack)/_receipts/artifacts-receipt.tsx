@@ -72,7 +72,7 @@ export function ArtifactsReceipt() {
           <h1 className="text-3xl font-mono font-black uppercase tracking-tighter leading-none text-white">
             SYSTEM_ARCHIVE
           </h1>
-          <div className="flex justify-between items-end">
+          <div className="flex justify-between items-end gap-4">
             <p className="text-[10px] leading-none opacity-60 font-mono font-bold uppercase text-white">
               REGISTRY_INDEX // ARTIFACTS
             </p>
