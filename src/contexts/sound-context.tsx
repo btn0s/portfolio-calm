@@ -7,7 +7,7 @@ import useSound from "use-sound";
 export const SOUND_VOLUME = 0.15;
 export const AMBIENT_VOLUME = 0.1;
 export const INTRO_VOLUME = 0.2;
-export const TRANSITION_VOLUME = 0.15;
+export const TRANSITION_VOLUME = 0.08;
 
 // Sound categories
 export type SoundCategory = "interaction" | "intro" | "ambient" | "transition";
@@ -19,7 +19,7 @@ export type RouteId = "home" | "thoughts" | "artifacts";
 export const SOUND_CONFIG = {
   interaction: {
     click: "/assets/audio/click-alt.mp3",
-    clickAlt: "/assets/audio/click.wav",
+    clickAlt: "/assets/audio/click-alt.mp3",
     confetti: "/assets/audio/sad-party-horn.wav",
     drop: "/assets/audio/drop.mp3",
     rustle: "/assets/audio/Paper Rustle Sound Effect.mp3",
