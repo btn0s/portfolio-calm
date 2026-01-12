@@ -70,6 +70,7 @@ export function ReceiptStack({
   const router = useRouter();
   const [isHovered, setIsHovered] = useState(false);
   const [isCollapsedHovered, setIsCollapsedHovered] = useState(false);
+  const [isFrontCardHovered, setIsFrontCardHovered] = useState(false);
   // Only state needed for rendering: touchAction needs to update when intent is confirmed
   const [touchAction, setTouchAction] = useState<"pan-y" | "none">("pan-y");
   const [hasHover, setHasHover] = useState(false);
@@ -400,17 +401,15 @@ export function ReceiptStack({
           "fixed z-10",
           isSubpage
             ? "bottom-0 left-0 right-0 px-4 w-full md:left-1/2 md:right-auto md:-translate-x-1/2 md:max-w-xl md:px-0"
-            : "top-32 left-0 right-0 w-full max-w-xl mx-auto"
+            : "top-20 left-0 right-0 w-full max-w-xl mx-auto"
         )}
       >
         <motion.div
           className="flex flex-col items-center justify-center isolate pb-12 min-h-[600px] md:min-h-[800px]"
           animate={{
-            y: isSubpage ? (hasHover && isCollapsedHovered ? "90%" : "95%") : 0,
+            y: isSubpage ? "100%" : 0,
           }}
           transition={STACK_SPRING}
-          onMouseEnter={() => isSubpage && hasHover && setIsCollapsedHovered(true)}
-          onMouseLeave={() => isSubpage && hasHover && setIsCollapsedHovered(false)}
         >
           <div
             className="relative w-full max-w-xl flex items-center justify-center"
@@ -443,12 +442,33 @@ export function ReceiptStack({
       </div>
 
       {/* FrontSlot: In-flow container for front card - this moves with page scroll */}
-      <div
+      <motion.div
         ref={frontCardRef}
+        layout
         className={cn(
-          "relative z-20 w-full max-w-xl mx-auto -mt-8",
-          isSubpage && "md:mx-auto"
+          "z-20 w-full max-w-xl mx-auto",
+          isSubpage 
+            ? "fixed left-0 right-0 px-4 md:left-1/2 md:right-auto md:-translate-x-1/2 md:px-0" 
+            : "relative -mt-8"
         )}
+        style={
+          !isSubpage
+            ? {
+                top: "auto",
+              }
+            : undefined
+        }
+        animate={
+          isSubpage
+            ? {
+                top: "calc(100vh - 1.5rem)",
+                y: hasHover && isFrontCardHovered ? "-0.5rem" : 0,
+              }
+            : {
+                y: 0,
+              }
+        }
+        transition={STACK_SPRING}
       >
         <div className="flex flex-col items-center justify-center pb-12 min-h-[600px] md:min-h-[800px]">
           <div className="relative w-full max-w-xl flex items-center justify-center">
@@ -461,9 +481,22 @@ export function ReceiptStack({
                 </div>
               );
             })}
+            
+            {/* Front card overlay for subpages - intercepts clicks to navigate back */}
+            {isSubpage && (
+              <button
+                type="button"
+                className="absolute inset-0 z-10 cursor-pointer focus:outline-none focus:ring-2 focus:ring-black/20 focus:ring-offset-2 focus:ring-offset-transparent rounded-sm"
+                onClick={handleOverlayClick}
+                onKeyDown={handleOverlayKeyDown}
+                onMouseEnter={() => hasHover && setIsFrontCardHovered(true)}
+                onMouseLeave={() => hasHover && setIsFrontCardHovered(false)}
+                aria-label={`Go to ${order[0]} page`}
+              />
+            )}
           </div>
         </div>
-      </div>
+      </motion.div>
     </LayoutGroup>
   );
 }
