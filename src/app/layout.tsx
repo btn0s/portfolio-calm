@@ -135,11 +135,23 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <head>
-        <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
-        <meta name="theme-color" content="#252525" media="(prefers-color-scheme: dark)" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+        <meta
+          name="theme-color"
+          content="#ffffff"
+          media="(prefers-color-scheme: light)"
+        />
+        <meta
+          name="theme-color"
+          content="#252525"
+          media="(prefers-color-scheme: dark)"
+        />
+        <meta
+          name="viewport"
+          content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+        />
       </head>
       <body className="antialiased">
+        <div className="isolate fixed inset-x-0 h-2 bg-background z-9999 bottom-0" />
         <script
           dangerouslySetInnerHTML={{
             __html: `
