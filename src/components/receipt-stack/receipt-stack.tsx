@@ -381,7 +381,7 @@ export function ReceiptStack({
         className={cn(
           isSubpage
             ? "fixed bottom-0 left-0 right-0 z-10 px-4 md:left-1/2 md:right-auto md:-translate-x-1/2 md:max-w-xl md:px-0"
-            : "relative z-0"
+            : "relative z-0 w-full max-w-xl mx-auto"
         )}
       >
         <motion.div
@@ -394,7 +394,7 @@ export function ReceiptStack({
           onMouseLeave={() => isSubpage && hasHover && setIsCollapsedHovered(false)}
         >
           <div
-            className="relative w-full flex items-center justify-center"
+            className="relative w-full max-w-xl flex items-center justify-center"
             style={{ minHeight: "inherit" }}
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
