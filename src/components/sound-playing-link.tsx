@@ -60,8 +60,8 @@ export function SoundPlayingLink({
       const hrefString = hrefToString(href);
       const isCurrentPage = matchesCurrentRoute(hrefString, pathname);
       if (isCurrentPage) {
-        // Same page - just play click feedback
-        playSound("click", true);
+        // Same page - just play click feedback (main click, not alt)
+        playSound("click");
       } else {
         // Different page - play navigate (click + rustle)
         playSound("navigate");
