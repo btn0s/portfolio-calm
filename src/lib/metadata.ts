@@ -28,7 +28,7 @@ export function generatePageMetadata({
     ? ogImage.startsWith("http")
       ? ogImage
       : `${baseUrl}${ogImage}`
-    : `${baseUrl}/og?title=${encodeURIComponent(title)}`;
+    : `${baseUrl}/og.png`;
 
   return {
     title,

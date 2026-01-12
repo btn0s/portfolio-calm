@@ -89,12 +89,21 @@ export const metadata: Metadata = {
     siteName: "bt norris",
     locale: "en_US",
     type: "website",
+    images: [
+      {
+        url: `${baseUrl}/og.png`,
+        width: 1200,
+        height: 630,
+        alt: "bt norris portfolio",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "bt norris, design engineer",
     description:
       "Product designer, coder, and tinkerer. Portfolio of work, artifacts, and thoughts.",
+    images: [`${baseUrl}/og.png`],
   },
   robots: {
     index: true,

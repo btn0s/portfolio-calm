@@ -75,9 +75,7 @@ export default async function Post({
             description: post.metadata.summary,
             image: post.metadata.image
               ? `${baseUrl}${post.metadata.image}`
-              : `${baseUrl}/og?title=${encodeURIComponent(
-                  post.metadata.title
-                )}`,
+              : `${baseUrl}/og.png`,
             url: `${baseUrl}/thoughts/${post.slug}`,
             author: {
               "@type": "Person",
