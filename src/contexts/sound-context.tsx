@@ -371,31 +371,6 @@ export const SoundProvider = ({ children }: { children: React.ReactNode }) => {
     }
   }, [playSoundWithOverride, playSwipeForward, playSwipeBackward]);
 
-  // Initialize audio on first user interaction (mobile requirement)
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-
-    const unlockOnInteraction = () => {
-      if (!audioUnlockedRef.current) {
-        unlockAudioContext();
-        audioUnlockedRef.current = true;
-        document.removeEventListener("touchstart", unlockOnInteraction);
-        document.removeEventListener("touchend", unlockOnInteraction);
-        document.removeEventListener("click", unlockOnInteraction);
-      }
-    };
-
-    document.addEventListener("touchstart", unlockOnInteraction, { once: true });
-    document.addEventListener("touchend", unlockOnInteraction, { once: true });
-    document.addEventListener("click", unlockOnInteraction, { once: true });
-
-    return () => {
-      document.removeEventListener("touchstart", unlockOnInteraction);
-      document.removeEventListener("touchend", unlockOnInteraction);
-      document.removeEventListener("click", unlockOnInteraction);
-    };
-  }, []);
-
   // Try to load preference from localStorage on initial load
   useEffect(() => {
     if (typeof window === "undefined") return;
