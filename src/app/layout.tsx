@@ -134,6 +134,7 @@ export default function RootLayout({
     <html
       lang="en"
       className={`dark ${abcOracle.variable} ${abcDiatype.variable} ${departureMono.variable}`}
+      style={{ colorScheme: 'dark' }}
     >
       <head>
         <meta
@@ -147,12 +148,18 @@ export default function RootLayout({
       </head>
       <body className="antialiased">
         <SoundProvider>
+          <a
+            href="#main"
+            className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-background focus:text-foreground focus:border-2 focus:border-foreground focus:rounded-md focus:font-bold focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+          >
+            Skip to content
+          </a>
           <AmbientSoundManager />
           <RouteIntroHandler />
           <ClickHandler />
           <SafariBar />
           <ScrollToTop />
-          <main className="min-w-0 pt-16 flex flex-col px-4 overflow-x-clip overflow-y-visible md:overflow-visible">
+          <main id="main" className="min-w-0 pt-16 flex flex-col px-4 overflow-x-clip overflow-y-visible md:overflow-visible">
             <Navbar />
             <MobileNav />
             <div

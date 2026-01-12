@@ -88,7 +88,7 @@ export function ReceiptShell({
   return (
     <div
       className={cn(
-        "relative font-mono text-sm selection:bg-black/10 transition-all duration-700 ease-in-out",
+        "relative font-mono text-sm selection:bg-black/10 transition-[color,background-color,border-color,text-decoration-color,fill,stroke,opacity,box-shadow,transform,filter,backdrop-filter] duration-700 ease-in-out",
         variantStyles[variant],
         className
       )}

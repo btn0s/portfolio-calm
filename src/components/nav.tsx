@@ -45,7 +45,7 @@ export function Navbar() {
                   href={path}
                   prefetch
                   sound="navigate"
-                  className="transition-all hover:text-foreground text-sm flex align-middle relative py-1 px-2 m-1 text-muted-foreground"
+                  className="transition-[color,opacity] hover:text-foreground text-sm flex align-middle relative py-1 px-2 m-1 text-muted-foreground"
                 >
                   {name}
                 </SoundPlayingLink>

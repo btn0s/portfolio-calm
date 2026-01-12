@@ -59,7 +59,7 @@ export default function EchelonPage() {
               alt="Echelon game prototype"
               width={1200}
               height={675}
-              className="w-full h-auto grayscale hover:grayscale-0 transition-all duration-700 border border-foreground/10"
+              className="w-full h-auto grayscale hover:grayscale-0 transition-[filter] duration-700 border border-foreground/10"
             />
             <div className="absolute top-4 right-4 bg-foreground text-background px-2 py-0.5 text-[8px] font-black uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">
               LIVE_RENDER

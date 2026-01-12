@@ -90,7 +90,7 @@ export default function StrellaPage() {
                 href="https://strella.dev"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 border-2 border-foreground px-4 py-2 text-[10px] font-black uppercase hover:bg-foreground hover:text-background transition-all"
+                className="inline-flex items-center gap-2 border-2 border-foreground px-4 py-2 text-[10px] font-black uppercase hover:bg-foreground hover:text-background transition-[background-color,color]"
               >
                 <span>DEPLOY_SITE_ALPHA</span>
                 <span>→</span>

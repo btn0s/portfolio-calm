@@ -2,7 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useRef, useEffect, useState } from "react";
 import { SoundPlayingLink } from "@/components/sound-playing-link";
@@ -17,6 +17,7 @@ export function MobileNav() {
   const pathname = usePathname();
   const prevIndexRef = useRef<number | null>(null);
   const [direction, setDirection] = useState(0);
+  const shouldReduceMotion = useReducedMotion();
 
   const getCurrentIndex = () => {
     // Default to home if no match or on subpages
@@ -70,10 +71,10 @@ export function MobileNav() {
                   <motion.span
                     key={currentItem.name}
                     custom={direction}
-                    initial={{ y: direction * 20, opacity: 0, filter: "blur(4px)" }}
-                    animate={{ y: 0, opacity: 1, filter: "blur(0px)" }}
-                    exit={{ y: direction * -20, opacity: 0, filter: "blur(4px)" }}
-                    transition={{
+                    initial={shouldReduceMotion ? { opacity: 0 } : { y: direction * 20, opacity: 0, filter: "blur(4px)" }}
+                    animate={shouldReduceMotion ? { opacity: 1 } : { y: 0, opacity: 1, filter: "blur(0px)" }}
+                    exit={shouldReduceMotion ? { opacity: 0 } : { y: direction * -20, opacity: 0, filter: "blur(4px)" }}
+                    transition={shouldReduceMotion ? { duration: 0.1 } : {
                       type: "spring",
                       stiffness: 300,
                       damping: 30,
@@ -86,16 +87,18 @@ export function MobileNav() {
                 </AnimatePresence>
                 
                 {/* Glitch Overlay effect on change */}
-                <AnimatePresence>
-                  <motion.div
-                    key={`${currentItem.name}-glitch`}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: [0, 0.5, 0, 0.3, 0] }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 0.2, times: [0, 0.2, 0.4, 0.6, 1] }}
-                    className="absolute inset-0 bg-white/20 dark:bg-white/10 mix-blend-overlay pointer-events-none"
-                  />
-                </AnimatePresence>
+                {!shouldReduceMotion && (
+                  <AnimatePresence>
+                    <motion.div
+                      key={`${currentItem.name}-glitch`}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: [0, 0.5, 0, 0.3, 0] }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.2, times: [0, 0.2, 0.4, 0.6, 1] }}
+                      className="absolute inset-0 bg-white/20 dark:bg-white/10 mix-blend-overlay pointer-events-none"
+                    />
+                  </AnimatePresence>
+                )}
               </div>
             </div>
           </div>
@@ -107,10 +110,10 @@ export function MobileNav() {
           <SoundPlayingLink
             href={prevHref}
             sound="navigate"
-            className="group relative w-16 h-full flex items-center justify-center rounded-lg active:scale-95 transition-transform outline-none"
+            className="group relative w-16 h-full flex items-center justify-center rounded-lg active:scale-95 transition-transform outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
             aria-label="Previous page"
           >
-            <div className="absolute inset-0 bg-[#f0f0f0] dark:bg-[#222] rounded-lg shadow-[0_2px_0_#bbb,0_3px_3px_rgba(0,0,0,0.1),inset_0_1px_0_rgba(255,255,255,0.5)] dark:shadow-[0_2px_0_#000,0_3px_3px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.05)] group-active:translate-y-[2px] group-active:shadow-[inset_0_1px_2px_rgba(0,0,0,0.1)] transition-all" />
+            <div className="absolute inset-0 bg-[#f0f0f0] dark:bg-[#222] rounded-lg shadow-[0_2px_0_#bbb,0_3px_3px_rgba(0,0,0,0.1),inset_0_1px_0_rgba(255,255,255,0.5)] dark:shadow-[0_2px_0_#000,0_3px_3px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.05)] group-active:translate-y-[2px] group-active:shadow-[inset_0_1px_2px_rgba(0,0,0,0.1)] transition-[transform,box-shadow]" />
             <ChevronLeft className="w-5 h-5 text-foreground/70 relative z-10 group-active:opacity-80" />
           </SoundPlayingLink>
 
@@ -118,10 +121,10 @@ export function MobileNav() {
           <SoundPlayingLink
             href={nextHref}
             sound="navigate"
-            className="group relative w-16 h-full flex items-center justify-center rounded-lg active:scale-95 transition-transform outline-none"
+            className="group relative w-16 h-full flex items-center justify-center rounded-lg active:scale-95 transition-transform outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
             aria-label="Next page"
           >
-            <div className="absolute inset-0 bg-[#f0f0f0] dark:bg-[#222] rounded-lg shadow-[0_2px_0_#bbb,0_3px_3px_rgba(0,0,0,0.1),inset_0_1px_0_rgba(255,255,255,0.5)] dark:shadow-[0_2px_0_#000,0_3px_3px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.05)] group-active:translate-y-[2px] group-active:shadow-[inset_0_1px_2px_rgba(0,0,0,0.1)] transition-all" />
+            <div className="absolute inset-0 bg-[#f0f0f0] dark:bg-[#222] rounded-lg shadow-[0_2px_0_#bbb,0_3px_3px_rgba(0,0,0,0.1),inset_0_1px_0_rgba(255,255,255,0.5)] dark:shadow-[0_2px_0_#000,0_3px_3px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.05)] group-active:translate-y-[2px] group-active:shadow-[inset_0_1px_2px_rgba(0,0,0,0.1)] transition-[transform,box-shadow]" />
             <ChevronRight className="w-5 h-5 text-foreground/70 relative z-10 group-active:opacity-80" />
           </SoundPlayingLink>
         </div>

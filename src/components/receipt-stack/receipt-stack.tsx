@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState, useCallback, useEffect } from "react";
-import { motion, PanInfo, useDragControls, LayoutGroup } from "framer-motion";
+import { motion, PanInfo, useDragControls, LayoutGroup, useReducedMotion } from "framer-motion";
 import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { STACK_SPRING, getStackOffset } from "@/lib/motion/stack";
@@ -105,6 +105,7 @@ export function ReceiptStack({
   const [touchAction, setTouchAction] = useState<"pan-y" | "none">("pan-y");
   const [hasHover, setHasHover] = useState(false);
   const frontCardRef = useRef<HTMLDivElement>(null);
+  const shouldReduceMotion = useReducedMotion();
 
   const { route, isSubpage, lockStackInteractions, shouldHideStack } =
     classifyPath(pathname);
@@ -374,6 +375,10 @@ export function ReceiptStack({
     breathe: number,
     position: number
   ) => {
+    if (shouldReduceMotion) {
+      // Reduced motion: no transforms, just opacity
+      return { x: 0, y: 0, rotate: 0, scale: 1, opacity: isFront ? 1 : 0.5 };
+    }
     if (isFront) {
       return isSubpage
         ? { x: 0, rotate: 0, scale: 1 }
@@ -482,7 +487,7 @@ export function ReceiptStack({
         onDragEnd={dragEnabled ? handleDragEnd : undefined}
         initial={initialAnimation}
         animate={animation}
-        transition={STACK_SPRING}
+        transition={shouldReduceMotion ? { duration: 0.1 } : STACK_SPRING}
         onClick={(e) => handleCardClick(e, routeId, position)}
         tabIndex={dragEnabled ? 0 : -1}
         aria-label={
@@ -521,12 +526,12 @@ export function ReceiptStack({
         <motion.div
           className="flex flex-col items-center justify-center isolate pb-12 min-h-[600px] md:min-h-[800px]"
           initial={{
-            y: isSubpage ? "100%" : 0,
+            y: shouldReduceMotion ? 0 : (isSubpage ? "100%" : 0),
           }}
           animate={{
-            y: isSubpage ? "100%" : 0,
+            y: shouldReduceMotion ? 0 : (isSubpage ? "100%" : 0),
           }}
-          transition={STACK_SPRING}
+          transition={shouldReduceMotion ? { duration: 0.1 } : STACK_SPRING}
         >
           <div
             className="relative w-full max-w-xl flex items-center justify-center"
@@ -563,8 +568,8 @@ export function ReceiptStack({
         ref={frontCardRef}
         className={getFrontSlotClassName(isSubpage)}
         style={getFrontSlotStyle(isSubpage)}
-        animate={getFrontSlotAnimation(isSubpage, hasHover, isFrontCardHovered)}
-        transition={STACK_SPRING}
+        animate={shouldReduceMotion ? { y: 0 } : getFrontSlotAnimation(isSubpage, hasHover, isFrontCardHovered)}
+        transition={shouldReduceMotion ? { duration: 0.1 } : STACK_SPRING}
       >
         <div className="flex flex-col items-center justify-center pb-12 min-h-[600px] md:min-h-[800px]">
           <div className="relative w-full max-w-xl flex items-center justify-center">

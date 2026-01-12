@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useSearchParams, useRouter, usePathname } from 'next/navigation'
 import { formatDate } from '@/lib/blog-utils'
 import { ListItem } from './list-item'
 
@@ -22,7 +23,27 @@ type BlogPostsProps = {
 
 export function BlogPosts({ posts }: BlogPostsProps) {
   const allPosts = posts
-  const [filter, setFilter] = useState<Filter>('recent')
+  const searchParams = useSearchParams()
+  const router = useRouter()
+  const pathname = usePathname()
+  const [filter, setFilter] = useState<Filter>((searchParams.get('filter') as Filter) || 'recent')
+
+  // Sync filter to URL
+  useEffect(() => {
+    const currentFilter = searchParams.get('filter') as Filter | null
+    // Only update URL if filter actually changed from what's in the URL
+    if (currentFilter === filter) return
+    
+    const params = new URLSearchParams(searchParams.toString())
+    if (filter === 'recent') {
+      params.delete('filter')
+    } else {
+      params.set('filter', filter)
+    }
+    const newUrl = params.toString() ? `${pathname}?${params.toString()}` : pathname
+    router.replace(newUrl, { scroll: false })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filter])
 
   const sortedPosts = [...allPosts].sort((a, b) => {
     if (new Date(a.metadata.publishedAt) > new Date(b.metadata.publishedAt)) {
@@ -39,35 +60,44 @@ export function BlogPosts({ posts }: BlogPostsProps) {
 
   return (
     <>
-      <div className="flex items-center gap-3 mb-6 text-[10px] font-mono uppercase tracking-wider text-[#1a1a1a]/50">
+      <div className="flex items-center gap-3 mb-6 text-[10px] font-mono uppercase tracking-wider text-[#1a1a1a]/50" role="tablist" aria-label="Filter posts">
         <button
           onClick={() => setFilter('recent')}
-          className={`transition-opacity hover:opacity-100 ${
+          aria-pressed={filter === 'recent'}
+          role="tab"
+          aria-controls="posts-list"
+          className={`transition-opacity hover:opacity-100 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded ${
             filter === 'recent' ? 'opacity-100 font-bold' : 'opacity-40'
           }`}
         >
           Recent
         </button>
-        <span className="opacity-20">/</span>
+        <span className="opacity-20" aria-hidden="true">/</span>
         <button
           onClick={() => setFilter('professional')}
-          className={`transition-opacity hover:opacity-100 ${
+          aria-pressed={filter === 'professional'}
+          role="tab"
+          aria-controls="posts-list"
+          className={`transition-opacity hover:opacity-100 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded ${
             filter === 'professional' ? 'opacity-100 font-bold' : 'opacity-40'
           }`}
         >
           Professional
         </button>
-        <span className="opacity-20">/</span>
+        <span className="opacity-20" aria-hidden="true">/</span>
         <button
           onClick={() => setFilter('personal')}
-          className={`transition-opacity hover:opacity-100 ${
+          aria-pressed={filter === 'personal'}
+          role="tab"
+          aria-controls="posts-list"
+          className={`transition-opacity hover:opacity-100 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded ${
             filter === 'personal' ? 'opacity-100 font-bold' : 'opacity-40'
           }`}
         >
           Personal
         </button>
       </div>
-      <div className="space-y-6">
+      <div id="posts-list" className="space-y-6" role="tabpanel">
         {filteredPosts.map((post) => (
           <div key={post.slug} className="relative group">
             <div className="absolute -left-3 top-0 bottom-0 w-0.5 bg-foreground/10 group-hover:bg-foreground/40 transition-colors" />

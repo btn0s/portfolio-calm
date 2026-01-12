@@ -202,7 +202,7 @@ export function SoundUploadSection({
       )}
 
       {isUploading && (
-        <div className="text-sm text-muted-foreground">Uploading...</div>
+        <div className="text-sm text-muted-foreground">Uploading…</div>
       )}
     </div>
   );
