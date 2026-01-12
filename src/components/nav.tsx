@@ -27,7 +27,7 @@ export function Navbar() {
             href="/"
             prefetch
             sound="navigate"
-            className="flex items-center gap-1 mr-6 text-foreground"
+            className="flex items-center gap-1 mr-6 text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-sm outline-none"
           >
             <Image
               src={logo}
@@ -45,7 +45,7 @@ export function Navbar() {
                   href={path}
                   prefetch
                   sound="navigate"
-                  className="transition-[color,opacity] hover:text-foreground text-sm flex align-middle relative py-1 px-2 m-1 text-muted-foreground"
+                  className="transition-[color,opacity] hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:z-10 rounded-sm outline-none text-sm flex align-middle relative py-1 px-2 m-1 text-muted-foreground"
                 >
                   {name}
                 </SoundPlayingLink>

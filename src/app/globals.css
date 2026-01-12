@@ -123,7 +123,10 @@
 
 @layer base {
   * {
-    @apply border-border outline-ring/50;
+    @apply border-border;
+  }
+  :focus-visible {
+    @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background relative z-50;
   }
   body {
     @apply bg-background text-foreground font-sans;

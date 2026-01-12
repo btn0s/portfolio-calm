@@ -423,12 +423,18 @@ export function ReceiptStack({
     };
   };
 
-  const getCardClassName = (isFront: boolean, lockStackInteractions: boolean) => {
-    const baseClasses = "w-full";
+  const getCardClassName = (isFront: boolean, lockStackInteractions: boolean, routeId: RouteId) => {
+    const baseClasses = "w-full rounded-sm transition-shadow";
     if (isFront) {
+      const ringColor = {
+        home: "focus-visible:ring-[#fdf6e3]",
+        thoughts: "focus-visible:ring-[#1a1a1a]",
+        artifacts: "focus-visible:ring-white",
+      }[routeId];
+
       const frontClasses = lockStackInteractions
         ? "cursor-default"
-        : "cursor-grab active:cursor-grabbing focus:outline-none focus:ring-2 focus:ring-black/20 focus:ring-offset-2 focus:ring-offset-transparent rounded-sm select-none";
+        : "cursor-grab active:cursor-grabbing outline-none select-none focus-within:z-50";
       return cn(frontClasses, baseClasses);
     }
     return cn("cursor-pointer", baseClasses);
@@ -468,6 +474,21 @@ export function ReceiptStack({
     const initialAnimation = !isFront 
       ? getCardAnimation(isFront, isSubpage, offset, 1, position)
       : undefined;
+    const contentRef = useRef<HTMLDivElement>(null);
+
+    // Make all interactive elements inside back cards non-focusable
+    useEffect(() => {
+      if (!isFront && contentRef.current) {
+        const interactiveElements = contentRef.current.querySelectorAll(
+          'a, button, input, textarea, select, [tabindex]'
+        );
+        interactiveElements.forEach((el) => {
+          if (el instanceof HTMLElement) {
+            el.setAttribute('tabindex', '-1');
+          }
+        });
+      }
+    }, [isFront]);
 
     return (
       <motion.div
@@ -489,16 +510,12 @@ export function ReceiptStack({
         animate={animation}
         transition={shouldReduceMotion ? { duration: 0.1 } : STACK_SPRING}
         onClick={(e) => handleCardClick(e, routeId, position)}
-        tabIndex={dragEnabled ? 0 : -1}
-        aria-label={
-          dragEnabled
-            ? `Receipt stack navigation. Use Left and Right arrow keys to switch routes.`
-            : undefined
-        }
-        className={getCardClassName(isFront, lockStackInteractions)}
+        tabIndex={-1}
+        className={getCardClassName(isFront, lockStackInteractions, routeId)}
       >
         {/* Paint layer: contains clip-path and texture, not animated */}
         <div
+          ref={contentRef}
           className={cn(
             "relative h-full w-full",
             !isFront && isInBackStage && "pointer-events-none",
@@ -553,7 +570,14 @@ export function ReceiptStack({
             {lockStackInteractions && (
               <button
                 type="button"
-                className="absolute inset-0 z-10 cursor-pointer focus:outline-none focus:ring-2 focus:ring-black/20 focus:ring-offset-2 focus:ring-offset-transparent rounded-sm"
+                className={cn(
+                  "absolute inset-0 z-10 cursor-pointer focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-background outline-none rounded-sm",
+                  {
+                    home: "focus-visible:ring-[#fdf6e3]",
+                    thoughts: "focus-visible:ring-[#1a1a1a]",
+                    artifacts: "focus-visible:ring-white",
+                  }[order[0]]
+                )}
                 onClick={handleOverlayClick}
                 onKeyDown={handleOverlayKeyDown}
                 aria-label={`Go to ${order[0]} page`}
@@ -587,7 +611,14 @@ export function ReceiptStack({
             {isSubpage && (
               <button
                 type="button"
-                className="absolute inset-0 z-10 cursor-pointer focus:outline-none focus:ring-2 focus:ring-black/20 focus:ring-offset-2 focus:ring-offset-transparent rounded-sm"
+                className={cn(
+                  "absolute inset-0 z-10 cursor-pointer focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-background outline-none rounded-sm",
+                  {
+                    home: "focus-visible:ring-[#fdf6e3]",
+                    thoughts: "focus-visible:ring-[#1a1a1a]",
+                    artifacts: "focus-visible:ring-white",
+                  }[order[0]]
+                )}
                 onClick={handleOverlayClick}
                 onKeyDown={handleOverlayKeyDown}
                 onMouseEnter={() => hasHover && setIsFrontCardHovered(true)}

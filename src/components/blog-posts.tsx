@@ -66,7 +66,7 @@ export function BlogPosts({ posts }: BlogPostsProps) {
           aria-pressed={filter === 'recent'}
           role="tab"
           aria-controls="posts-list"
-          className={`transition-opacity hover:opacity-100 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded ${
+          className={`transition-opacity hover:opacity-100 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:z-10 rounded-sm ${
             filter === 'recent' ? 'opacity-100 font-bold' : 'opacity-40'
           }`}
         >
@@ -78,7 +78,7 @@ export function BlogPosts({ posts }: BlogPostsProps) {
           aria-pressed={filter === 'professional'}
           role="tab"
           aria-controls="posts-list"
-          className={`transition-opacity hover:opacity-100 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded ${
+          className={`transition-opacity hover:opacity-100 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:z-10 rounded-sm ${
             filter === 'professional' ? 'opacity-100 font-bold' : 'opacity-40'
           }`}
         >
@@ -90,7 +90,7 @@ export function BlogPosts({ posts }: BlogPostsProps) {
           aria-pressed={filter === 'personal'}
           role="tab"
           aria-controls="posts-list"
-          className={`transition-opacity hover:opacity-100 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded ${
+          className={`transition-opacity hover:opacity-100 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:z-10 rounded-sm ${
             filter === 'personal' ? 'opacity-100 font-bold' : 'opacity-40'
           }`}
         >

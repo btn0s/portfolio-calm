@@ -72,10 +72,10 @@ export function ReceiptShell({
   };
 
   const variantStyles = {
-    receipt: "bg-(--paper) text-(--paper-foreground) shadow-sm",
-    dossier: "bg-[#2c3e2d] text-[#fdf6e3] border-2 border-[#41503E] shadow-xl",
-    blueprint: "bg-[#0047ab] text-white border border-white/20 blueprint-grid-pattern shadow-lg",
-    stationery: "bg-[#faf9f6] text-[#1a1a1a] shadow-2xl border-x border-t border-black/[0.03]",
+    receipt: "bg-(--paper) text-(--paper-foreground) shadow-sm [--ring:var(--paper-foreground)] [--background:var(--paper)]",
+    dossier: "bg-[#2c3e2d] text-[#fdf6e3] border-2 border-[#41503E] shadow-xl [--ring:#fdf6e3] [--background:#2c3e2d]",
+    blueprint: "bg-[#0047ab] text-white border border-white/20 blueprint-grid-pattern shadow-lg [--ring:#ffffff] [--background:#0047ab]",
+    stationery: "bg-[#faf9f6] text-[#1a1a1a] shadow-2xl border-x border-t border-black/[0.03] [--ring:#1a1a1a] [--background:#faf9f6]",
   };
 
   const variantPaddings = {

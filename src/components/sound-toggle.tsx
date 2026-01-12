@@ -34,7 +34,7 @@ export function SoundToggle() {
     <button
       onPointerDown={handlePointerDown}
       onClick={toggleMute}
-      className="p-1 text-muted-foreground hover:text-foreground transition-colors"
+      className="p-1 text-muted-foreground hover:text-foreground transition-colors rounded-sm"
       aria-label={isMuted ? "Unmute sounds" : "Mute sounds"}
     >
       {isMuted ? (

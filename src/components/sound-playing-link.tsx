@@ -76,11 +76,37 @@ export function SoundPlayingLink({
     }
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLAnchorElement>) => {
+    // Play sound on Enter or Space (standard keyboard activation)
+    if (e.key === "Enter" || e.key === " ") {
+      // For navigate sound, check if we're actually navigating to a different page
+      if (sound === "navigate") {
+        const hrefString = hrefToString(href);
+        const isCurrentPage = matchesCurrentRoute(hrefString, pathname);
+        if (isCurrentPage) {
+          // Same page - just play click feedback (main click, not alt)
+          playSound("click");
+        } else {
+          // Different page - play navigate (click + rustle)
+          playSound("navigate");
+        }
+      } else if (sound) {
+        // Other sounds - play as normal
+        if (alt && sound === "click") {
+          playSound("click", true);
+        } else {
+          playSound(sound as any);
+        }
+      }
+    }
+  };
+
   return (
     <Link
       {...props}
       href={href}
       onPointerDown={handlePointerDown}
+      onKeyDown={handleKeyDown}
       onClick={onClick}
       className={className}
     >

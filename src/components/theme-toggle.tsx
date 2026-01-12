@@ -47,7 +47,7 @@ export function ThemeToggle() {
     <button
       onPointerDown={() => playSound("click", true)}
       onClick={toggleTheme}
-      className="p-1 text-muted-foreground hover:text-foreground transition-colors"
+      className="p-1 text-muted-foreground hover:text-foreground transition-colors rounded-sm"
       aria-label="Toggle theme"
     >
       {theme === 'light' ? <Moon className="size-4" /> : <Sun className="size-4" />}
