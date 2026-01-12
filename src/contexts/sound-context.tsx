@@ -22,6 +22,7 @@ export const SOUND_CONFIG = {
     clickAlt: "/assets/audio/click-alt.mp3",
     confetti: "/assets/audio/sad-party-horn.wav",
     drop: "/assets/audio/drop.mp3",
+    rustle: "/assets/audio/Paper Rustle Sound Effect.mp3",
   },
   intro: {
     home: "/assets/audio/intro-home.mp3",
@@ -110,6 +111,7 @@ export const SoundProvider = ({ children }: { children: React.ReactNode }) => {
   const [isMuted, setIsMuted] = useState(false);
   const audioUnlockedRef = useRef(false);
   const [soundOverrides, setSoundOverrides] = useState<Record<string, string>>({});
+  const rustleAudioPoolRef = useRef<HTMLAudioElement[]>([]);
 
   // Load sound overrides from localStorage
   useEffect(() => {
@@ -207,6 +209,31 @@ export const SoundProvider = ({ children }: { children: React.ReactNode }) => {
     html5: true,
   });
 
+  // Initialize rustle audio pool with multiple instances for variation
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    rustleAudioPoolRef.current = Array.from({ length: 3 }, () => {
+      const audio = new Audio(SOUND_CONFIG.interaction.rustle);
+      audio.volume = isMuted ? 0 : SOUND_VOLUME;
+      return audio;
+    });
+
+    return () => {
+      rustleAudioPoolRef.current.forEach((audio) => {
+        audio.pause();
+      });
+      rustleAudioPoolRef.current = [];
+    };
+  }, [isMuted]);
+
+  // Update rustle audio pool volume when mute state changes
+  useEffect(() => {
+    rustleAudioPoolRef.current.forEach((audio) => {
+      audio.volume = isMuted ? 0 : SOUND_VOLUME;
+    });
+  }, [isMuted]);
+
   // Load intro sounds
   const [playIntroHome] = useSound(SOUND_CONFIG.intro.home, {
     volume: isMuted ? 0 : INTRO_VOLUME,
@@ -236,10 +263,50 @@ export const SoundProvider = ({ children }: { children: React.ReactNode }) => {
     html5: true,
   });
 
+  // Play rustle sound with randomization and 1-second limit
+  const playRustleSound = useCallback(() => {
+    if (isMuted || rustleAudioPoolRef.current.length === 0) return;
+
+    if (!audioUnlockedRef.current) {
+      unlockAudioContext();
+      audioUnlockedRef.current = true;
+    }
+
+    // Find an available audio instance (not currently playing)
+    let audio = rustleAudioPoolRef.current.find((a) => a.paused);
+
+    // If all are playing, use a random one
+    if (!audio) {
+      audio =
+        rustleAudioPoolRef.current[
+          Math.floor(Math.random() * rustleAudioPoolRef.current.length)
+        ];
+    }
+
+    // Vary playback rate between 0.85x and 1.15x for natural variation
+    const playbackRate = 0.85 + Math.random() * 0.3;
+    audio.playbackRate = playbackRate;
+    audio.currentTime = 0;
+
+    audio.play().catch(() => {
+      // Ignore play errors (e.g., user hasn't interacted with page yet)
+    });
+
+    // Stop after 1 second
+    setTimeout(() => {
+      if (audio) {
+        audio.pause();
+        audio.currentTime = 0;
+      }
+    }, 1000);
+  }, [isMuted]);
+
   // Sound player utility
   const playSound = useCallback((sound: keyof typeof SOUND_CONFIG.interaction, alt?: boolean) => {
     if (alt && sound === "click") {
       playSoundWithOverride("interaction", "clickAlt", SOUND_VOLUME, playClickAlt);
+    } else if (sound === "rustle") {
+      playRustleSound();
     } else {
       playSoundWithOverride("interaction", sound, SOUND_VOLUME, () => {
         switch (sound) {
@@ -255,7 +322,7 @@ export const SoundProvider = ({ children }: { children: React.ReactNode }) => {
         }
       });
     }
-  }, [playSoundWithOverride, playClick, playClickAlt, playConfetti, playDrop]);
+  }, [playSoundWithOverride, playClick, playClickAlt, playConfetti, playDrop, playRustleSound]);
 
   // Play intro sound for a route
   const playIntro = useCallback((route: RouteId) => {

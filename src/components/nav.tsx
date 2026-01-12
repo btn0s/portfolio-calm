@@ -27,6 +27,7 @@ export function Navbar() {
           <SoundPlayingLink
             href="/"
             prefetch
+            sound="rustle"
             className="flex items-center gap-1 mr-6 text-foreground"
           >
             <Image
@@ -44,6 +45,7 @@ export function Navbar() {
                   key={path}
                   href={path}
                   prefetch
+                  sound="rustle"
                   className="transition-all hover:text-foreground text-sm flex align-middle relative py-1 px-2 m-1 text-muted-foreground"
                 >
                   {name}

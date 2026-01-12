@@ -98,62 +98,16 @@ export function ReceiptStack({
 }: ReceiptStackProps) {
   const pathname = usePathname();
   const router = useRouter();
-  const { playTransition } = useSoundSettings();
+  const { playTransition, playSound } = useSoundSettings();
   const [isHovered, setIsHovered] = useState(false);
   const [isFrontCardHovered, setIsFrontCardHovered] = useState(false);
   // Only state needed for rendering: touchAction needs to update when intent is confirmed
   const [touchAction, setTouchAction] = useState<"pan-y" | "none">("pan-y");
   const [hasHover, setHasHover] = useState(false);
   const frontCardRef = useRef<HTMLDivElement>(null);
-  const audioPoolRef = useRef<HTMLAudioElement[]>([]);
 
   const { route, isSubpage, lockStackInteractions, shouldHideStack } =
     classifyPath(pathname);
-
-  // Initialize audio pool with multiple instances for variation
-  useEffect(() => {
-    // Create 3 audio instances for variation
-    audioPoolRef.current = Array.from({ length: 3 }, () => {
-      const audio = new Audio("/assets/audio/Paper Rustle Sound Effect.mp3");
-      audio.volume = 0.5;
-      return audio;
-    });
-    return () => {
-      audioPoolRef.current.forEach((audio) => {
-        audio.pause();
-      });
-      audioPoolRef.current = [];
-    };
-  }, []);
-
-  const playCardChangeSound = useCallback(() => {
-    if (audioPoolRef.current.length === 0) return;
-
-    // Find an available audio instance (not currently playing)
-    let audio = audioPoolRef.current.find((a) => a.paused);
-    
-    // If all are playing, use a random one
-    if (!audio) {
-      audio = audioPoolRef.current[Math.floor(Math.random() * audioPoolRef.current.length)];
-    }
-
-    // Vary playback rate between 0.85x and 1.15x for natural variation
-    const playbackRate = 0.85 + Math.random() * 0.3;
-    audio.playbackRate = playbackRate;
-    audio.currentTime = 0;
-    
-    audio.play().catch(() => {
-      // Ignore play errors (e.g., user hasn't interacted with page yet)
-    });
-    
-    // Stop after 1 second
-    setTimeout(() => {
-      if (audio) {
-        audio.pause();
-        audio.currentTime = 0;
-      }
-    }, 1000);
-  }, []);
 
   // Detect if device supports hover (not touch-only)
   useEffect(() => {
@@ -297,27 +251,27 @@ export function ReceiptStack({
 
   const rotateForward = useCallback(() => {
     playTransition("forward");
+    playSound("rustle"); // Play rustle when stack shuffles forward
     const currentOrder = getOrderFromRoute(route);
     const nextRoute = currentOrder[1];
     // Reset scroll to top when rotating routes
     if (typeof window !== "undefined") {
       window.scrollTo({ top: 0, behavior: "instant" });
     }
-    playCardChangeSound();
     router.push(hrefForRoute(nextRoute));
-  }, [route, router, playTransition, playCardChangeSound]);
+  }, [route, router, playTransition, playSound]);
 
   const rotateBackward = useCallback(() => {
     playTransition("backward");
+    playSound("rustle"); // Play rustle when stack shuffles backward
     const currentOrder = getOrderFromRoute(route);
     const prevRoute = currentOrder[2];
     // Reset scroll to top when rotating routes
     if (typeof window !== "undefined") {
       window.scrollTo({ top: 0, behavior: "instant" });
     }
-    playCardChangeSound();
     router.push(hrefForRoute(prevRoute));
-  }, [route, router, playTransition, playCardChangeSound]);
+  }, [route, router, playTransition, playSound]);
 
   // Global arrow key handler for route switching
   useEffect(() => {
@@ -364,10 +318,10 @@ export function ReceiptStack({
 
   const bringToFront = useCallback(
     (routeId: RouteId) => {
-      playCardChangeSound();
+      playSound("rustle"); // Play rustle when bringing card to front
       router.push(hrefForRoute(routeId));
     },
-    [router, playCardChangeSound]
+    [router, playSound]
   );
 
   const handleCardClick = (e: React.MouseEvent, routeId: RouteId, position: number) => {
@@ -393,7 +347,7 @@ export function ReceiptStack({
 
   const handleOverlayClick = () => {
     if (isSubpage) {
-      playCardChangeSound();
+      playSound("rustle"); // Play rustle when navigating back from subpage
       router.push(hrefForRoute(order[0]));
     }
   };
@@ -401,7 +355,7 @@ export function ReceiptStack({
   const handleOverlayKeyDown = (e: React.KeyboardEvent) => {
     if (isSubpage && (e.key === "Enter" || e.key === " ")) {
       e.preventDefault();
-      playCardChangeSound();
+      playSound("rustle"); // Play rustle for keyboard navigation
       router.push(hrefForRoute(order[0]));
     }
   };
