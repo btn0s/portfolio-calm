@@ -98,7 +98,6 @@ export function ReceiptStack({
   const pathname = usePathname();
   const router = useRouter();
   const [isHovered, setIsHovered] = useState(false);
-  const [isCollapsedHovered, setIsCollapsedHovered] = useState(false);
   const [isFrontCardHovered, setIsFrontCardHovered] = useState(false);
   // Only state needed for rendering: touchAction needs to update when intent is confirmed
   const [touchAction, setTouchAction] = useState<"pan-y" | "none">("pan-y");
@@ -112,11 +111,11 @@ export function ReceiptStack({
   useEffect(() => {
     const mediaQuery = window.matchMedia("(hover: hover)");
     setHasHover(mediaQuery.matches);
-    
+
     const handleChange = (e: MediaQueryListEvent) => {
       setHasHover(e.matches);
     };
-    
+
     mediaQuery.addEventListener("change", handleChange);
     return () => mediaQuery.removeEventListener("change", handleChange);
   }, []);
@@ -124,7 +123,9 @@ export function ReceiptStack({
   // Lock scroll during horizontal drag
   useEffect(() => {
     if (touchAction === "none" && typeof window !== "undefined") {
-      const isMobile = window.matchMedia(`(max-width: ${STACK_CONFIG.layout.mobileBreakpoint}px)`).matches;
+      const isMobile = window.matchMedia(
+        `(max-width: ${STACK_CONFIG.layout.mobileBreakpoint}px)`
+      ).matches;
       if (isMobile) {
         document.body.classList.add("dragging-horizontal");
         return () => {
@@ -145,13 +146,15 @@ export function ReceiptStack({
   const handlePointerDown = useCallback((e: React.PointerEvent) => {
     // Check if the click target is an interactive element (link, button, input, etc.)
     const target = e.target as HTMLElement;
-    const isInteractive = target.closest('a[href], button, input, textarea, select, [role="link"], [role="button"], [contenteditable="true"]');
-    
+    const isInteractive = target.closest(
+      'a[href], button, input, textarea, select, [role="link"], [role="button"], [contenteditable="true"]'
+    );
+
     // If clicking on an interactive element, don't interfere with the click
     if (isInteractive) {
       return;
     }
-    
+
     // Don't prevent default here - we want interactive elements to work if it's just a click
     gestureStartRef.current = { x: e.clientX, y: e.clientY };
     dragUnlockedRef.current = false;
@@ -174,7 +177,9 @@ export function ReceiptStack({
 
       // Check if we started on an interactive element - if so, don't interfere
       const target = e.target as HTMLElement;
-      const isInteractive = target.closest('a[href], button, input, textarea, select, [role="link"], [role="button"], [contenteditable="true"]');
+      const isInteractive = target.closest(
+        'a[href], button, input, textarea, select, [role="link"], [role="button"], [contenteditable="true"]'
+      );
       if (isInteractive) {
         return;
       }
@@ -183,7 +188,10 @@ export function ReceiptStack({
       const dy = Math.abs(e.clientY - gestureStartRef.current.y);
 
       // Only decide after moving past the threshold
-      if (dx > STACK_CONFIG.gesture.intentThresholdPx || dy > STACK_CONFIG.gesture.intentThresholdPx) {
+      if (
+        dx > STACK_CONFIG.gesture.intentThresholdPx ||
+        dy > STACK_CONFIG.gesture.intentThresholdPx
+      ) {
         // Vertical cone is ~10deg from pure vertical
         const isNearlyPureVertical = dy > dx * VERTICAL_CONE_RATIO;
 
@@ -240,22 +248,24 @@ export function ReceiptStack({
   const showSpread = isHovered;
 
   const rotateForward = useCallback(() => {
-    const nextRoute = order[1];
+    const currentOrder = getOrderFromRoute(route);
+    const nextRoute = currentOrder[1];
     // Reset scroll to top when rotating routes
     if (typeof window !== "undefined") {
       window.scrollTo({ top: 0, behavior: "instant" });
     }
     router.push(hrefForRoute(nextRoute));
-  }, [order, router]);
+  }, [route, router]);
 
   const rotateBackward = useCallback(() => {
-    const prevRoute = order[2];
+    const currentOrder = getOrderFromRoute(route);
+    const prevRoute = currentOrder[2];
     // Reset scroll to top when rotating routes
     if (typeof window !== "undefined") {
       window.scrollTo({ top: 0, behavior: "instant" });
     }
     router.push(hrefForRoute(prevRoute));
-  }, [order, router]);
+  }, [route, router]);
 
   // Global arrow key handler for route switching
   useEffect(() => {
