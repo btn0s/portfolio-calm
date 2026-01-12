@@ -488,6 +488,9 @@ export function ReceiptStack({
       <div className={getBackStageContainerClassName(isSubpage)}>
         <motion.div
           className="flex flex-col items-center justify-center isolate pb-12 min-h-[600px] md:min-h-[800px]"
+          initial={{
+            y: isSubpage ? "100%" : 0,
+          }}
           animate={{
             y: isSubpage ? "100%" : 0,
           }}
