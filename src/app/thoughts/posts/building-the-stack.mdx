@@ -73,100 +73,166 @@ I call the solution the "Intent Gatekeeper." It works in three phases:
 
 ### Phase 1: Wait for Movement
 
-When a pointer goes down, I don't start the drag immediately. I just record the starting position and wait:
+When a pointer goes down, I don't start the drag immediately. I check if the target is an interactive element (link, button, etc.) and skip gesture handling if so. Otherwise, I just record the starting position and wait:
 
 ```tsx
 const handlePointerDown = (e: React.PointerEvent) => {
+  const target = e.target as HTMLElement;
+  const isInteractive = target.closest(
+    'a[href], button, input, textarea, select, [role="link"], [role="button"]'
+  );
+  
+  if (isInteractive) {
+    return; // Let the click work normally
+  }
+  
   gestureStartRef.current = { x: e.clientX, y: e.clientY };
-  setDragUnlocked(false);
-  setVerticalLocked(false);
+  dragUnlockedRef.current = false;
+  scrollCommittedRef.current = false;
 };
 ```
 
 ### Phase 2: Detect Intent
 
-As the pointer moves, I calculate how far it's traveled in each direction. After 8 pixels of movement (`INTENT_THRESHOLD`), I make the call:
+As the pointer moves, I calculate how far it's traveled in each direction. After 8 pixels of movement (`STACK_CONFIG.gesture.intentThresholdPx`), I make the call:
 
 ```tsx
 const dx = Math.abs(e.clientX - gestureStartRef.current.x);
 const dy = Math.abs(e.clientY - gestureStartRef.current.y);
 
-if (dx > INTENT_THRESHOLD || dy > INTENT_THRESHOLD) {
+if (dx > STACK_CONFIG.gesture.intentThresholdPx || dy > STACK_CONFIG.gesture.intentThresholdPx) {
   const isNearlyPureVertical = dy > dx * VERTICAL_CONE_RATIO;
 
   if (isNearlyPureVertical) {
-    setVerticalLocked(true); // Lock to Y-axis only
+    scrollCommittedRef.current = true; // Commit to scroll
+  } else {
+    dragUnlockedRef.current = true;
+    setTouchAction("none");
+    dragControls.start(e, { snapToCursor: false });
   }
-  setDragUnlocked(true);
-  dragControls.start(e, { snapToCursor: false });
 }
 ```
 
 The key insight is the **vertical cone**. Rather than a simple "more horizontal than vertical" check, I define a cone of 15 degrees from pure vertical. Any movement within that cone is considered scrolling intent. This makes vertical scrolling feel natural even when your finger drifts slightly left or right.
 
 ```tsx
-const VERTICAL_CONE_DEGREES = 15;
-const VERTICAL_CONE_RATIO = 1 / Math.tan((VERTICAL_CONE_DEGREES * Math.PI) / 180);
+const VERTICAL_CONE_RATIO = 1 / Math.tan(
+  (STACK_CONFIG.gesture.verticalConeDegrees * Math.PI) / 180
+);
 ```
 
 ### Phase 3: Handle the Gesture
 
-If the intent was horizontal, the drag proceeds normally. A velocity above 150 triggers navigation:
+If the intent was horizontal, the drag proceeds normally. A velocity above 50 triggers navigation:
 
 ```tsx
 const handleDragEnd = (_, info: PanInfo) => {
   const velocity = Math.sqrt(info.velocity.x ** 2 + info.velocity.y ** 2);
   const isHorizontalEnough =
-    Math.abs(info.velocity.x) > Math.abs(info.velocity.y) * 0.5;
+    Math.abs(info.velocity.x) >
+    Math.abs(info.velocity.y) * STACK_CONFIG.gesture.horizontalVelocityRatio;
 
-  if (velocity > 150 && isHorizontalEnough) {
-    // Rotate cards and navigate
-    setOrder((prev) => {
-      const [front, ...rest] = prev;
-      return [...rest, front];
-    });
-    router.push(ROUTE_HREFS[order[1]]);
+  if (velocity > STACK_CONFIG.gesture.flickVelocityThreshold && isHorizontalEnough) {
+    const currentOrder = getOrderFromRoute(route);
+    const nextRoute = currentOrder[1];
+    window.scrollTo({ top: 0, behavior: "instant" });
+    router.push(hrefForRoute(nextRoute));
   }
 };
 ```
 
-If the intent was vertical, the card locks to Y-axis dragging only. It can move up and down within constraints, but Lenis (the smooth scroll library) handles the actual content scrolling. The card snaps back when released.
+If the intent was vertical, the system commits to scroll and lets the browser handle it. The card never locks—native scrolling just works. This replaced an earlier approach where I tried to lock the card to Y-axis dragging, which felt clunky.
 
 ## Navigation Sync
 
-The stack needs to stay in sync with the URL. When you click a navbar link or use browser back/forward, the cards should reorder to match:
+The stack needs to stay in sync with the URL. When you click a navbar link or use browser back/forward, the cards should reorder to match. The system derives the card order directly from the current route:
 
 ```tsx
-useEffect(() => {
-  if (isNavigatingRef.current) {
-    isNavigatingRef.current = false;
-    return; // We triggered this navigation, ignore
-  }
+function classifyPath(pathname: string) {
+  const route = STACK_ROUTES.find((r) => r.match(pathname))?.id ?? "home";
+  const routeConfig = STACK_ROUTES.find((r) => r.id === route)!;
+  const isSubpage = pathname !== routeConfig.href;
+  return { route, isSubpage, lockStackInteractions: isSubpage };
+}
 
-  const currentRoute = ROUTE_MAP[pathname] || "home";
-  if (order[0] !== currentRoute) {
-    setOrder(getInitialOrder(pathname));
-  }
-}, [pathname]);
+const getOrderFromRoute = (currentRoute: RouteId): [RouteId, RouteId, RouteId] => {
+  const routes: RouteId[] = ["home", "thoughts", "artifacts"];
+  const currentIndex = routes.indexOf(currentRoute);
+  return [
+    routes[currentIndex],
+    routes[(currentIndex + 1) % 3],
+    routes[(currentIndex + 2) % 3],
+  ];
+};
 ```
 
-The `isNavigatingRef` flag prevents a double-update when *we* trigger navigation via swipe. Otherwise the URL change would cause the effect to run again.
+This route-first approach eliminates state sync issues. The order is always derived from the URL, never stored separately. When rotating forward or backward, the callbacks compute the next route from the current one:
+
+```tsx
+const rotateForward = useCallback(() => {
+  const currentOrder = getOrderFromRoute(route);
+  const nextRoute = currentOrder[1];
+  window.scrollTo({ top: 0, behavior: "instant" });
+  router.push(hrefForRoute(nextRoute));
+}, [route, router]);
+```
+
+## Collapsed Mode
+
+When you navigate to a subpage (like `/thoughts/building-the-stack`), the stack collapses. Back cards slide offscreen, and the front card becomes a clickable overlay positioned at the bottom of the viewport. Clicking it returns you to the parent route.
+
+```tsx
+const getCardAnimation = (isFront: boolean, isSubpage: boolean, offset, breathe, position) => {
+  if (isFront) {
+    return isSubpage ? { x: 0, rotate: 0, scale: 1 } : { x: 0, y: 0, rotate: 0, scale: 1 };
+  }
+  // When collapsed, back cards slide offscreen
+  if (isSubpage) {
+    return { x: 0, y: 0, rotate: 0, scale: 1 };
+  }
+  // When expanded, back cards have offset, rotation, and scale
+  return {
+    x: offset.x * breathe,
+    y: offset.y * breathe,
+    rotate: offset.rotate * breathe,
+    scale: 1 - position * STACK_CONFIG.animation.scaleReductionPerPosition,
+  };
+};
+```
+
+The front card animates to a fixed position at `calc(100dvh - 1.5rem)` when collapsed. On hover-capable devices, it lifts slightly (`-0.5rem`) to signal interactivity. This gives clear visual feedback that you can return to the main view without cluttering the subpage content.
 
 ## Tuning Constants
 
-Getting gestures to feel right required a lot of iteration. I extracted all the magic numbers into constants at the top of the file:
+Getting gestures to feel right required a lot of iteration. I extracted all the magic numbers into a single configuration object, organized by concern:
 
 ```tsx
-const FLICK_VELOCITY_THRESHOLD = 150;
-const INTENT_THRESHOLD = 8;
-const VERTICAL_CONE_DEGREES = 15;
-const HORIZONTAL_VELOCITY_RATIO = 0.5;
-const DRAG_UNLOCK_RESET_DELAY = 50;
-const DRAG_ELASTICITY = 1;
-const HOVER_SPREAD_MULTIPLIER = 1.5;
+const STACK_CONFIG = {
+  gesture: {
+    flickVelocityThreshold: 50,
+    intentThresholdPx: 8,
+    verticalConeDegrees: 15,
+    horizontalVelocityRatio: 0.5,
+    dragUnlockResetDelayMs: 50,
+    dragElasticity: 1,
+  },
+  animation: {
+    hoverSpreadMultiplier: 1.5,
+    scaleReductionPerPosition: 0.01,
+  },
+  layout: {
+    mobileBreakpoint: 768,
+    minHeightMobile: 600,
+    minHeightDesktop: 800,
+  },
+  style: {
+    frontCardShadow: "0 12px 24px rgba(0,0,0,0.2)",
+    backCardShadow: "0 4px 8px rgba(0,0,0,0.1)",
+  },
+} as const;
 ```
 
-Each one was tuned through testing. The velocity threshold started at 300 (from prototype 2) but felt too heavy. 150 hits the sweet spot where a casual flick works but accidental taps don't trigger navigation.
+Grouping related values makes tuning faster. When something feels off, I know exactly where to look. The velocity threshold started at 300 (from prototype 2), dropped to 150, then settled at 50 after testing. At 50, even light flicks register while accidental taps still don't trigger navigation.
 
 The vertical cone started at 10 degrees and moved to 15 after testing on touch devices—fingers naturally wobble a bit when scrolling.
 
@@ -176,6 +242,8 @@ The vertical cone started at 10 degrees and moved to 15 after testing on touch d
 
 **Intent detection beats mode switching.** Early attempts used a "scroll mode" toggle. It felt clunky. The intent gatekeeper reacts to what you're actually doing, not what mode you've selected.
 
-**Extract your magic numbers.** Having all the tuning constants in one place made iteration fast. When something felt off on mobile, I knew exactly where to look.
+**Extract your magic numbers.** Having all the tuning constants in one place made iteration fast. When something felt off on mobile, I knew exactly where to look. Grouping them into a configuration object made the relationships between values clearer—gesture thresholds live together, animation values are separate, layout breakpoints are grouped.
 
-The receipt stack now powers the main navigation of this site. Swipe through the cards or click the ones behind. Scroll the content naturally. The two gestures coexist because the system decides what you meant before committing to either.
+**Polish adds depth.** Differentiated shadows (deeper for front card, subtle for back cards) create visual hierarchy. Better interactive element detection ensures links and buttons work reliably even when the drag system is active. Scroll-to-top on route change prevents disorientation when switching cards.
+
+The receipt stack now powers the main navigation of this site. Swipe through the cards or click the ones behind. Scroll the content naturally. The two gestures coexist because the system decides what you meant before committing to either. On subpages, the stack collapses to get out of the way while keeping a clear path back.
