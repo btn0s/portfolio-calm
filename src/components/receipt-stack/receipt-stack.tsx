@@ -310,11 +310,8 @@ export function ReceiptStack({
     const isFront = position === 0;
     const offset = getStackOffset(position);
     const breathe = showSpread && !isFront ? HOVER_SPREAD_MULTIPLIER : 1;
-
-    // Shadow values: front card gets stronger shadow, back cards get lighter
-    const shadowStyle = isFront
-      ? { boxShadow: "0 12px 24px rgba(0,0,0,0.2)" }
-      : { boxShadow: "0 4px 8px rgba(0,0,0,0.1)" };
+    // Only apply willChange when actively animating (front card dragable or back cards spreading)
+    const wantsWillChange = (isFront && !lockStackInteractions) || showSpread;
 
     return (
       <motion.div
@@ -326,9 +323,8 @@ export function ReceiptStack({
           top: isInBackStage ? 0 : undefined,
           left: isInBackStage ? 0 : undefined,
           right: isInBackStage ? 0 : undefined,
-          willChange: "transform",
+          willChange: wantsWillChange ? "transform" : "auto",
           touchAction: isFront && !lockStackInteractions ? touchAction : undefined,
-          ...shadowStyle,
         }}
         drag={isFront && !lockStackInteractions ? true : false}
         dragControls={isFront && !lockStackInteractions ? dragControls : undefined}
@@ -368,6 +364,7 @@ export function ReceiptStack({
               ? "cursor-default"
               : "cursor-grab active:cursor-grabbing focus:outline-none focus:ring-2 focus:ring-black/20 focus:ring-offset-2 focus:ring-offset-transparent rounded-sm select-none"
             : "cursor-pointer",
+          isFront ? "card-shadow-front" : "card-shadow-back",
           "w-full"
         )}
       >
@@ -444,7 +441,6 @@ export function ReceiptStack({
       {/* FrontSlot: In-flow container for front card - this moves with page scroll */}
       <motion.div
         ref={frontCardRef}
-        layout
         className={cn(
           "z-20 w-full max-w-xl mx-auto",
           isSubpage 
@@ -452,22 +448,15 @@ export function ReceiptStack({
             : "relative -mt-8"
         )}
         style={
-          !isSubpage
-            ? {
-                top: "auto",
-              }
-            : undefined
-        }
-        animate={
           isSubpage
             ? {
                 top: "calc(100vh - 1.5rem)",
-                y: hasHover && isFrontCardHovered ? "-0.5rem" : 0,
               }
-            : {
-                y: 0,
-              }
+            : undefined
         }
+        animate={{
+          y: isSubpage && hasHover && isFrontCardHovered ? "-0.5rem" : 0,
+        }}
         transition={STACK_SPRING}
       >
         <div className="flex flex-col items-center justify-center pb-12 min-h-[600px] md:min-h-[800px]">
