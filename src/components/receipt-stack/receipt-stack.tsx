@@ -555,7 +555,8 @@ export function ReceiptStack({
               <button
                 type="button"
                 className={cn(
-                  "absolute inset-0 z-10 cursor-pointer outline-none rounded-sm"
+                  "absolute inset-0 z-10 cursor-pointer outline-none rounded-sm",
+                  "focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[#0047ab]"
                 )}
                 onClick={handleOverlayClick}
                 onKeyDown={handleOverlayKeyDown}
@@ -591,7 +592,8 @@ export function ReceiptStack({
               <button
                 type="button"
                 className={cn(
-                  "absolute inset-0 z-10 cursor-pointer outline-none rounded-sm"
+                  "absolute inset-0 z-10 cursor-pointer outline-none rounded-sm",
+                  "focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[#0047ab]"
                 )}
                 onClick={handleOverlayClick}
                 onKeyDown={handleOverlayKeyDown}

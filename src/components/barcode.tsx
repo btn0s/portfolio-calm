@@ -8,7 +8,7 @@ export const Barcode = ({ className }: { className?: string }) => {
   ];
   
   return (
-    <div className={`flex items-stretch h-10 bg-transparent ${className}`}>
+    <div className={`flex items-stretch h-10 bg-transparent ${className}`} aria-hidden="true">
       {/* Start guard bars */}
       <div className="bg-current w-px mr-px" />
       <div className="bg-current w-px mr-[2px]" />

@@ -99,7 +99,7 @@ export function ArtifactsReceipt() {
       <div className="flex flex-col flex-1">
         <section className="relative">
           <div className="flex items-center gap-5 mb-5">
-            <div className="w-2.5 h-2.5 bg-white" />
+            <div className="w-2.5 h-2.5 bg-white" aria-hidden="true" />
             <h2 className="uppercase font-black tracking-widest text-xs flex-1 border-b-2 border-white pb-1 text-white">
               EXPERIMENTAL_REGISTRY
             </h2>
@@ -114,7 +114,7 @@ export function ArtifactsReceipt() {
                 description={artifact.description}
                 date={artifact.date}
                 subtext={`artifacts/${artifact.href.split('/').pop()?.toLowerCase()}`}
-                className="bg-[#0047ab] p-5 hover:bg-white/5 transition-colors group relative border-b border-white/5 last:border-0 cursor-pointer text-white"
+                className="bg-[#0047ab] p-5 hover:bg-white/10 transition-colors group relative border-b border-white/5 last:border-0 cursor-pointer text-white"
                 titleClassName="font-mono"
                 descriptionClassName="font-mono"
               />

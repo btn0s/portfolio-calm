@@ -6,6 +6,7 @@ export function Signature({ className }: { className?: string }) {
       xmlns="http://www.w3.org/2000/svg" 
       viewBox="35 30 215 75" 
       className={cn("w-full h-auto", className)}
+      aria-hidden="true"
     >
       <path d="M 35.512,74.887 C 38.285,74.429 38.250,74.293 40.988,73.699" strokeWidth="4.383" stroke="currentColor" fill="none" strokeLinecap="round"></path>
       <path d="M 40.988,73.699 C 45.938,72.317 45.943,72.361 50.828,70.750" strokeWidth="2.085" stroke="currentColor" fill="none" strokeLinecap="round"></path>
