@@ -98,7 +98,7 @@ export function ReceiptStack({
 }: ReceiptStackProps) {
   const pathname = usePathname();
   const router = useRouter();
-  const { playTransition, playSound } = useSoundSettings();
+  const { playTransition, playSound, primeAudio } = useSoundSettings();
   const [isHovered, setIsHovered] = useState(false);
   const [isFrontCardHovered, setIsFrontCardHovered] = useState(false);
   // Only state needed for rendering: touchAction needs to update when intent is confirmed
@@ -158,6 +158,9 @@ export function ReceiptStack({
       return;
     }
 
+    // Prime audio context during user gesture so sounds can play on drag end
+    primeAudio();
+
     // Don't prevent default here - we want interactive elements to work if it's just a click
     gestureStartRef.current = { x: e.clientX, y: e.clientY };
     dragUnlockedRef.current = false;
@@ -166,7 +169,7 @@ export function ReceiptStack({
     if (e.currentTarget instanceof HTMLElement) {
       e.currentTarget.setPointerCapture(e.pointerId);
     }
-  }, []);
+  }, [primeAudio]);
 
   const handlePointerMove = useCallback(
     (e: React.PointerEvent) => {

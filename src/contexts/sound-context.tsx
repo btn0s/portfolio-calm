@@ -54,6 +54,7 @@ type SoundContextType = {
   playIntro: (route: RouteId) => void;
   playTransition: (direction: "forward" | "backward") => void;
   getSoundUrl: (category: SoundCategory, key: string) => string;
+  primeAudio: () => void;
 };
 
 // Create context
@@ -393,6 +394,33 @@ export const SoundProvider = ({ children }: { children: React.ReactNode }) => {
     setIsMuted(!isMuted);
   };
 
+  // Prime audio context during user gesture (for mobile)
+  // Call this on pointerDown to ensure audio context is unlocked
+  // before any sounds need to play (e.g., on drag end)
+  const primeAudio = useCallback(() => {
+    if (audioUnlockedRef.current) return;
+    
+    unlockAudioContext();
+    audioUnlockedRef.current = true;
+    
+    // Also play a silent sound through Howler to unlock its context
+    // The useSound hooks use Howler internally, so we need to prime it too
+    const silentAudio = new Audio();
+    silentAudio.volume = 0;
+    silentAudio.src = "data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA";
+    silentAudio.play().catch(() => {
+      // Ignore errors - this is just to prime the audio context
+    });
+  }, []);
+
+  const preloadSounds = [
+    SOUND_CONFIG.interaction.click,
+    SOUND_CONFIG.interaction.rustle,
+    SOUND_CONFIG.interaction.drop,
+    SOUND_CONFIG.transition.swipeForward,
+    SOUND_CONFIG.transition.swipeBackward,
+  ];
+
   return (
     <SoundContext.Provider
       value={{
@@ -402,8 +430,12 @@ export const SoundProvider = ({ children }: { children: React.ReactNode }) => {
         playIntro,
         playTransition,
         getSoundUrl: getSoundUrlWithOverride,
+        primeAudio,
       }}
     >
+      {preloadSounds.map((src) => (
+        <audio key={src} src={src} preload="auto" hidden />
+      ))}
       {children}
     </SoundContext.Provider>
   );
