@@ -30,9 +30,19 @@ export function SoundToggle() {
     }
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLButtonElement>) => {
+    // Play sound feedback on keyboard activation (Enter or Space)
+    if (e.key === "Enter" || e.key === " ") {
+      if (!isMuted) {
+        playSound("click", true);
+      }
+    }
+  };
+
   return (
     <button
       onPointerDown={handlePointerDown}
+      onKeyDown={handleKeyDown}
       onClick={toggleMute}
       className="p-1 text-muted-foreground hover:text-foreground transition-colors rounded-sm"
       aria-label={isMuted ? "Unmute sounds" : "Mute sounds"}

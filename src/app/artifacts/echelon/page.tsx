@@ -42,8 +42,8 @@ export default function EchelonPage() {
             </div>
             <div className="flex flex-col gap-1">
               <span className="text-[8px] font-black opacity-30 uppercase tracking-widest">STATUS_CODE</span>
-              <div className="flex items-center gap-1.5">
-                <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
+              <div className="flex items-center gap-1.5" role="status" aria-label="Status: Vertical slice">
+                <div className="w-1.5 h-1.5 rounded-full bg-blue-500" aria-hidden="true" />
                 <span className="text-[10px] font-bold uppercase">VERTICAL_SLICE</span>
               </div>
             </div>
@@ -61,7 +61,7 @@ export default function EchelonPage() {
               height={675}
               className="w-full h-auto grayscale hover:grayscale-0 transition-[filter] duration-700 border border-foreground/10"
             />
-            <div className="absolute top-4 right-4 bg-foreground text-background px-2 py-0.5 text-[8px] font-black uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">
+            <div className="absolute top-4 right-4 bg-foreground text-background px-2 py-0.5 text-[8px] font-black uppercase tracking-widest opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity">
               LIVE_RENDER
             </div>
           </div>
