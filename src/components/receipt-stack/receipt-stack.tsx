@@ -401,14 +401,14 @@ export function ReceiptStack({
     const baseClasses = "fixed z-10";
     return isSubpage
       ? cn(baseClasses, "bottom-0 left-0 right-0 px-4 w-full md:left-1/2 md:right-auto md:-translate-x-1/2 md:max-w-xl md:px-0")
-      : cn(baseClasses, "top-20 left-0 right-0 w-full max-w-xl mx-auto");
+      : cn(baseClasses, "top-28 left-0 right-0 w-full max-w-xl mx-auto");
   };
 
   const getFrontSlotClassName = (isSubpage: boolean) => {
     const baseClasses = "z-20 w-full max-w-xl mx-auto";
     return isSubpage
       ? cn(baseClasses, "fixed left-0 right-0 px-4 md:left-1/2 md:right-auto md:-translate-x-1/2 md:px-0")
-      : cn(baseClasses, "relative -mt-8");
+      : cn(baseClasses, "relative mt-0");
   };
 
   const getFrontSlotStyle = (isSubpage: boolean) => {
@@ -519,7 +519,7 @@ export function ReceiptStack({
       {/* Fixed drag constraints area */}
       <div
         ref={dragConstraintsRef}
-        className="fixed top-20 left-6 right-6 bottom-6 pointer-events-none"
+        className="fixed top-28 left-6 right-6 bottom-6 pointer-events-none"
       />
       
       {/* BackStage: Fixed container for back cards */}
