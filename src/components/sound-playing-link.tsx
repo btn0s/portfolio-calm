@@ -1,8 +1,9 @@
 "use client";
 
 import Link, { LinkProps } from "next/link";
-import { ReactNode } from "react";
+import { ReactNode, useRef, useCallback } from "react";
 import { useSoundSettings } from "@/contexts/sound-context";
+import { useDragContextOptional } from "@/contexts/drag-context";
 import { usePathname } from "next/navigation";
 
 interface SoundPlayingLinkProps extends LinkProps {
@@ -52,52 +53,55 @@ export function SoundPlayingLink({
   ...props
 }: SoundPlayingLinkProps) {
   const { playSound } = useSoundSettings();
+  const dragContext = useDragContextOptional();
   const pathname = usePathname();
+  const pointerIdRef = useRef<number | null>(null);
 
-  const handlePointerDown = (e: React.PointerEvent<HTMLAnchorElement>) => {
-    // For navigate sound, check if we're actually navigating to a different page
+  const playSoundForLink = useCallback(() => {
     if (sound === "navigate") {
       const hrefString = hrefToString(href);
       const isCurrentPage = matchesCurrentRoute(hrefString, pathname);
       if (isCurrentPage) {
-        // Same page - just play click feedback (main click, not alt)
         playSound("click");
       } else {
-        // Different page - play navigate (click + rustle)
         playSound("navigate");
       }
     } else if (sound) {
-      // Other sounds - play as normal
       if (alt && sound === "click") {
         playSound("click", true);
       } else {
-        playSound(sound as any);
+        playSound(sound as "click" | "clickAlt" | "confetti" | "drop" | "rustle");
       }
     }
+  }, [sound, href, pathname, playSound, alt]);
+
+  const handlePointerDown = (e: React.PointerEvent<HTMLAnchorElement>) => {
+    pointerIdRef.current = e.pointerId;
+    
+    // If inside a drag context, don't play sound immediately - wait for click
+    if (dragContext) {
+      return;
+    }
+    
+    playSoundForLink();
+  };
+
+  const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    // If drag was confirmed, the click should be prevented by receipt-stack
+    // But if we get here, it was a real click - play sound now
+    if (dragContext && pointerIdRef.current !== null) {
+      if (!dragContext.wasDragConfirmed(pointerIdRef.current)) {
+        playSoundForLink();
+      }
+    }
+    
+    pointerIdRef.current = null;
+    onClick?.(e);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLAnchorElement>) => {
-    // Play sound on Enter or Space (standard keyboard activation)
     if (e.key === "Enter" || e.key === " ") {
-      // For navigate sound, check if we're actually navigating to a different page
-      if (sound === "navigate") {
-        const hrefString = hrefToString(href);
-        const isCurrentPage = matchesCurrentRoute(hrefString, pathname);
-        if (isCurrentPage) {
-          // Same page - just play click feedback (main click, not alt)
-          playSound("click");
-        } else {
-          // Different page - play navigate (click + rustle)
-          playSound("navigate");
-        }
-      } else if (sound) {
-        // Other sounds - play as normal
-        if (alt && sound === "click") {
-          playSound("click", true);
-        } else {
-          playSound(sound as any);
-        }
-      }
+      playSoundForLink();
     }
   };
 
@@ -107,7 +111,9 @@ export function SoundPlayingLink({
       href={href}
       onPointerDown={handlePointerDown}
       onKeyDown={handleKeyDown}
-      onClick={onClick}
+      onClick={handleClick}
+      onDragStart={(e) => e.preventDefault()}
+      draggable={false}
       className={className}
     >
       {children}

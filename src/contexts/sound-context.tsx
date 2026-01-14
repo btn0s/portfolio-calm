@@ -413,14 +413,6 @@ export const SoundProvider = ({ children }: { children: React.ReactNode }) => {
     });
   }, []);
 
-  const preloadSounds = [
-    SOUND_CONFIG.interaction.click,
-    SOUND_CONFIG.interaction.rustle,
-    SOUND_CONFIG.interaction.drop,
-    SOUND_CONFIG.transition.swipeForward,
-    SOUND_CONFIG.transition.swipeBackward,
-  ];
-
   return (
     <SoundContext.Provider
       value={{
@@ -433,13 +425,37 @@ export const SoundProvider = ({ children }: { children: React.ReactNode }) => {
         primeAudio,
       }}
     >
-      {preloadSounds.map((src) => (
-        <audio key={src} src={src} preload="auto" hidden />
-      ))}
+      <AudioPreloader />
       {children}
     </SoundContext.Provider>
   );
 };
+
+const PRELOAD_SOUNDS = [
+  SOUND_CONFIG.interaction.click,
+  SOUND_CONFIG.interaction.rustle,
+  SOUND_CONFIG.interaction.drop,
+  SOUND_CONFIG.transition.swipeForward,
+  SOUND_CONFIG.transition.swipeBackward,
+];
+
+function AudioPreloader() {
+  useEffect(() => {
+    const audioElements = PRELOAD_SOUNDS.map((src) => {
+      const audio = new Audio(src);
+      audio.preload = "auto";
+      return audio;
+    });
+    
+    return () => {
+      audioElements.forEach((audio) => {
+        audio.src = "";
+      });
+    };
+  }, []);
+  
+  return null;
+}
 
 // Hook for component access to sound context
 export const useSoundSettings = () => {

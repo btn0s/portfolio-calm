@@ -15,6 +15,7 @@ import React from "react";
 import { cn } from "@/lib/utils";
 import { MobileNav } from "@/components/mobile-nav";
 import { SoundProvider } from "@/contexts/sound-context";
+import { DragProvider } from "@/contexts/drag-context";
 import { ClickHandler } from "@/components/click-handler";
 import { AmbientSoundManager } from "@/components/ambient-sound-manager";
 import { RouteIntroHandler } from "@/components/route-intro-handler";
@@ -148,6 +149,7 @@ export default function RootLayout({
       </head>
       <body className="antialiased">
         <SoundProvider>
+          <DragProvider>
           <a
             href="#content"
             className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-background focus:text-foreground focus:border-2 focus:border-foreground focus:rounded-md focus:font-bold focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
@@ -188,6 +190,7 @@ export default function RootLayout({
             <SpeedInsights />
           </main>
           <Footer />
+          </DragProvider>
         </SoundProvider>
       </body>
     </html>

@@ -6,6 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { STACK_SPRING, getStackOffset } from "@/lib/motion/stack";
 import { useSoundSettings } from "@/contexts/sound-context";
+import { useDragContext } from "@/contexts/drag-context";
 
 type RouteId = "home" | "thoughts" | "artifacts";
 
@@ -99,6 +100,7 @@ export function ReceiptStack({
   const pathname = usePathname();
   const router = useRouter();
   const { playTransition, playSound, primeAudio } = useSoundSettings();
+  const { registerPotentialDrag, confirmDrag, cancelDrag } = useDragContext();
   const [isHovered, setIsHovered] = useState(false);
   const [isFrontCardHovered, setIsFrontCardHovered] = useState(false);
   // Only state needed for rendering: touchAction needs to update when intent is confirmed
@@ -142,34 +144,30 @@ export function ReceiptStack({
   // Using refs instead of state to avoid React re-renders in the hot path
   const dragUnlockedRef = useRef(false);
   const scrollCommittedRef = useRef(false);
-  const gestureStartRef = useRef<{ x: number; y: number } | null>(null);
+  const gestureStartRef = useRef<{ x: number; y: number; pointerId: number; isInteractive: boolean } | null>(null);
   const dragControls = useDragControls();
   const dragConstraintsRef = useRef<HTMLDivElement>(null);
 
   const handlePointerDown = useCallback((e: React.PointerEvent) => {
-    // Check if the click target is an interactive element (link, button, input, etc.)
     const target = e.target as HTMLElement;
-    const isInteractive = target.closest(
+    const isInteractive = !!target.closest(
       'a[href], button, input, textarea, select, [role="link"], [role="button"], [contenteditable="true"]'
     );
 
-    // If clicking on an interactive element, don't interfere with the click
-    if (isInteractive) {
-      return;
-    }
-
-    // Prime audio context during user gesture so sounds can play on drag end
     primeAudio();
 
-    // Don't prevent default here - we want interactive elements to work if it's just a click
-    gestureStartRef.current = { x: e.clientX, y: e.clientY };
+    gestureStartRef.current = { x: e.clientX, y: e.clientY, pointerId: e.pointerId, isInteractive };
     dragUnlockedRef.current = false;
     scrollCommittedRef.current = false;
-    // Capture pointer to get all events even over interactive elements
-    if (e.currentTarget instanceof HTMLElement) {
+    
+    if (isInteractive) {
+      registerPotentialDrag(e.pointerId);
+    }
+    
+    if (!isInteractive && e.currentTarget instanceof HTMLElement) {
       e.currentTarget.setPointerCapture(e.pointerId);
     }
-  }, [primeAudio]);
+  }, [primeAudio, registerPotentialDrag]);
 
   const handlePointerMove = useCallback(
     (e: React.PointerEvent) => {
@@ -177,64 +175,62 @@ export function ReceiptStack({
         return;
       }
       if (dragUnlockedRef.current || scrollCommittedRef.current) {
-        // Already committed to drag or scroll, let browser/Framer handle it
-        return;
-      }
-
-      // Check if we started on an interactive element - if so, don't interfere
-      const target = e.target as HTMLElement;
-      const isInteractive = target.closest(
-        'a[href], button, input, textarea, select, [role="link"], [role="button"], [contenteditable="true"]'
-      );
-      if (isInteractive) {
         return;
       }
 
       const dx = Math.abs(e.clientX - gestureStartRef.current.x);
       const dy = Math.abs(e.clientY - gestureStartRef.current.y);
 
-      // Only decide after moving past the threshold
       if (
         dx > STACK_CONFIG.gesture.intentThresholdPx ||
         dy > STACK_CONFIG.gesture.intentThresholdPx
       ) {
-        // Check if this is a touch device (mobile/tablet)
         const isTouchDevice = e.pointerType === "touch" || e.pointerType === "pen";
         
         if (isTouchDevice) {
-          // On touch devices, filter vertical movements to allow native scrolling
           const isNearlyPureVertical = dy > dx * VERTICAL_CONE_RATIO;
 
           if (isNearlyPureVertical) {
-            // Vertical intent - commit to scroll, do nothing (let browser handle it)
             scrollCommittedRef.current = true;
+            cancelDrag(gestureStartRef.current.pointerId);
             return;
           }
         }
         
-        // Desktop or non-vertical touch movement - start drag
+        // Horizontal drag detected - confirm drag and prevent link clicks
         dragUnlockedRef.current = true;
-        setTouchAction("none"); // Block native scrolling once drag starts
-        // Start drag with the CURRENT move event (not the original down event)
+        confirmDrag(gestureStartRef.current.pointerId);
+        setTouchAction("none");
+        
+        // Prevent default to stop link navigation when dragging from a link
+        if (gestureStartRef.current.isInteractive) {
+          e.preventDefault();
+        }
+        
         dragControls.start(e, { snapToCursor: false });
       }
     },
-    [dragControls, playSound]
+    [dragControls, confirmDrag, cancelDrag]
   );
 
   const handlePointerUp = useCallback((e?: React.PointerEvent) => {
-    // Release pointer capture
+    const pointerId = e?.pointerId ?? gestureStartRef.current?.pointerId;
+    
     if (e && e.currentTarget instanceof HTMLElement) {
       e.currentTarget.releasePointerCapture(e.pointerId);
     }
+    
+    if (pointerId !== undefined) {
+      cancelDrag(pointerId);
+    }
+    
     gestureStartRef.current = null;
-    // Small delay to let Framer Motion's dragEnd fire first
     setTimeout(() => {
       dragUnlockedRef.current = false;
       scrollCommittedRef.current = false;
-      setTouchAction("pan-y"); // Re-enable native vertical scroll
+      setTouchAction("pan-y");
     }, STACK_CONFIG.gesture.dragUnlockResetDelayMs);
-  }, []);
+  }, [cancelDrag]);
 
   // Build order from current route (derived from pathname)
   const getOrderFromRoute = (
