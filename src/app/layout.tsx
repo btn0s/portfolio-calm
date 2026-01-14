@@ -168,7 +168,7 @@ export default function RootLayout({
               id="content"
               tabIndex={-1}
               className={cn(
-                "relative outline-none",
+                "relative outline-none focus-visible:ring-0 focus-visible:ring-offset-0",
                 hasChildren ? "pb-24" : ""
               )}
             >
