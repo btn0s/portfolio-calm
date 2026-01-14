@@ -427,7 +427,7 @@ export function ReceiptStack({
     if (isFront) {
       const frontClasses = lockStackInteractions
         ? "cursor-default"
-        : "cursor-grab active:cursor-grabbing outline-none select-none focus-within:z-50";
+        : "cursor-grab active:cursor-grabbing outline-none select-none focus-within:z-50 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2";
       return cn(frontClasses, baseClasses);
     }
     return cn("cursor-pointer", baseClasses);

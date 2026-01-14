@@ -66,7 +66,7 @@ export function ListItem({
   )
 
   const baseClassName = cn(
-    "block transition-all outline-none group",
+    "block transition-[transform,colors] outline-none group",
     href && "border-l-2 border-transparent hover:border-current/20 focus-visible:border-current/40 focus-visible:bg-current/[0.02]",
     className
   )

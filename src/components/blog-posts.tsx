@@ -119,7 +119,7 @@ function BlogPostsContent({ posts }: BlogPostsProps) {
 
 export function BlogPosts({ posts }: BlogPostsProps) {
   return (
-    <Suspense fallback={<div className="space-y-6">Loading posts...</div>}>
+    <Suspense fallback={<div className="space-y-6">Loading posts…</div>}>
       <BlogPostsContent posts={posts} />
     </Suspense>
   )
