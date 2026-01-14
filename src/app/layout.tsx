@@ -20,6 +20,7 @@ import { ClickHandler } from "@/components/click-handler";
 import { AmbientSoundManager } from "@/components/ambient-sound-manager";
 import { RouteIntroHandler } from "@/components/route-intro-handler";
 import { SafariBar } from "@/components/safari-bar";
+import { FpsMonitor } from "@/components/fps-monitor";
 
 const abcOracle = localFont({
   src: "../assets/fonts/ABC-Stefan/ABCOracleVariable-Trial.ttf",
@@ -192,6 +193,7 @@ export default function RootLayout({
           <Footer />
           </DragProvider>
         </SoundProvider>
+        <FpsMonitor />
       </body>
     </html>
   );
