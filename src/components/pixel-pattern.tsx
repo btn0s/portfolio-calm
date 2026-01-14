@@ -135,6 +135,7 @@ export function PixelPattern({
       width={size * 10}
       height={size * 10}
       className={className}
+      aria-hidden="true"
       style={{ 
         aspectRatio: "1/1", 
         imageRendering: "pixelated",

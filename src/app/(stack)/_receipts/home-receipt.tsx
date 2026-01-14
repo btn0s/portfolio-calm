@@ -163,7 +163,7 @@ export function HomeReceipt() {
             href="/resume.pdf"
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 border-2 border-current px-4 py-1.5 text-[10px] font-bold uppercase mt-8 hover:bg-[#fdf6e3] hover:text-[#2c3e2d] transition-[background-color,color,transform] active:translate-y-0.5 font-mono"
+            className="inline-flex items-center gap-2 border-2 border-current px-4 py-1.5 text-[10px] font-bold uppercase mt-8 hover:bg-[#fdf6e3] hover:text-[#2c3e2d] transition-[background-color,color,transform] active:translate-y-0.5 font-mono focus-visible:ring-2 focus-visible:ring-[#fdf6e3] focus-visible:ring-offset-2 focus-visible:ring-offset-[#2c3e2d] focus-visible:outline-none"
           >
             <span>DOWNLOAD_FULL_DOSSIER.PDF</span>
             <span className="opacity-40 group-hover:opacity-100">→</span>

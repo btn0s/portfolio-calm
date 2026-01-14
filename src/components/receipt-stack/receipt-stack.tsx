@@ -340,7 +340,7 @@ export function ReceiptStack({
       return; // Allow link to work normally
     }
     
-    if (position === 0) return; // Front card is not clickable
+    if (position === 0) return; // Front card is not clickable on its own page - navigation via drag/arrow keys only
 
     playSound("rustle"); // Play rustle on mouseup when clicking back card
     bringToFront(routeId);
@@ -425,12 +425,6 @@ export function ReceiptStack({
   const getCardClassName = (isFront: boolean, lockStackInteractions: boolean, routeId: RouteId) => {
     const baseClasses = "w-full rounded-sm transition-shadow";
     if (isFront) {
-      const ringColor = {
-        home: "focus-visible:ring-[#fdf6e3]",
-        thoughts: "focus-visible:ring-[#1a1a1a]",
-        artifacts: "focus-visible:ring-white",
-      }[routeId];
-
       const frontClasses = lockStackInteractions
         ? "cursor-default"
         : "cursor-grab active:cursor-grabbing outline-none select-none focus-within:z-50";
@@ -494,7 +488,7 @@ export function ReceiptStack({
         animate={animation}
         transition={shouldReduceMotion ? { duration: 0.1 } : STACK_SPRING}
         onClick={(e) => handleCardClick(e, routeId, position)}
-        tabIndex={-1}
+        tabIndex={-1} // Front card is not tab-indexable - navigation via arrow keys only
         className={getCardClassName(isFront, lockStackInteractions, routeId)}
       >
         {/* Paint layer: contains clip-path and texture, not animated */}
