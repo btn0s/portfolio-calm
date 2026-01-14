@@ -225,7 +225,7 @@ function FormExample() {
                           <DropdownMenuItem>
                             <FolderSearchIcon
                             />
-                            Browse...
+                            Browse…
                           </DropdownMenuItem>
                         </DropdownMenuGroup>
                       </DropdownMenuSubContent>

@@ -32,6 +32,8 @@ export function Navbar() {
             <Image
               src={logo}
               alt="btn0s"
+              width={12}
+              height={12}
               className="size-3 dark:invert relative top-px"
               priority
             />
