@@ -1,3 +1,6 @@
+"use client";
+
+import { useState, useEffect } from "react";
 import { PixelPattern } from "@/components/pixel-pattern";
 import { Barcode } from "@/components/barcode";
 import { ReceiptShell } from "@/components/receipt/receipt-shell";
@@ -51,18 +54,38 @@ const PROJECTS = [
   },
 ];
 
+function useCurrentDateTime() {
+  const [dateTime, setDateTime] = useState<{ date: string; time: string } | null>(null);
+
+  useEffect(() => {
+    const update = () => {
+      setDateTime({
+        date: new Date().toLocaleDateString('en-US', {
+          weekday: 'short',
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric',
+        }),
+        time: new Date().toLocaleTimeString('en-US', {
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: true,
+        }),
+      });
+    };
+    
+    update();
+    const interval = setInterval(update, 60000);
+    return () => clearInterval(interval);
+  }, []);
+
+  return dateTime;
+}
+
 export function HomeReceipt() {
-  const today = new Date().toLocaleDateString('en-US', {
-    weekday: 'short',
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-  });
-  const time = new Date().toLocaleTimeString('en-US', {
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: true,
-  });
+  const dateTime = useCurrentDateTime();
+  const today = dateTime?.date ?? "---";
+  const time = dateTime?.time ?? "--:--";
 
   return (
     <ReceiptShell variant="dossier" className="flex flex-col">
