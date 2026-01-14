@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams, useRouter, usePathname } from 'next/navigation'
 import { formatDate } from '@/lib/blog-utils'
 import { ListItem } from './list-item'
@@ -21,7 +21,7 @@ type BlogPostsProps = {
   posts: BlogPost[]
 }
 
-export function BlogPosts({ posts }: BlogPostsProps) {
+function BlogPostsContent({ posts }: BlogPostsProps) {
   const allPosts = posts
   const searchParams = useSearchParams()
   const router = useRouter()
@@ -115,4 +115,12 @@ export function BlogPosts({ posts }: BlogPostsProps) {
       </div>
     </>
   );
+}
+
+export function BlogPosts({ posts }: BlogPostsProps) {
+  return (
+    <Suspense fallback={<div className="space-y-6">Loading posts...</div>}>
+      <BlogPostsContent posts={posts} />
+    </Suspense>
+  )
 }
