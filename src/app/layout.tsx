@@ -129,7 +129,7 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const hasChildren = React.Children.count(children) > 1;
+  const hasChildren = React.Children.count(children) > 0;
 
   return (
     <html
