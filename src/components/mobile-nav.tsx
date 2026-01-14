@@ -3,7 +3,7 @@
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, ArrowLeft } from "lucide-react";
 import { useRef, useEffect, useState } from "react";
 import { SoundPlayingLink } from "@/components/sound-playing-link";
 
@@ -17,6 +17,7 @@ export function MobileNav() {
   const pathname = usePathname();
   const prevIndexRef = useRef<number | null>(null);
   const [direction, setDirection] = useState(0);
+  const [postTitle, setPostTitle] = useState<string | null>(null);
   const shouldReduceMotion = useReducedMotion();
 
   const getCurrentIndex = () => {
@@ -46,6 +47,17 @@ export function MobileNav() {
   const nextIndex = (currentIndex + 1) % navItems.length;
   const prevHref = navItems[prevIndex].href;
   const nextHref = navItems[nextIndex].href;
+  
+  const isSubpage = currentItem.href !== "/" && pathname !== currentItem.href && pathname.startsWith(currentItem.href + "/");
+  
+  useEffect(() => {
+    if (isSubpage && pathname.startsWith("/thoughts/")) {
+      const titleElement = document.querySelector('h1');
+      setPostTitle(titleElement?.textContent ?? null);
+    } else {
+      setPostTitle(null);
+    }
+  }, [isSubpage, pathname]);
 
   return (
     <nav className="fixed bottom-6 inset-x-0 z-50 md:hidden pointer-events-none flex justify-center px-4">
@@ -69,7 +81,7 @@ export function MobileNav() {
               <div className="relative h-4 w-full">
                 <AnimatePresence mode="popLayout" custom={direction}>
                   <motion.span
-                    key={currentItem.name}
+                    key={postTitle || currentItem.name}
                     custom={direction}
                     initial={shouldReduceMotion ? { opacity: 0 } : { y: direction * 20, opacity: 0, filter: "blur(4px)" }}
                     animate={shouldReduceMotion ? { opacity: 1 } : { y: 0, opacity: 1, filter: "blur(0px)" }}
@@ -82,7 +94,7 @@ export function MobileNav() {
                     }}
                     className="text-xs font-bold uppercase tracking-[0.15em] text-black/80 dark:text-white/90 font-mono leading-none truncate absolute inset-0 flex items-center"
                   >
-                    {currentItem.name}
+                    {postTitle || currentItem.name}
                   </motion.span>
                 </AnimatePresence>
                 
@@ -90,7 +102,7 @@ export function MobileNav() {
                 {!shouldReduceMotion && (
                   <AnimatePresence>
                     <motion.div
-                      key={`${currentItem.name}-glitch`}
+                      key={`${postTitle || currentItem.name}-glitch`}
                       initial={{ opacity: 0 }}
                       animate={{ opacity: [0, 0.5, 0, 0.3, 0] }}
                       exit={{ opacity: 0 }}
@@ -105,30 +117,71 @@ export function MobileNav() {
         </div>
 
         {/* Physical Button Group */}
-        <div className="flex gap-1.5 bg-[#d6d6d6] dark:bg-[#111] p-1 rounded-xl shadow-[inset_0_1px_3px_rgba(0,0,0,0.1)] dark:shadow-[inset_0_1px_3px_rgba(0,0,0,0.4)] h-full">
-          {/* Prev Button */}
-          <SoundPlayingLink
-            href={prevHref}
-            prefetch
-            sound="navigate"
-            className="group relative w-16 h-full flex items-center justify-center rounded-lg active:scale-95 transition-transform"
-            aria-label="Previous page"
-          >
-            <div className="absolute inset-0 bg-[#f0f0f0] dark:bg-[#222] rounded-lg shadow-[0_2px_0_#bbb,0_3px_3px_rgba(0,0,0,0.1),inset_0_1px_0_rgba(255,255,255,0.5)] dark:shadow-[0_2px_0_#000,0_3px_3px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.05)] group-active:translate-y-[2px] group-active:shadow-[inset_0_1px_2px_rgba(0,0,0,0.1)] transition-[transform,box-shadow]" />
-            <ChevronLeft className="w-5 h-5 text-foreground/70 relative z-10 group-active:opacity-80" />
-          </SoundPlayingLink>
+        <div className="flex gap-1.5 bg-[#d6d6d6] dark:bg-[#111] p-1 rounded-xl shadow-[inset_0_1px_3px_rgba(0,0,0,0.1)] dark:shadow-[inset_0_1px_3px_rgba(0,0,0,0.4)] h-full relative">
+          <AnimatePresence mode="wait">
+            {isSubpage ? (
+              <motion.div
+                key="back-button"
+                initial={{ width: 0, opacity: 0 }}
+                animate={{ width: "auto", opacity: 1 }}
+                exit={{ width: 0, opacity: 0 }}
+                transition={{
+                  type: "spring",
+                  stiffness: 300,
+                  damping: 30,
+                }}
+                className="overflow-hidden"
+              >
+                <SoundPlayingLink
+                  href={currentItem.href}
+                  prefetch
+                  sound="navigate"
+                  className="group relative w-16 h-full flex items-center justify-center rounded-lg active:scale-95 transition-transform"
+                  aria-label="Back to main page"
+                >
+                  <div className="absolute inset-0 bg-[#f0f0f0] dark:bg-[#222] rounded-lg shadow-[0_2px_0_#bbb,0_3px_3px_rgba(0,0,0,0.1),inset_0_1px_0_rgba(255,255,255,0.5)] dark:shadow-[0_2px_0_#000,0_3px_3px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.05)] group-active:translate-y-[2px] group-active:shadow-[inset_0_1px_2px_rgba(0,0,0,0.1)] transition-[transform,box-shadow]" />
+                  <ArrowLeft className="w-5 h-5 text-foreground/70 relative z-10 group-active:opacity-80" />
+                </SoundPlayingLink>
+              </motion.div>
+            ) : (
+              <motion.div
+                key="nav-buttons"
+                initial={{ width: 0, opacity: 0 }}
+                animate={{ width: "auto", opacity: 1 }}
+                exit={{ width: 0, opacity: 0 }}
+                transition={{
+                  type: "spring",
+                  stiffness: 300,
+                  damping: 30,
+                }}
+                className="flex gap-1.5 overflow-hidden"
+              >
+                {/* Prev Button */}
+                <SoundPlayingLink
+                  href={prevHref}
+                  prefetch
+                  sound="navigate"
+                  className="group relative w-16 h-full flex items-center justify-center rounded-lg active:scale-95 transition-transform"
+                  aria-label="Previous page"
+                >
+                  <div className="absolute inset-0 bg-[#f0f0f0] dark:bg-[#222] rounded-lg shadow-[0_2px_0_#bbb,0_3px_3px_rgba(0,0,0,0.1),inset_0_1px_0_rgba(255,255,255,0.5)] dark:shadow-[0_2px_0_#000,0_3px_3px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.05)] group-active:translate-y-[2px] group-active:shadow-[inset_0_1px_2px_rgba(0,0,0,0.1)] transition-[transform,box-shadow]" />
+                  <ChevronLeft className="w-5 h-5 text-foreground/70 relative z-10 group-active:opacity-80" />
+                </SoundPlayingLink>
 
-          {/* Next Button */}
-          <SoundPlayingLink
-            href={nextHref}
-            prefetch
-            sound="navigate"
-            className="group relative w-16 h-full flex items-center justify-center rounded-lg active:scale-95 transition-transform"
-            aria-label="Next page"
-          >
-            <div className="absolute inset-0 bg-[#f0f0f0] dark:bg-[#222] rounded-lg shadow-[0_2px_0_#bbb,0_3px_3px_rgba(0,0,0,0.1),inset_0_1px_0_rgba(255,255,255,0.5)] dark:shadow-[0_2px_0_#000,0_3px_3px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.05)] group-active:translate-y-[2px] group-active:shadow-[inset_0_1px_2px_rgba(0,0,0,0.1)] transition-[transform,box-shadow]" />
-            <ChevronRight className="w-5 h-5 text-foreground/70 relative z-10 group-active:opacity-80" />
-          </SoundPlayingLink>
+                {/* Next Button */}
+                <SoundPlayingLink
+                  href={nextHref}
+                  prefetch
+                  sound="navigate"
+                  className="group relative w-16 h-full flex items-center justify-center rounded-lg active:scale-95 transition-transform"
+                  aria-label="Next page"
+                >
+                  <div className="absolute inset-0 bg-[#f0f0f0] dark:bg-[#222] rounded-lg shadow-[0_2px_0_#bbb,0_3px_3px_rgba(0,0,0,0.1),inset_0_1px_0_rgba(255,255,255,0.5)] dark:shadow-[0_2px_0_#000,0_3px_3px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.05)] group-active:translate-y-[2px] group-active:shadow-[inset_0_1px_2px_rgba(0,0,0,0.1)] transition-[transform,box-shadow]" />
+                  <ChevronRight className="w-5 h-5 text-foreground/70 relative z-10 group-active:opacity-80" />
+                </SoundPlayingLink>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </motion.div>
     </nav>
