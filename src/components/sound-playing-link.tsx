@@ -109,6 +109,7 @@ export function SoundPlayingLink({
     <Link
       {...props}
       href={href}
+      prefetch={props.prefetch ?? true}
       onPointerDown={handlePointerDown}
       onKeyDown={handleKeyDown}
       onClick={handleClick}

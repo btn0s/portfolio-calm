@@ -109,6 +109,7 @@ export function MobileNav() {
           {/* Prev Button */}
           <SoundPlayingLink
             href={prevHref}
+            prefetch
             sound="navigate"
             className="group relative w-16 h-full flex items-center justify-center rounded-lg active:scale-95 transition-transform"
             aria-label="Previous page"
@@ -120,6 +121,7 @@ export function MobileNav() {
           {/* Next Button */}
           <SoundPlayingLink
             href={nextHref}
+            prefetch
             sound="navigate"
             className="group relative w-16 h-full flex items-center justify-center rounded-lg active:scale-95 transition-transform"
             aria-label="Next page"
