@@ -30,6 +30,12 @@ const STACK_ROUTES: StackRoute[] = [
   },
 ];
 
+const ROUTE_NAMES: Record<RouteId, string> = {
+  home: "home",
+  thoughts: "thoughts",
+  artifacts: "artifacts",
+};
+
 function classifyPath(pathname: string) {
   const route =
     STACK_ROUTES.find((r) => r.match(pathname))?.id ?? "home";
@@ -490,6 +496,7 @@ export function ReceiptStack({
         onClick={(e) => handleCardClick(e, routeId, position)}
         tabIndex={-1} // Front card is not tab-indexable - navigation via arrow keys only
         className={getCardClassName(isFront, lockStackInteractions, routeId)}
+        aria-label={isFront && !lockStackInteractions ? `Current page: ${ROUTE_NAMES[routeId]}. Use arrow keys to navigate between pages.` : undefined}
       >
         {/* Paint layer: contains clip-path and texture, not animated */}
         <div
@@ -553,7 +560,7 @@ export function ReceiptStack({
                 )}
                 onClick={handleOverlayClick}
                 onKeyDown={handleOverlayKeyDown}
-                aria-label={`Go to ${order[0]} page`}
+                aria-label={`Go to ${ROUTE_NAMES[order[0]]} page`}
               />
             )}
           </div>
@@ -592,7 +599,7 @@ export function ReceiptStack({
                 onKeyDown={handleOverlayKeyDown}
                 onMouseEnter={() => hasHover && setIsFrontCardHovered(true)}
                 onMouseLeave={() => hasHover && setIsFrontCardHovered(false)}
-                aria-label={`Go to ${order[0]} page`}
+                aria-label={`Go to ${ROUTE_NAMES[order[0]]} page`}
               />
             )}
           </div>

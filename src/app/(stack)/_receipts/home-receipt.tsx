@@ -55,22 +55,24 @@ const PROJECTS = [
 ];
 
 function useCurrentDateTime() {
-  const [dateTime, setDateTime] = useState<{ date: string; time: string } | null>(null);
+  const [dateTime, setDateTime] = useState<{ date: string; time: string; dateTime: string } | null>(null);
 
   useEffect(() => {
     const update = () => {
+      const now = new Date();
       setDateTime({
-        date: new Date().toLocaleDateString('en-US', {
+        date: now.toLocaleDateString('en-US', {
           weekday: 'short',
           year: 'numeric',
           month: 'short',
           day: 'numeric',
         }),
-        time: new Date().toLocaleTimeString('en-US', {
+        time: now.toLocaleTimeString('en-US', {
           hour: '2-digit',
           minute: '2-digit',
           hour12: true,
         }),
+        dateTime: now.toISOString(),
       });
     };
     
@@ -86,6 +88,7 @@ export function HomeReceipt() {
   const dateTime = useCurrentDateTime();
   const today = dateTime?.date ?? "---";
   const time = dateTime?.time ?? "--:--";
+  const dateTimeISO = dateTime?.dateTime;
 
   return (
     <ReceiptShell variant="dossier" className="flex flex-col">
@@ -116,8 +119,17 @@ export function HomeReceipt() {
         </div>
 
         <div className="border-y border-current border-dashed py-2 w-full flex justify-between px-2 text-[10px] font-mono">
-          <span>DATE: {today.toUpperCase()}</span>
-          <span>TIME: {time}</span>
+          {dateTimeISO ? (
+            <>
+              <time dateTime={dateTimeISO}>DATE: {today.toUpperCase()}</time>
+              <time dateTime={dateTimeISO}>TIME: {time}</time>
+            </>
+          ) : (
+            <>
+              <span>DATE: {today.toUpperCase()}</span>
+              <span>TIME: {time}</span>
+            </>
+          )}
         </div>
       </div>
 
@@ -209,42 +221,42 @@ export function HomeReceipt() {
                 <span>TypeScript</span>
                 <span className="font-bold">LVL_5</span>
               </div>
-              <div className="h-0.5 bg-current/10 w-full"><div className="h-full bg-current/40 w-full" /></div>
+              <div className="h-0.5 bg-current/10 w-full" role="progressbar" aria-valuenow={5} aria-valuemin={0} aria-valuemax={5} aria-label="TypeScript level 5"><div className="h-full bg-current/40 w-full" /></div>
             </div>
             <div className="flex flex-col gap-1 border-b border-current/10 pb-1.5">
               <div className="flex justify-between">
                 <span>React</span>
                 <span className="font-bold">LVL_5</span>
               </div>
-              <div className="h-0.5 bg-current/10 w-full"><div className="h-full bg-current/40 w-full" /></div>
+              <div className="h-0.5 bg-current/10 w-full" role="progressbar" aria-valuenow={5} aria-valuemin={0} aria-valuemax={5} aria-label="React level 5"><div className="h-full bg-current/40 w-full" /></div>
             </div>
             <div className="flex flex-col gap-1 border-b border-current/10 pb-1.5">
               <div className="flex justify-between">
                 <span>Next.js</span>
                 <span className="font-bold">LVL_4</span>
               </div>
-              <div className="h-0.5 bg-current/10 w-full"><div className="h-full bg-current/40 w-[80%]" /></div>
+              <div className="h-0.5 bg-current/10 w-full" role="progressbar" aria-valuenow={4} aria-valuemin={0} aria-valuemax={5} aria-label="Next.js level 4"><div className="h-full bg-current/40 w-[80%]" /></div>
             </div>
             <div className="flex flex-col gap-1 border-b border-current/10 pb-1.5">
               <div className="flex justify-between">
                 <span>Tailwind</span>
                 <span className="font-bold">LVL_5</span>
               </div>
-              <div className="h-0.5 bg-current/10 w-full"><div className="h-full bg-current/40 w-full" /></div>
+              <div className="h-0.5 bg-current/10 w-full" role="progressbar" aria-valuenow={5} aria-valuemin={0} aria-valuemax={5} aria-label="Tailwind level 5"><div className="h-full bg-current/40 w-full" /></div>
             </div>
             <div className="flex flex-col gap-1 border-b border-current/10 pb-1.5">
               <div className="flex justify-between">
                 <span>Design</span>
                 <span className="font-bold">LVL_5</span>
               </div>
-              <div className="h-0.5 bg-current/10 w-full"><div className="h-full bg-current/40 w-full" /></div>
+              <div className="h-0.5 bg-current/10 w-full" role="progressbar" aria-valuenow={5} aria-valuemin={0} aria-valuemax={5} aria-label="Design level 5"><div className="h-full bg-current/40 w-full" /></div>
             </div>
             <div className="flex flex-col gap-1 border-b border-current/10 pb-1.5">
               <div className="flex justify-between">
                 <span>Product</span>
                 <span className="font-bold">LVL_4</span>
               </div>
-              <div className="h-0.5 bg-current/10 w-full"><div className="h-full bg-current/40 w-[80%]" /></div>
+              <div className="h-0.5 bg-current/10 w-full" role="progressbar" aria-valuenow={4} aria-valuemin={0} aria-valuemax={5} aria-label="Product level 4"><div className="h-full bg-current/40 w-[80%]" /></div>
             </div>
           </div>
           <div className="mt-10 pt-6 flex justify-between items-end border-t-2 border-current">
