@@ -157,7 +157,7 @@ export default function RootLayout({
           >
             Skip to content
           </a>
-          <AmbientSoundManager />
+          {/* <AmbientSoundManager /> */}
           <RouteIntroHandler />
           <ClickHandler />
           <SafariBar />
