@@ -5,12 +5,6 @@ import { Signature } from "@/components/signature";
 
 const ARTIFACTS = [
   {
-    title: 'Card Stack',
-    description: 'Interactive receipt stack prototypes - drag/click shuffle and click-behind navigation',
-    href: '/artifacts/card-stack',
-    date: '2026',
-  },
-  {
     title: 'Echelon',
     description: 'Asymmetric multiplayer stealth game prototype in Unreal Engine',
     href: '/artifacts/echelon',
@@ -23,16 +17,22 @@ const ARTIFACTS = [
     date: '2024',
   },
   {
+    title: 'Game Dev Prototypes',
+    description: 'Collection of game development experiments and prototypes',
+    href: '/artifacts/game-dev-prototypes',
+    date: '2023-2024',
+  },
+  {
     title: 'Tldraw RTS',
     description: 'Real-time strategy game prototype built with Tldraw SDK',
     href: '/artifacts/tldraw-rts',
     date: '2023',
   },
   {
-    title: 'Game Dev Prototypes',
-    description: 'Collection of game development experiments and prototypes',
-    href: '/artifacts/game-dev-prototypes',
-    date: '2023-2024',
+    title: 'Card Stack',
+    description: 'Interactive receipt stack prototypes - drag/click shuffle and click-behind navigation',
+    href: '/artifacts/card-stack',
+    date: '2026',
   },
   {
     title: 'Delphi Falling Chips',
