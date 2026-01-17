@@ -14,7 +14,7 @@ const VOLUMES: Record<SoundName, number> = {
   swipeBackward: 0.08,
 };
 
-class Audio {
+class AudioManager {
   private pools: Map<SoundName, HTMLAudioElement[]> = new Map();
   private poolIndex: Map<SoundName, number> = new Map();
   private muted = false;
@@ -78,15 +78,13 @@ class Audio {
   }
 }
 
-export const audio = new Audio();
+export const audio = new AudioManager();
 
 export function playClick() {
   audio.play("click");
 }
 
-export function playRustle() {
-  // Disabled - testing if rustle file is causing perf issues
-}
+export function playRustle() {}
 
 export function playDrop() {
   audio.play("drop");
@@ -101,6 +99,10 @@ export function playSwipeBackward() {
 }
 
 export function initAudio() {
+  audio.init();
+}
+
+export function primeAudio() {
   audio.init();
 }
 
