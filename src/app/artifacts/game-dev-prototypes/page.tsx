@@ -1,5 +1,15 @@
 import Image from 'next/image'
 import { generatePageMetadata } from '@/lib/metadata'
+import { Video } from '@/components/video'
+
+const VIDEOS = [
+  "https://pub-627932c2845d4a40839460d52d8a0d2d.r2.dev/Streamable%20Dashboard%20(1).mp4",
+  "https://pub-627932c2845d4a40839460d52d8a0d2d.r2.dev/Streamable%20Dashboard%20(2).mp4",
+  "https://pub-627932c2845d4a40839460d52d8a0d2d.r2.dev/Streamable%20Dashboard%20Video%20(1).mp4",
+  "https://pub-627932c2845d4a40839460d52d8a0d2d.r2.dev/Streamable%20Dashboard%20Video%20(2).mp4",
+  "https://pub-627932c2845d4a40839460d52d8a0d2d.r2.dev/Streamable%20Dashboard%20Video%20(3).mp4",
+  "https://pub-627932c2845d4a40839460d52d8a0d2d.r2.dev/Streamable%20Dashboard%20Video%20(4).mp4",
+]
 
 export const metadata = generatePageMetadata({
   title: 'game dev prototypes',
@@ -44,6 +54,12 @@ export default function GameDevPrototypesPage() {
           height={675}
           className="w-full h-auto"
         />
+      </div>
+
+      <div className="flex flex-col gap-6">
+        {VIDEOS.map((src, index) => (
+          <Video key={index} src={src} className="w-full h-auto" />
+        ))}
       </div>
     </section>
   )

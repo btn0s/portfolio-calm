@@ -1,6 +1,7 @@
 import { generatePageMetadata } from '@/lib/metadata'
 import { Barcode } from '@/components/barcode'
 import { PixelPattern } from '@/components/pixel-pattern'
+import { Tweet } from '@/components/content/tweet'
 
 export const metadata = generatePageMetadata({
   title: 'tldraw rts',
@@ -95,6 +96,24 @@ export default function TldrawRTSPage() {
               creative use of their SDK for game development.
             </p>
           </div>
+        </div>
+
+        <div className="flex flex-col gap-4 items-center">
+          <p className="text-sm opacity-60 text-center">
+            Tldraw themselves responded and reposted my tweet:
+          </p>
+          <Tweet url="https://x.com/tldraw/status/1965849724545806809" className="w-full" />
+          <p className="text-xs opacity-40 text-center">
+            See more of my tinkering with Tldraw:{" "}
+            <a
+              href="https://x.com/search?q=from:btn0s%20tldraw&src=typed_query"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline hover:opacity-70 transition-opacity"
+            >
+              x.com/search?q=from:btn0s%20tldraw
+            </a>
+          </p>
         </div>
       </div>
 
