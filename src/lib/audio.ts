@@ -84,8 +84,6 @@ export function playClick() {
   audio.play("click");
 }
 
-export function playRustle() {}
-
 export function playDrop() {
   audio.play("drop");
 }
@@ -99,10 +97,6 @@ export function playSwipeBackward() {
 }
 
 export function initAudio() {
-  audio.init();
-}
-
-export function primeAudio() {
   audio.init();
 }
 

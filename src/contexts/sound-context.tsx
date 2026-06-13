@@ -1,13 +1,11 @@
 "use client";
 
 import { createContext, useContext, useState, useEffect, useCallback } from "react";
-import { 
-  initAudio, 
-  toggleMute as toggleAudioMute, 
+import {
+  initAudio,
+  toggleMute as toggleAudioMute,
   isMuted as getAudioMuted,
   playClick,
-  playRustle,
-  playDrop,
   playSwipeForward,
   playSwipeBackward,
 } from "@/lib/audio";
@@ -15,7 +13,7 @@ import {
 export type SoundCategory = "interaction" | "intro" | "ambient" | "transition";
 export type RouteId = "home" | "thoughts" | "artifacts";
 
-type InteractionSound = "click" | "clickAlt" | "confetti" | "drop" | "rustle" | "navigate";
+type InteractionSound = "click" | "confetti" | "navigate";
 
 type SoundContextType = {
   isMuted: boolean;
@@ -23,8 +21,6 @@ type SoundContextType = {
   playSound: (sound: InteractionSound, alt?: boolean) => void;
   playIntro: (route: RouteId) => void;
   playTransition: (direction: "forward" | "backward") => void;
-  getSoundUrl: (category: SoundCategory, key: string) => string;
-  primeAudio: () => void;
 };
 
 const SoundContext = createContext<SoundContextType | undefined>(undefined);
@@ -34,6 +30,7 @@ export const SoundProvider = ({ children }: { children: React.ReactNode }) => {
 
   useEffect(() => {
     initAudio();
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time localStorage sync on mount to read persisted mute state
     setIsMuted(getAudioMuted());
   }, []);
 
@@ -43,16 +40,10 @@ export const SoundProvider = ({ children }: { children: React.ReactNode }) => {
   }, []);
 
   const playSound = useCallback((sound: InteractionSound) => {
-    if (sound === "navigate") {
+    if (sound === "navigate" || sound === "click") {
       playClick();
-      playRustle();
-    } else if (sound === "click" || sound === "clickAlt") {
-      playClick();
-    } else if (sound === "rustle") {
-      playRustle();
-    } else if (sound === "drop") {
-      playDrop();
     }
+    // "confetti" is a no-op for now
   }, []);
 
   const playIntro = useCallback(() => {
@@ -67,9 +58,6 @@ export const SoundProvider = ({ children }: { children: React.ReactNode }) => {
     }
   }, []);
 
-  const getSoundUrl = useCallback(() => "", []);
-  const primeAudio = useCallback(() => {}, []);
-
   return (
     <SoundContext.Provider
       value={{
@@ -78,8 +66,6 @@ export const SoundProvider = ({ children }: { children: React.ReactNode }) => {
         playSound,
         playIntro,
         playTransition,
-        getSoundUrl,
-        primeAudio,
       }}
     >
       {children}
@@ -93,33 +79,4 @@ export const useSoundSettings = () => {
     throw new Error("useSoundSettings must be used within a SoundProvider");
   }
   return context;
-};
-
-// Re-export for backward compatibility
-export const SOUND_VOLUME = 0.15;
-export const AMBIENT_VOLUME = 0.1;
-export const SOUNDS = {
-  click: "/assets/audio/click-alt.mp3",
-  clickAlt: "/assets/audio/click-alt.mp3",
-  confetti: "/assets/audio/sad-party-horn.wav",
-  drop: "/assets/audio/drop.mp3",
-  rustle: "/assets/audio/Paper Rustle Sound Effect.mp3",
-};
-export const SOUND_CONFIG = {
-  interaction: SOUNDS,
-  intro: {
-    home: "/assets/audio/intro-home.mp3",
-    thoughts: "/assets/audio/intro-thoughts.mp3",
-    artifacts: "/assets/audio/intro-artifacts.mp3",
-  },
-  ambient: {
-    global: "/assets/audio/ambient-global.mp3",
-    home: "/assets/audio/ambient-home.mp3",
-    thoughts: "/assets/audio/ambient-thoughts.mp3",
-    artifacts: "/assets/audio/ambient-artifacts.mp3",
-  },
-  transition: {
-    swipeForward: "/assets/audio/swipe-forward.mp3",
-    swipeBackward: "/assets/audio/swipe-backward.mp3",
-  },
 };

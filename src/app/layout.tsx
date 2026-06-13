@@ -17,7 +17,6 @@ import { MobileNav } from "@/components/mobile-nav";
 import { SoundProvider } from "@/contexts/sound-context";
 import { DragProvider } from "@/contexts/drag-context";
 import { ClickHandler } from "@/components/click-handler";
-import { AmbientSoundManager } from "@/components/ambient-sound-manager";
 import { RouteIntroHandler } from "@/components/route-intro-handler";
 import { SafariBar } from "@/components/safari-bar";
 import { FpsMonitor } from "@/components/fps-monitor";
@@ -157,7 +156,6 @@ export default function RootLayout({
           >
             Skip to content
           </a>
-          {/* <AmbientSoundManager /> */}
           <RouteIntroHandler />
           <ClickHandler />
           <SafariBar />
