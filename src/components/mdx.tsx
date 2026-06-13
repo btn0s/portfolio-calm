@@ -7,10 +7,10 @@ import remarkGfm from 'remark-gfm'
 import { Video } from './video'
 
 function Table({ data }: { data: { headers: string[]; rows: string[][] } }) {
-  let headers = data.headers.map((header, index) => (
+  const headers = data.headers.map((header, index) => (
     <th key={index}>{header}</th>
   ))
-  let rows = data.rows.map((row, index) => (
+  const rows = data.rows.map((row, index) => (
     <tr key={index}>
       {row.map((cell, cellIndex) => (
         <td key={cellIndex}>{cell}</td>
@@ -29,7 +29,7 @@ function Table({ data }: { data: { headers: string[]; rows: string[][] } }) {
 }
 
 function CustomLink(props: React.AnchorHTMLAttributes<HTMLAnchorElement> & { href?: string }) {
-  let href = props.href
+  const href = props.href
 
   if (href?.startsWith('/')) {
     return (
@@ -52,7 +52,7 @@ function RoundedImage(props: React.ComponentProps<typeof Image>) {
 }
 
 function Code({ children, ...props }: { children: string } & React.HTMLAttributes<HTMLElement>) {
-  let codeHTML = highlight(children)
+  const codeHTML = highlight(children)
   return <code dangerouslySetInnerHTML={{ __html: codeHTML }} {...props} />
 }
 
@@ -69,7 +69,7 @@ function slugify(str: string) {
 
 function createHeading(level: number) {
   const Heading = ({ children }: { children: React.ReactNode }) => {
-    let slug = slugify(String(children))
+    const slug = slugify(String(children))
     return React.createElement(
       `h${level}`,
       { id: slug },
@@ -89,7 +89,7 @@ function createHeading(level: number) {
   return Heading
 }
 
-let components = {
+const components = {
   h1: createHeading(1),
   h2: createHeading(2),
   h3: createHeading(3),
@@ -110,6 +110,9 @@ export function CustomMDX(props: React.ComponentProps<typeof MDXRemote>) {
       components={{ ...components, ...(props.components || {}) }}
       options={{
         ...props.options,
+        // All MDX is author-committed trusted content; allow JSX attribute expressions
+        // (e.g. width={1600}) by disabling the v6 blockJS default.
+        blockJS: false,
         mdxOptions: {
           ...props.options?.mdxOptions,
           remarkPlugins: [
