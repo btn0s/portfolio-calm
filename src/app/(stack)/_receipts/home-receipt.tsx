@@ -143,8 +143,8 @@ export function HomeReceipt() {
           </div>
           <div className="pl-2 border-l-2 border-current/20">
             <p className="text-xs leading-relaxed opacity-90 italic font-sans">
-              "Product designer, coder, tinkerer. Specialized in building
-              interfaces that bridge the gap between design and engineering."
+              &ldquo;Product designer, coder, tinkerer. Specialized in building
+              interfaces that bridge the gap between design and engineering.&rdquo;
             </p>
           </div>
         </section>
