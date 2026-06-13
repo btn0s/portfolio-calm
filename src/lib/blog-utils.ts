@@ -1,27 +1,30 @@
 export function formatDate(date: string, includeRelative = false) {
-  let currentDate = new Date()
+  const currentDate = new Date()
   if (!date.includes('T')) {
     date = `${date}T00:00:00`
   }
-  let targetDate = new Date(date)
+  const targetDate = new Date(date)
 
-  let yearsAgo = currentDate.getFullYear() - targetDate.getFullYear()
-  let monthsAgo = currentDate.getMonth() - targetDate.getMonth()
-  let daysAgo = currentDate.getDate() - targetDate.getDate()
+  const monthDelta =
+    (currentDate.getFullYear() - targetDate.getFullYear()) * 12 +
+    (currentDate.getMonth() - targetDate.getMonth())
+  const days = Math.floor(
+    (currentDate.getTime() - targetDate.getTime()) / 86_400_000
+  )
 
   let formattedDate = ''
 
-  if (yearsAgo > 0) {
-    formattedDate = `${yearsAgo}y ago`
-  } else if (monthsAgo > 0) {
-    formattedDate = `${monthsAgo}mo ago`
-  } else if (daysAgo > 0) {
-    formattedDate = `${daysAgo}d ago`
+  if (monthDelta >= 12) {
+    formattedDate = `${Math.floor(monthDelta / 12)}y ago`
+  } else if (monthDelta >= 1 && !(monthDelta === 1 && currentDate.getDate() < targetDate.getDate())) {
+    formattedDate = `${monthDelta}mo ago`
+  } else if (days > 0) {
+    formattedDate = `${days}d ago`
   } else {
     formattedDate = 'Today'
   }
 
-  let fullDate = targetDate.toLocaleString('en-us', {
+  const fullDate = targetDate.toLocaleString('en-us', {
     month: 'long',
     day: 'numeric',
     year: 'numeric',

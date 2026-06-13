@@ -50,6 +50,19 @@ function hrefForRoute(routeId: RouteId) {
   return STACK_ROUTES.find((r) => r.id === routeId)!.href;
 }
 
+const STACK_ROUTE_IDS: RouteId[] = STACK_ROUTES.map((r) => r.id);
+
+function getOrderFromRoute(
+  currentRoute: RouteId
+): [RouteId, RouteId, RouteId] {
+  const currentIndex = STACK_ROUTE_IDS.indexOf(currentRoute);
+  return [
+    STACK_ROUTE_IDS[currentIndex],
+    STACK_ROUTE_IDS[(currentIndex + 1) % 3],
+    STACK_ROUTE_IDS[(currentIndex + 2) % 3],
+  ] as [RouteId, RouteId, RouteId];
+}
+
 const STACK_CONFIG = {
   // Gesture tuning
   gesture: {
@@ -105,7 +118,7 @@ export function ReceiptStack({
 }: ReceiptStackProps) {
   const pathname = usePathname();
   const router = useRouter();
-  const { playTransition, playSound, primeAudio } = useSoundSettings();
+  const { playTransition, playSound } = useSoundSettings();
   const { registerPotentialDrag, confirmDrag, cancelDrag } = useDragContext();
   const [isHovered, setIsHovered] = useState(false);
   const [isFrontCardHovered, setIsFrontCardHovered] = useState(false);
@@ -121,6 +134,7 @@ export function ReceiptStack({
   // Detect if device supports hover (not touch-only)
   useEffect(() => {
     const mediaQuery = window.matchMedia("(hover: hover)");
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- reads matchMedia on mount; subsequent updates go through the event listener callback
     setHasHover(mediaQuery.matches);
 
     const handleChange = (e: MediaQueryListEvent) => {
@@ -151,6 +165,7 @@ export function ReceiptStack({
   const dragUnlockedRef = useRef(false);
   const scrollCommittedRef = useRef(false);
   const gestureStartRef = useRef<{ x: number; y: number; pointerId: number; isInteractive: boolean } | null>(null);
+  const pointerUpTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const dragControls = useDragControls();
   const dragConstraintsRef = useRef<HTMLDivElement>(null);
 
@@ -160,20 +175,18 @@ export function ReceiptStack({
       'a[href], button, input, textarea, select, [role="link"], [role="button"], [contenteditable="true"]'
     );
 
-    primeAudio();
-
     gestureStartRef.current = { x: e.clientX, y: e.clientY, pointerId: e.pointerId, isInteractive };
     dragUnlockedRef.current = false;
     scrollCommittedRef.current = false;
-    
+
     if (isInteractive) {
       registerPotentialDrag(e.pointerId);
     }
-    
+
     if (!isInteractive && e.currentTarget instanceof HTMLElement) {
       e.currentTarget.setPointerCapture(e.pointerId);
     }
-  }, [primeAudio, registerPotentialDrag]);
+  }, [registerPotentialDrag]);
 
   const handlePointerMove = useCallback(
     (e: React.PointerEvent) => {
@@ -221,35 +234,30 @@ export function ReceiptStack({
 
   const handlePointerUp = useCallback((e?: React.PointerEvent) => {
     const pointerId = e?.pointerId ?? gestureStartRef.current?.pointerId;
-    
+
     if (e && e.currentTarget instanceof HTMLElement) {
       e.currentTarget.releasePointerCapture(e.pointerId);
     }
-    
+
     if (pointerId !== undefined) {
       cancelDrag(pointerId);
     }
-    
+
     gestureStartRef.current = null;
-    setTimeout(() => {
+    if (pointerUpTimeoutRef.current) clearTimeout(pointerUpTimeoutRef.current);
+    pointerUpTimeoutRef.current = setTimeout(() => {
       dragUnlockedRef.current = false;
       scrollCommittedRef.current = false;
       setTouchAction("pan-y");
     }, STACK_CONFIG.gesture.dragUnlockResetDelayMs);
   }, [cancelDrag]);
 
-  // Build order from current route (derived from pathname)
-  const getOrderFromRoute = (
-    currentRoute: RouteId
-  ): [RouteId, RouteId, RouteId] => {
-    const routes: RouteId[] = ["home", "thoughts", "artifacts"];
-    const currentIndex = routes.indexOf(currentRoute);
-    return [
-      routes[currentIndex],
-      routes[(currentIndex + 1) % 3],
-      routes[(currentIndex + 2) % 3],
-    ] as [RouteId, RouteId, RouteId];
-  };
+  // Cleanup pending timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (pointerUpTimeoutRef.current) clearTimeout(pointerUpTimeoutRef.current);
+    };
+  }, []);
 
   const order = getOrderFromRoute(route);
 
@@ -261,9 +269,8 @@ export function ReceiptStack({
 
   const showSpread = isHovered;
 
-  const rotateForward = useCallback(() => {
+  const rotateForward = () => {
     playTransition("forward");
-    playSound("rustle"); // Play rustle when stack shuffles forward
     const currentOrder = getOrderFromRoute(route);
     const nextRoute = currentOrder[1];
     // Reset scroll to top when rotating routes
@@ -271,11 +278,10 @@ export function ReceiptStack({
       window.scrollTo({ top: 0, behavior: "instant" });
     }
     router.push(hrefForRoute(nextRoute));
-  }, [route, router, playTransition, playSound]);
+  };
 
-  const rotateBackward = useCallback(() => {
+  const rotateBackward = () => {
     playTransition("backward");
-    playSound("rustle"); // Play rustle when stack shuffles backward
     const currentOrder = getOrderFromRoute(route);
     const prevRoute = currentOrder[2];
     // Reset scroll to top when rotating routes
@@ -283,7 +289,7 @@ export function ReceiptStack({
       window.scrollTo({ top: 0, behavior: "instant" });
     }
     router.push(hrefForRoute(prevRoute));
-  }, [route, router, playTransition, playSound]);
+  };
 
   // Global arrow key handler for route switching
   useEffect(() => {
@@ -348,7 +354,6 @@ export function ReceiptStack({
     
     if (position === 0) return; // Front card is not clickable on its own page - navigation via drag/arrow keys only
 
-    playSound("rustle"); // Play rustle on mouseup when clicking back card
     bringToFront(routeId);
   };
 
@@ -359,7 +364,6 @@ export function ReceiptStack({
 
   const handleOverlayClick = () => {
     if (isSubpage) {
-      playSound("rustle"); // Play rustle when navigating back from subpage
       router.push(hrefForRoute(order[0]));
     }
   };
@@ -367,7 +371,6 @@ export function ReceiptStack({
   const handleOverlayKeyDown = (e: React.KeyboardEvent) => {
     if (isSubpage && (e.key === "Enter" || e.key === " ")) {
       e.preventDefault();
-      playSound("rustle"); // Play rustle for keyboard navigation
       router.push(hrefForRoute(order[0]));
     }
   };
