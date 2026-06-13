@@ -10,7 +10,7 @@ interface SoundPlayingLinkProps extends LinkProps {
   children: ReactNode;
   className?: string;
   alt?: boolean;
-  sound?: "click" | "clickAlt" | "confetti" | "drop" | "rustle" | "navigate";
+  sound?: "click" | "confetti" | "navigate";
 }
 
 function hrefToString(href: LinkProps["href"]): string | undefined {
@@ -70,7 +70,7 @@ export function SoundPlayingLink({
       if (alt && sound === "click") {
         playSound("click", true);
       } else {
-        playSound(sound as "click" | "clickAlt" | "confetti" | "drop" | "rustle");
+        playSound(sound);
       }
     }
   }, [sound, href, pathname, playSound, alt]);
