@@ -85,17 +85,20 @@ export function PixelPattern({
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    const ctx = canvas.getContext("2d", { 
+    const ctx = canvas.getContext("2d", {
       alpha: true,
-      willReadFrequently: false 
+      willReadFrequently: false
     });
     if (!ctx) return;
 
-    let frameId: number;
+    let frameId: number | null = null;
+    let isVisible = true;
+    let isLoopRunning = false;
+
     const cellSize = canvas.width / size;
     const cellSizeInt = Math.floor(cellSize);
     const cellSizeMinus2 = cellSizeInt - 2;
-    
+
     // Parse color to RGBA for ImageData using canvas context
     ctx.fillStyle = getComputedStyle(canvas).color || "black";
     ctx.fillRect(0, 0, 1, 1);
@@ -103,16 +106,17 @@ export function PixelPattern({
     const r = pixelData[0];
     const g = pixelData[1];
     const b = pixelData[2];
-    
+
     const imageData = ctx.createImageData(canvas.width, canvas.height);
     const data = imageData.data;
 
-    const render = (t: number) => {
+    // Extract the per-frame rendering logic
+    const renderFrame = (t: number) => {
       // Clear image data
       for (let i = 3; i < data.length; i += 4) {
         data[i] = 0; // alpha channel
       }
-      
+
       const time = t * 0.001;
       const flow = time * 0.4;
       const flow2 = flow * 1.5;
@@ -120,7 +124,7 @@ export function PixelPattern({
       const flow4 = flow * 0.1;
       const flow5 = flow * 0.5;
       const glintTime = Math.floor(time * 10);
-      
+
       for (let i = 0; i < cells.length; i++) {
         const cell = cells[i];
         if (cell.edgeFade <= 0) continue;
@@ -154,7 +158,7 @@ export function PixelPattern({
           const alpha = Math.min(255, Math.floor(opacity * 255));
           const xStart = Math.floor(cell.x * cellSize);
           const yStart = Math.floor(cell.y * cellSize);
-          
+
           // Fill cell rectangle in ImageData
           for (let py = 0; py < cellSizeMinus2; py++) {
             const y = yStart + py;
@@ -173,11 +177,80 @@ export function PixelPattern({
       }
 
       ctx.putImageData(imageData, 0, 0);
-      frameId = requestAnimationFrame(render);
     };
 
-    frameId = requestAnimationFrame(render);
-    return () => cancelAnimationFrame(frameId);
+    // Define start/stop functions
+    const start = () => {
+      if (isLoopRunning) return;
+
+      const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+      if (reduceMotion.matches) return;
+
+      isLoopRunning = true;
+      const loop = (t: number) => {
+        renderFrame(t);
+        frameId = requestAnimationFrame(loop);
+      };
+      frameId = requestAnimationFrame(loop);
+    };
+
+    const stop = () => {
+      if (frameId !== null) {
+        cancelAnimationFrame(frameId);
+        frameId = null;
+      }
+      isLoopRunning = false;
+    };
+
+    // Check reduced motion preference
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+
+    // Render exactly one frame on mount
+    renderFrame(0);
+
+    // Listen for reduced motion changes
+    const handleReducedMotionChange = (e: MediaQueryListEvent) => {
+      if (e.matches) {
+        stop();
+      } else if (isVisible && !document.hidden) {
+        start();
+      }
+    };
+    reduceMotion.addEventListener("change", handleReducedMotionChange);
+
+    // Set up IntersectionObserver for visibility
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          isVisible = entry.isIntersecting;
+          if (isVisible && !document.hidden) {
+            start();
+          } else {
+            stop();
+          }
+        });
+      },
+      { threshold: 0 }
+    );
+    observer.observe(canvas);
+
+    // Listen for page visibility changes
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        stop();
+      } else if (isVisible) {
+        start();
+      }
+    };
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    // Cleanup
+    return () => {
+      observer.disconnect();
+      reduceMotion.removeEventListener("change", handleReducedMotionChange);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      stop();
+    };
   }, [size, cells]);
 
   return (
