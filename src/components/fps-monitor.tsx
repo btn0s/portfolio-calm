@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import Stats from "stats.js";
+import type Stats from "stats.js";
 
 export function FpsMonitor() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -11,26 +11,35 @@ export function FpsMonitor() {
     if (process.env.NODE_ENV !== "development") return;
     if (!containerRef.current) return;
 
-    const stats = new Stats();
-    stats.showPanel(0); // 0: fps, 1: ms, 2: mb, 3+: custom
-    stats.dom.style.position = "fixed";
-    stats.dom.style.top = "0";
-    stats.dom.style.left = "0";
-    stats.dom.style.zIndex = "9999";
-    containerRef.current.appendChild(stats.dom);
+    let cancelled = false;
+    let frameId: number | null = null;
 
-    const animate = () => {
-      stats.begin();
-      stats.end();
-      requestAnimationFrame(animate);
-    };
+    import("stats.js").then(({ default: Stats }) => {
+      if (cancelled || !containerRef.current) return;
 
-    requestAnimationFrame(animate);
-    statsRef.current = stats;
+      const stats = new Stats();
+      stats.showPanel(0); // 0: fps, 1: ms, 2: mb, 3+: custom
+      stats.dom.style.position = "fixed";
+      stats.dom.style.top = "0";
+      stats.dom.style.left = "0";
+      stats.dom.style.zIndex = "9999";
+      containerRef.current.appendChild(stats.dom);
+
+      const animate = () => {
+        stats.begin();
+        stats.end();
+        frameId = requestAnimationFrame(animate);
+      };
+
+      frameId = requestAnimationFrame(animate);
+      statsRef.current = stats;
+    });
 
     return () => {
-      if (containerRef.current && stats.dom.parentNode) {
-        containerRef.current.removeChild(stats.dom);
+      cancelled = true;
+      if (frameId !== null) cancelAnimationFrame(frameId);
+      if (containerRef.current && statsRef.current?.dom.parentNode) {
+        containerRef.current.removeChild(statsRef.current.dom);
       }
     };
   }, []);
