@@ -36,8 +36,9 @@ export function MobileNav() {
   // Update direction when pathname changes (after initial mount)
   useEffect(() => {
     if (prevIndexRef.current !== null) {
-      const newDirection = currentIndex > prevIndexRef.current ? 1 : 
+      const newDirection = currentIndex > prevIndexRef.current ? 1 :
                           currentIndex < prevIndexRef.current ? -1 : 0;
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- derives slide direction from index delta; no external system to subscribe to
       setDirection(newDirection);
     }
     prevIndexRef.current = currentIndex;
@@ -51,12 +52,11 @@ export function MobileNav() {
   const isSubpage = currentItem.href !== "/" && pathname !== currentItem.href && pathname.startsWith(currentItem.href + "/");
   
   useEffect(() => {
-    if (isSubpage && pathname.startsWith("/thoughts/")) {
-      const titleElement = document.querySelector('h1');
-      setPostTitle(titleElement?.textContent ?? null);
-    } else {
-      setPostTitle(null);
-    }
+    const title = isSubpage && pathname.startsWith("/thoughts/")
+      ? (document.querySelector('h1')?.textContent ?? null)
+      : null;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- reads DOM title after navigation; no subscription API available
+    setPostTitle(title);
   }, [isSubpage, pathname]);
 
   return (

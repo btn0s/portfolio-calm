@@ -10,6 +10,7 @@ export function ThemeToggle() {
   const { playSound } = useSoundSettings()
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time hydration gate; sets initial theme from localStorage/media-query on mount
     setMounted(true)
     const stored = localStorage.getItem('theme') as 'light' | 'dark' | null
     const prefersLight = window.matchMedia('(prefers-color-scheme: light)').matches

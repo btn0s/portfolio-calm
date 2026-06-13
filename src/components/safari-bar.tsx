@@ -9,6 +9,7 @@ export function SafariBar() {
     const userAgent = navigator.userAgent.toLowerCase();
     const isSafariBrowser =
       /safari/.test(userAgent) && !/chrome/.test(userAgent);
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time UA sniff on mount; navigator is not available during SSR
     setIsSafari(isSafariBrowser);
   }, []);
 

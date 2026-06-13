@@ -2,15 +2,11 @@
 
 import { Volume2Icon, VolumeXIcon } from "lucide-react";
 import { useSoundSettings } from "@/contexts/sound-context";
-import { useEffect, useState } from "react";
+import { useSyncExternalStore } from "react";
 
 export function SoundToggle() {
   const { isMuted, toggleMute, playSound } = useSoundSettings();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const mounted = useSyncExternalStore(() => () => {}, () => true, () => false);
 
   if (!mounted) {
     return (

@@ -20,14 +20,14 @@ const ARTIFACTS = [
 ]
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  let blogs = getBlogPosts().map((post) => ({
+  const blogs = getBlogPosts().map((post) => ({
     url: `${baseUrl}/thoughts/${post.slug}`,
     lastModified: post.metadata.publishedAt,
     changeFrequency: 'monthly' as const,
     priority: 0.8,
   }))
 
-  let routes = [
+  const routes = [
     { route: '', priority: 1.0 },
     { route: '/thoughts', priority: 0.9 },
     { route: '/artifacts', priority: 0.9 },
@@ -39,7 +39,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority,
   }))
 
-  let artifacts = ARTIFACTS.map((slug) => ({
+  const artifacts = ARTIFACTS.map((slug) => ({
     url: `${baseUrl}/artifacts/${slug}`,
     lastModified: new Date().toISOString().split('T')[0],
     changeFrequency: 'monthly' as const,

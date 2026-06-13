@@ -27,7 +27,7 @@ export default function StrellaPage() {
               STRELLA
             </h1>
             <p className="text-sm font-bold opacity-60 tracking-tight max-w-[40ch] mt-2 italic">
-              "The first IDE for design engineers - a Visual Development Environment where layout, logic, and state come together"
+              &ldquo;The first IDE for design engineers - a Visual Development Environment where layout, logic, and state come together&rdquo;
             </p>
           </div>
           <div className="hidden sm:block flex-shrink-0">

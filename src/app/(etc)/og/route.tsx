@@ -3,8 +3,8 @@ import { ImageResponse } from 'next/og'
 export const runtime = 'edge'
 
 export function GET(request: Request) {
-  let url = new URL(request.url)
-  let title = url.searchParams.get('title') || 'bt norris'
+  const url = new URL(request.url)
+  const title = url.searchParams.get('title') || 'bt norris'
 
   const paperColor = '#f2efeb'
   const inkColor = '#333333'
