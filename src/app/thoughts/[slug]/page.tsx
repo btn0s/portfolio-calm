@@ -144,8 +144,8 @@ export default async function Post({
               <span className="text-[10px] font-black uppercase tracking-widest opacity-40">CERTIFICATION</span>
             </div>
             <div className="pl-3 border-l-2 border-foreground/5 italic text-sm opacity-50 font-serif">
-              "This entry represents a point-in-time reflection from the personal archives of BT Norris. 
-              The thoughts contained herein are subject to evolution and iteration."
+              &ldquo;This entry represents a point-in-time reflection from the personal archives of BT Norris.
+              The thoughts contained herein are subject to evolution and iteration.&rdquo;
             </div>
           </div>
           <div className="flex flex-col gap-4 sm:items-end">
