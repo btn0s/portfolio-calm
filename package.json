@@ -9,6 +9,10 @@
     "lint": "eslint",
     "typecheck": "next typegen && tsc --noEmit",
     "test": "vitest run",
+    "analyze:audio": "node scripts/analyze-audio.mjs",
+    "compare:audio": "node scripts/compare-audio-shapes.mjs",
+    "compare:audio:sheets": "node scripts/build-audio-comparison-sheets.mjs",
+    "compare:audio:batch": "node scripts/build-audio-comparison-sheets.mjs",
     "download-assets": "tsx scripts/download-external-assets.ts"
   },
   "dependencies": {

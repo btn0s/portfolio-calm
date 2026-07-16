@@ -43,3 +43,6 @@ next-env.d.ts
 examples/*
 # Claude Code agent worktrees (transient)
 .claude/worktrees/
+.audio-analysis/
+.audio-synth/
+.audio-comparisons/

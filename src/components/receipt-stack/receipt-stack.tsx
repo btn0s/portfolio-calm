@@ -42,7 +42,7 @@ function classifyPath(pathname: string) {
   const routeConfig = STACK_ROUTES.find((r) => r.id === route)!;
   const isSubpage = pathname !== routeConfig.href;
   const lockStackInteractions = isSubpage;
-  const shouldHideStack = pathname === "/me";
+  const shouldHideStack = pathname === "/me" || pathname === "/audio-lab";
   return { route, isSubpage, lockStackInteractions, shouldHideStack };
 }
 

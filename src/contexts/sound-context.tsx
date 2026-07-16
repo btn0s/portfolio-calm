@@ -8,6 +8,9 @@ import {
   playClick,
   playSwipeForward,
   playSwipeBackward,
+  getAudioEngine,
+  setAudioEngine,
+  type AudioEngine,
 } from "@/lib/audio";
 
 export type SoundCategory = "interaction" | "intro" | "ambient" | "transition";
@@ -21,17 +24,21 @@ type SoundContextType = {
   playSound: (sound: InteractionSound, alt?: boolean) => void;
   playIntro: (route: RouteId) => void;
   playTransition: (direction: "forward" | "backward") => void;
+  engine: AudioEngine;
+  setEngine: (engine: AudioEngine) => void;
 };
 
 const SoundContext = createContext<SoundContextType | undefined>(undefined);
 
 export const SoundProvider = ({ children }: { children: React.ReactNode }) => {
   const [isMuted, setIsMuted] = useState(true);
+  const [engine, setEngineState] = useState<AudioEngine>("sample");
 
   useEffect(() => {
     initAudio();
     // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time localStorage sync on mount to read persisted mute state
     setIsMuted(getAudioMuted());
+    setEngineState(getAudioEngine());
   }, []);
 
   const toggleMute = useCallback(() => {
@@ -58,6 +65,11 @@ export const SoundProvider = ({ children }: { children: React.ReactNode }) => {
     }
   }, []);
 
+  const setEngine = useCallback((nextEngine: AudioEngine) => {
+    setAudioEngine(nextEngine);
+    setEngineState(nextEngine);
+  }, []);
+
   return (
     <SoundContext.Provider
       value={{
@@ -66,6 +78,8 @@ export const SoundProvider = ({ children }: { children: React.ReactNode }) => {
         playSound,
         playIntro,
         playTransition,
+        engine,
+        setEngine,
       }}
     >
       {children}
