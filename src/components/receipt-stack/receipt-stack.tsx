@@ -42,7 +42,7 @@ function classifyPath(pathname: string) {
   const routeConfig = STACK_ROUTES.find((r) => r.id === route)!;
   const isSubpage = pathname !== routeConfig.href;
   const lockStackInteractions = isSubpage;
-  const shouldHideStack = pathname === "/me";
+  const shouldHideStack = pathname === "/me" || pathname === "/audio-lab";
   return { route, isSubpage, lockStackInteractions, shouldHideStack };
 }
 
@@ -220,6 +220,7 @@ export function ReceiptStack({
         dragUnlockedRef.current = true;
         confirmDrag(gestureStartRef.current.pointerId);
         setTouchAction("none");
+        playTransition("forward");
         
         // Prevent default to stop link navigation when dragging from a link
         if (gestureStartRef.current.isInteractive) {
@@ -229,7 +230,7 @@ export function ReceiptStack({
         dragControls.start(e, { snapToCursor: false });
       }
     },
-    [dragControls, confirmDrag, cancelDrag]
+    [dragControls, confirmDrag, cancelDrag, playTransition]
   );
 
   const handlePointerUp = useCallback((e?: React.PointerEvent) => {
@@ -270,7 +271,6 @@ export function ReceiptStack({
   const showSpread = isHovered;
 
   const rotateForward = () => {
-    playTransition("forward");
     const currentOrder = getOrderFromRoute(route);
     const nextRoute = currentOrder[1];
     // Reset scroll to top when rotating routes
@@ -278,17 +278,6 @@ export function ReceiptStack({
       window.scrollTo({ top: 0, behavior: "instant" });
     }
     router.push(hrefForRoute(nextRoute));
-  };
-
-  const rotateBackward = () => {
-    playTransition("backward");
-    const currentOrder = getOrderFromRoute(route);
-    const prevRoute = currentOrder[2];
-    // Reset scroll to top when rotating routes
-    if (typeof window !== "undefined") {
-      window.scrollTo({ top: 0, behavior: "instant" });
-    }
-    router.push(hrefForRoute(prevRoute));
   };
 
   // Global arrow key handler for route switching
@@ -306,13 +295,20 @@ export function ReceiptStack({
       ) {
         return;
       }
+      if (e.repeat) return;
 
       if (e.key === "ArrowRight") {
         e.preventDefault();
-        rotateForward();
+        playTransition("forward");
+        window.scrollTo({ top: 0, behavior: "instant" });
+        const nextRoute = getOrderFromRoute(route)[1];
+        router.push(hrefForRoute(nextRoute));
       } else if (e.key === "ArrowLeft") {
         e.preventDefault();
-        rotateBackward();
+        playTransition("backward");
+        window.scrollTo({ top: 0, behavior: "instant" });
+        const previousRoute = getOrderFromRoute(route)[2];
+        router.push(hrefForRoute(previousRoute));
       }
     };
 
@@ -320,7 +316,7 @@ export function ReceiptStack({
     return () => {
       window.removeEventListener("keydown", handleGlobalKeyDown);
     };
-  }, [lockStackInteractions, rotateForward, rotateBackward]);
+  }, [lockStackInteractions, playTransition, route, router]);
 
   const handleDragEnd = (_: unknown, info: PanInfo) => {
     const velocity = Math.sqrt(info.velocity.x ** 2 + info.velocity.y ** 2);
@@ -336,9 +332,10 @@ export function ReceiptStack({
 
   const bringToFront = useCallback(
     (routeId: RouteId) => {
+      playSound("rustle");
       router.push(hrefForRoute(routeId));
     },
-    [router]
+    [playSound, router]
   );
 
   const handleCardClick = (e: React.MouseEvent, routeId: RouteId, position: number) => {
@@ -364,13 +361,7 @@ export function ReceiptStack({
 
   const handleOverlayClick = () => {
     if (isSubpage) {
-      router.push(hrefForRoute(order[0]));
-    }
-  };
-
-  const handleOverlayKeyDown = (e: React.KeyboardEvent) => {
-    if (isSubpage && (e.key === "Enter" || e.key === " ")) {
-      e.preventDefault();
+      playSound("rustle");
       router.push(hrefForRoute(order[0]));
     }
   };
@@ -431,7 +422,7 @@ export function ReceiptStack({
     };
   };
 
-  const getCardClassName = (isFront: boolean, lockStackInteractions: boolean, routeId: RouteId) => {
+  const getCardClassName = (isFront: boolean, lockStackInteractions: boolean) => {
     const baseClasses = "w-full rounded-sm transition-shadow";
     if (isFront) {
       const frontClasses = lockStackInteractions
@@ -498,7 +489,7 @@ export function ReceiptStack({
         transition={shouldReduceMotion ? { duration: 0.1 } : STACK_SPRING}
         onClick={(e) => handleCardClick(e, routeId, position)}
         tabIndex={-1} // Front card is not tab-indexable - navigation via arrow keys only
-        className={getCardClassName(isFront, lockStackInteractions, routeId)}
+        className={getCardClassName(isFront, lockStackInteractions)}
         aria-label={isFront && !lockStackInteractions ? `Current page: ${ROUTE_NAMES[routeId]}. Use arrow keys to navigate between pages.` : undefined}
       >
         {/* Paint layer: contains clip-path and texture, not animated */}
@@ -562,7 +553,6 @@ export function ReceiptStack({
                   "focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[#0047ab]"
                 )}
                 onClick={handleOverlayClick}
-                onKeyDown={handleOverlayKeyDown}
                 aria-label={`Go to ${ROUTE_NAMES[order[0]]} page`}
               />
             )}
@@ -599,7 +589,6 @@ export function ReceiptStack({
                   "focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[#0047ab]"
                 )}
                 onClick={handleOverlayClick}
-                onKeyDown={handleOverlayKeyDown}
                 onMouseEnter={() => hasHover && setIsFrontCardHovered(true)}
                 onMouseLeave={() => hasHover && setIsFrontCardHovered(false)}
                 aria-label={`Go to ${ROUTE_NAMES[order[0]]} page`}

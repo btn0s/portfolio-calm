@@ -31,16 +31,7 @@ function matchesCurrentRoute(href: string | undefined, pathname: string): boolea
   if (!href) return false;
   const normalizedHref = normalizeHref(href);
   const normalizedPathname = normalizeHref(pathname);
-  
-  // Exact match
-  if (normalizedHref === normalizedPathname) return true;
-  
-  // Check if pathname is a subpage of this route (e.g., /thoughts/post matches /thoughts)
-  if (normalizedHref !== "/" && normalizedPathname.startsWith(normalizedHref + "/")) {
-    return true;
-  }
-  
-  return false;
+  return normalizedHref === normalizedPathname;
 }
 
 export function SoundPlayingLink({
@@ -100,7 +91,7 @@ export function SoundPlayingLink({
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLAnchorElement>) => {
-    if (e.key === "Enter" || e.key === " ") {
+    if (e.key === "Enter" && !e.repeat) {
       playSoundForLink();
     }
   };
