@@ -471,6 +471,10 @@ export function ReceiptStack({
     return (
       <motion.div
         key={routeId}
+        data-stack-active={isFront && !isSubpage ? "true" : "false"}
+        data-stack-position={position}
+        data-stack-route={routeId}
+        data-stack-stage={isInBackStage ? "back" : "front"}
         layoutId={routeId}
         layout={isFront ? "position" : false}
         style={getCardStyle(isFront, isInBackStage, position, lockStackInteractions, touchAction, wantsWillChange)}

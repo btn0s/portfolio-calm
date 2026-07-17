@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef, useMemo } from "react";
+import { shouldRenderPixelPatternFrame } from "@/lib/pixel-animation";
 
 // Shader-style utilities
 const hash = (n: number) => {
@@ -93,7 +94,15 @@ export function PixelPattern({
 
     let frameId: number | null = null;
     let isVisible = true;
+    let isStackActive = true;
     let isLoopRunning = false;
+    let lastRenderedAt: number | null = null;
+
+    const stackCard = canvas.closest<HTMLElement>("[data-stack-active]");
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+
+    const readStackActivity = () =>
+      stackCard?.dataset.stackActive !== "false";
 
     const cellSize = canvas.width / size;
     const cellSizeInt = Math.floor(cellSize);
@@ -179,55 +188,79 @@ export function PixelPattern({
       ctx.putImageData(imageData, 0, 0);
     };
 
-    // Define start/stop functions
-    const start = () => {
-      if (isLoopRunning) return;
-
-      const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
-      if (reduceMotion.matches) return;
-
-      isLoopRunning = true;
-      const loop = (t: number) => {
-        renderFrame(t);
-        frameId = requestAnimationFrame(loop);
-      };
-      frameId = requestAnimationFrame(loop);
-    };
-
     const stop = () => {
       if (frameId !== null) {
         cancelAnimationFrame(frameId);
         frameId = null;
       }
       isLoopRunning = false;
+      lastRenderedAt = null;
     };
 
-    // Check reduced motion preference
-    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const start = () => {
+      if (
+        isLoopRunning ||
+        reduceMotion.matches ||
+        document.hidden ||
+        !isVisible ||
+        !isStackActive
+      ) {
+        return;
+      }
+
+      isLoopRunning = true;
+      const loop = (t: number) => {
+        if (shouldRenderPixelPatternFrame(t, lastRenderedAt)) {
+          renderFrame(t);
+          lastRenderedAt = t;
+        }
+        frameId = requestAnimationFrame(loop);
+      };
+      frameId = requestAnimationFrame(loop);
+    };
+
+    const syncLoop = () => {
+      if (
+        isVisible &&
+        isStackActive &&
+        !document.hidden &&
+        !reduceMotion.matches
+      ) {
+        start();
+      } else {
+        stop();
+      }
+    };
 
     // Render exactly one frame on mount
     renderFrame(0);
+    isStackActive = readStackActivity();
 
     // Listen for reduced motion changes
-    const handleReducedMotionChange = (e: MediaQueryListEvent) => {
-      if (e.matches) {
-        stop();
-      } else if (isVisible && !document.hidden) {
-        start();
-      }
+    const handleReducedMotionChange = () => {
+      syncLoop();
     };
     reduceMotion.addEventListener("change", handleReducedMotionChange);
+
+    const stackActivityObserver = stackCard
+      ? new MutationObserver(() => {
+          isStackActive = readStackActivity();
+          syncLoop();
+        })
+      : null;
+    if (stackCard && stackActivityObserver) {
+      stackActivityObserver.observe(stackCard, {
+        attributes: true,
+        attributeFilter: ["data-stack-active"],
+      });
+    }
 
     // Set up IntersectionObserver for visibility
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
           isVisible = entry.isIntersecting;
-          if (isVisible && !document.hidden) {
-            start();
-          } else {
-            stop();
-          }
+          syncLoop();
         });
       },
       { threshold: 0 }
@@ -236,17 +269,14 @@ export function PixelPattern({
 
     // Listen for page visibility changes
     const handleVisibilityChange = () => {
-      if (document.hidden) {
-        stop();
-      } else if (isVisible) {
-        start();
-      }
+      syncLoop();
     };
     document.addEventListener("visibilitychange", handleVisibilityChange);
 
     // Cleanup
     return () => {
       observer.disconnect();
+      stackActivityObserver?.disconnect();
       reduceMotion.removeEventListener("change", handleReducedMotionChange);
       document.removeEventListener("visibilitychange", handleVisibilityChange);
       stop();
