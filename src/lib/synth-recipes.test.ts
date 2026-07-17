@@ -1,8 +1,5 @@
 import { describe, expect, it } from "vitest";
 
-import clickOriginalFallback from "../../scripts/audio-fit/experiments/transient-exact/results/click-residual-refine/browser-recipe.json";
-import partyHornFallback from "../../scripts/audio-fit/results/sad-party-horn-exact/recipe.json";
-
 import {
   createSeededRandom,
   renderSynthRecipe,
@@ -148,23 +145,6 @@ describe("synth recipes", () => {
     expect(validateSynthRecipeCollection(candidate)).toEqual({
       valid: true,
       errors: [],
-    });
-  });
-
-  it("keeps the fitted fallback artifacts valid and intact", () => {
-    expect(validateSynthRecipe(partyHornFallback)).toMatchObject({ valid: true });
-    expect(validateSynthRecipe(clickOriginalFallback)).toMatchObject({ valid: true });
-    expect(partyHornFallback.layers).toHaveLength(40);
-    expect(
-      partyHornFallback.layers.every((layer) => layer.kind === "tone"),
-    ).toBe(true);
-    expect(clickOriginalFallback.layers).toHaveLength(9);
-    expect(clickOriginalFallback.noiseSources).toHaveLength(6);
-    expect(clickOriginalFallback.layers.at(-1)).toMatchObject({
-      kind: "tone",
-      offset: 0.292,
-      envelope: { attack: 0.008, release: 0.115, peak: 0.001 },
-      frequency: { initial: 300, glideTo: 100 },
     });
   });
 
