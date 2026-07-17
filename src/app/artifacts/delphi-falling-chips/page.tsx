@@ -1,4 +1,4 @@
-import { ArrowUpRight } from 'lucide-react'
+import { ArtifactDesk } from '@/components/artifact-desk'
 import { generatePageMetadata } from '@/lib/metadata'
 
 export const metadata = generatePageMetadata({
@@ -10,45 +10,31 @@ export const metadata = generatePageMetadata({
 
 export default function DelphiFallingChipsPage() {
   return (
-    <section className="w-full">
-      <div className="pt-8 pb-6">
-        <h1 className="font-semibold text-2xl mb-6 tracking-tighter">
-          Delphi Falling Chips
-        </h1>
-
-        <p className="mb-4 text-sm text-muted-foreground">
-          React · Framer Motion · Animation
-        </p>
-
-        <div className="flex flex-col gap-4 text-sm">
-          <p>
-            I was going through the Delphi onboarding and loved the chip falling
-            animation, so I decided to try and rebuild it!
-          </p>
-          <a
-            href="https://delphi-chips-falling.vercel.app/"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1 w-fit"
-          >
-            View live <ArrowUpRight className="size-3" />
-          </a>
-        </div>
-      </div>
-
-      <div className="mb-6">
-        <video
-          src="/assets/videos/delphi-falling-chips.mp4"
-          controls
-          autoPlay
-          muted
-          loop
-          className="w-full h-auto"
-          playsInline
-        >
-          Your browser does not support the video tag.
-        </video>
-      </div>
-    </section>
+    <ArtifactDesk
+      title="Falling chips"
+      year="2025"
+      description="A small interaction study rebuilt from a delightful moment in Delphi’s onboarding."
+      metadata={[
+        { label: 'Stack', value: 'React' },
+        { label: 'Motion', value: 'Framer' },
+        { label: 'Type', value: 'Study' },
+      ]}
+      brief={{
+        title: 'Rebuild the moment that sticks.',
+        paragraphs: [
+          'I was going through the Delphi onboarding and loved its falling-chip animation, so I decided to reverse-engineer and rebuild it.',
+        ],
+        facts: [
+          { label: 'Focus', value: 'Physics' },
+          { label: 'Output', value: 'Prototype' },
+        ],
+      }}
+      externalLink={{ label: 'View live', href: 'https://delphi-chips-falling.vercel.app/' }}
+      media={[
+        { id: 'demo', kind: 'video', src: '/assets/videos/delphi-falling-chips.mp4', alt: 'Delphi falling chips animation', caption: '01 — Interaction study' },
+      ]}
+      note={{ label: 'Why this', text: 'Tiny transitions can carry the personality of an entire product.' }}
+      principle={{ label: 'Study rule', text: 'Rebuild delight to understand how it works.' }}
+    />
   )
 }
