@@ -1,3 +1,4 @@
+import { ArtifactDesk } from '@/components/artifact-desk'
 import { generatePageMetadata } from '@/lib/metadata'
 
 export const metadata = generatePageMetadata({
@@ -8,33 +9,30 @@ export const metadata = generatePageMetadata({
 
 export default function PortfolioV1Page() {
   return (
-    <section className="w-full">
-      <div className="pt-8 pb-6">
-        <h1 className="font-semibold text-2xl mb-6 tracking-tighter">
-          Portfolio v1
-        </h1>
-
-        <div className="flex flex-col gap-4 text-sm">
-          <p>
-            The previous iteration of my portfolio, showcasing an earlier approach
-            to presenting work and projects.
-          </p>
-        </div>
-      </div>
-
-      <div className="mb-6">
-        <video
-          src="/assets/videos/portfolio.mp4"
-          controls
-          autoPlay
-          muted
-          loop
-          className="w-full h-auto"
-          playsInline
-        >
-          Your browser does not support the video tag.
-        </video>
-      </div>
-    </section>
+    <ArtifactDesk
+      title="Portfolio v1"
+      year="2024"
+      description="The previous iteration of this portfolio and an earlier approach to presenting work."
+      metadata={[
+        { label: 'Role', value: 'Everything' },
+        { label: 'Type', value: 'Portfolio' },
+        { label: 'State', value: 'Archived' },
+      ]}
+      brief={{
+        title: 'The version before this one.',
+        paragraphs: [
+          'An earlier portfolio experiment exploring a different balance of project storytelling, interaction, and personal identity.',
+        ],
+        facts: [
+          { label: 'Artifact', value: 'Website' },
+          { label: 'Status', value: 'Archived' },
+        ],
+      }}
+      media={[
+        { id: 'walkthrough', kind: 'video', src: '/assets/videos/portfolio.mp4', alt: 'Portfolio version one walkthrough', caption: '01 — Portfolio walkthrough' },
+      ]}
+      note={{ label: 'Retrospective', text: 'A portfolio is never finished. It just becomes the reference for the next one.' }}
+      principle={{ label: 'Lesson', text: 'Keep the experiments, even after the system changes.' }}
+    />
   )
 }
