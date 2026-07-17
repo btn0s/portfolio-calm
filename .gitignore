@@ -45,4 +45,15 @@ examples/*
 .claude/worktrees/
 .audio-analysis/
 .audio-synth/
+.audio-synth-*/
 .audio-comparisons/
+.audio-click-alt-verify/
+/scripts/spectral-model-results/
+/scripts/audio-fit/*
+!/scripts/audio-fit/audio-io.mjs
+!/scripts/audio-fit/experiments/
+/scripts/audio-fit/experiments/*
+!/scripts/audio-fit/experiments/exact-pcm16-bitplanes/
+!/scripts/audio-fit/experiments/exact-pcm16-bitplanes/**
+/scripts/paper-resynth/
+/scripts/spectral-models/

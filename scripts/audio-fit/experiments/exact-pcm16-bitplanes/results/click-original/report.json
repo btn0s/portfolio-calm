@@ -1,0 +1,428 @@
+{
+  "sound": "click-original",
+  "source": "public/assets/audio/click.wav",
+  "sourceFileName": "click.wav",
+  "sourceBytes": 123116,
+  "sampleRate": 48000,
+  "durationSamples": 22320,
+  "durationSeconds": 0.465,
+  "uncompressedPcm16Bytes": 44640,
+  "winner": {
+    "transform": "delta1-zigzag",
+    "bitplanePacking": "packed-v1",
+    "gzipEncoderStrategy": "rle",
+    "rawPlaneMask": 65535,
+    "rleFirstBitMask": 0
+  },
+  "size": {
+    "packedBitplaneBytes": 44640,
+    "precompressedGzipBytes": 12251,
+    "excitationBase64Characters": 16336,
+    "modelJsonBytes": 16874,
+    "modelJsonGzipBytes": 12667,
+    "hypotheticalUncompressedModelJsonBytes": 60025,
+    "hypotheticalUncompressedModelJsonGzipBytes": 12785,
+    "compressedToPcmRatio": 0.2744399641577061,
+    "modelJsonToSourceRatio": 0.1370577341694012
+  },
+  "exactness": {
+    "differingPcm16Samples": 0,
+    "maximumAbsolutePcm16Difference": 0,
+    "browserDecompressionStreamDifferingPcm16Samples": 0,
+    "durationSamplesMatch": true,
+    "transientPositionsMatch": true,
+    "gapFractionMatch": true,
+    "endpointCompositeShape": 1,
+    "sourceEndpointGapFraction": 0.614583,
+    "decodedEndpointGapFraction": 0.614583,
+    "sourceEndpointTransientPositions": [
+      0.2316,
+      0.4421
+    ],
+    "decodedEndpointTransientPositions": [
+      0.2316,
+      0.4421
+    ],
+    "sourceEndpointDurationRatio": 1,
+    "decodedEndpointDurationRatio": 1,
+    "pcm16Sha256": "5b8dd8363dfc6d609db8a4b970f522a23b447653608b03981ac7cc76bd13a5ee"
+  },
+  "decodeBenchmark": {
+    "iterations": 40,
+    "nodeBase64Decode": {
+      "medianMs": 0.002124999999978172,
+      "p95Ms": 0.007291000000009262
+    },
+    "nodeGunzip": {
+      "medianMs": 0.046834000000103515,
+      "p95Ms": 0.08291700000006585
+    },
+    "bitplaneUnpackAndPredictor": {
+      "medianMs": 0.22462500000006003,
+      "p95Ms": 0.2627909999999929
+    },
+    "total": {
+      "medianMs": 0.27379100000007384,
+      "p95Ms": 0.34474999999997635
+    },
+    "nodeWebApiDecompressionStream": {
+      "iterations": 5,
+      "warmupIterations": 1,
+      "wallTimeMedianMs": 0.6323749999999677,
+      "wallTimeP95Ms": 0.7228749999999877,
+      "note": "Node Web API wall time; gzip runs through async DecompressionStream"
+    }
+  },
+  "candidates": [
+    {
+      "transform": "delta1-zigzag",
+      "bitplanePacking": "packed-v1",
+      "gzipEncoderStrategy": "rle",
+      "packedBitplaneBytes": 44640,
+      "precompressedGzipBytes": 12251
+    },
+    {
+      "transform": "delta1-zigzag",
+      "bitplanePacking": "packed-v1",
+      "gzipEncoderStrategy": "filtered",
+      "packedBitplaneBytes": 44640,
+      "precompressedGzipBytes": 12255
+    },
+    {
+      "transform": "delta1-zigzag",
+      "bitplanePacking": "packed-v1",
+      "gzipEncoderStrategy": "default",
+      "packedBitplaneBytes": 44640,
+      "precompressedGzipBytes": 12266
+    },
+    {
+      "transform": "zigzag-sample",
+      "bitplanePacking": "packed-v1",
+      "gzipEncoderStrategy": "rle",
+      "packedBitplaneBytes": 44640,
+      "precompressedGzipBytes": 12271
+    },
+    {
+      "transform": "zigzag-sample",
+      "bitplanePacking": "packed-v1",
+      "gzipEncoderStrategy": "default",
+      "packedBitplaneBytes": 44640,
+      "precompressedGzipBytes": 12306
+    },
+    {
+      "transform": "zigzag-sample",
+      "bitplanePacking": "packed-v1",
+      "gzipEncoderStrategy": "filtered",
+      "packedBitplaneBytes": 44640,
+      "precompressedGzipBytes": 12317
+    },
+    {
+      "transform": "xor-previous",
+      "bitplanePacking": "packed-v1",
+      "gzipEncoderStrategy": "default",
+      "packedBitplaneBytes": 44640,
+      "precompressedGzipBytes": 12597
+    },
+    {
+      "transform": "xor-previous",
+      "bitplanePacking": "hybrid-rle-v1",
+      "gzipEncoderStrategy": "default",
+      "packedBitplaneBytes": 44640,
+      "precompressedGzipBytes": 12597
+    },
+    {
+      "transform": "xor-previous",
+      "bitplanePacking": "packed-v1",
+      "gzipEncoderStrategy": "filtered",
+      "packedBitplaneBytes": 44640,
+      "precompressedGzipBytes": 12654
+    },
+    {
+      "transform": "xor-previous",
+      "bitplanePacking": "hybrid-rle-v1",
+      "gzipEncoderStrategy": "filtered",
+      "packedBitplaneBytes": 44640,
+      "precompressedGzipBytes": 12654
+    },
+    {
+      "transform": "direct-u16",
+      "bitplanePacking": "packed-v1",
+      "gzipEncoderStrategy": "default",
+      "packedBitplaneBytes": 44640,
+      "precompressedGzipBytes": 12659
+    },
+    {
+      "transform": "direct-u16",
+      "bitplanePacking": "hybrid-rle-v1",
+      "gzipEncoderStrategy": "default",
+      "packedBitplaneBytes": 44640,
+      "precompressedGzipBytes": 12659
+    },
+    {
+      "transform": "direct-u16",
+      "bitplanePacking": "packed-v1",
+      "gzipEncoderStrategy": "filtered",
+      "packedBitplaneBytes": 44640,
+      "precompressedGzipBytes": 12718
+    },
+    {
+      "transform": "direct-u16",
+      "bitplanePacking": "hybrid-rle-v1",
+      "gzipEncoderStrategy": "filtered",
+      "packedBitplaneBytes": 44640,
+      "precompressedGzipBytes": 12718
+    },
+    {
+      "transform": "zigzag-sample",
+      "bitplanePacking": "packed-v1",
+      "gzipEncoderStrategy": "fixed",
+      "packedBitplaneBytes": 44640,
+      "precompressedGzipBytes": 12856
+    },
+    {
+      "transform": "delta1-zigzag",
+      "bitplanePacking": "packed-v1",
+      "gzipEncoderStrategy": "fixed",
+      "packedBitplaneBytes": 44640,
+      "precompressedGzipBytes": 12901
+    },
+    {
+      "transform": "xor-previous",
+      "bitplanePacking": "packed-v1",
+      "gzipEncoderStrategy": "fixed",
+      "packedBitplaneBytes": 44640,
+      "precompressedGzipBytes": 13142
+    },
+    {
+      "transform": "xor-previous",
+      "bitplanePacking": "hybrid-rle-v1",
+      "gzipEncoderStrategy": "fixed",
+      "packedBitplaneBytes": 44640,
+      "precompressedGzipBytes": 13142
+    },
+    {
+      "transform": "zigzag-sample",
+      "bitplanePacking": "hybrid-rle-v1",
+      "gzipEncoderStrategy": "default",
+      "packedBitplaneBytes": 25238,
+      "precompressedGzipBytes": 13166
+    },
+    {
+      "transform": "direct-u16",
+      "bitplanePacking": "packed-v1",
+      "gzipEncoderStrategy": "fixed",
+      "packedBitplaneBytes": 44640,
+      "precompressedGzipBytes": 13249
+    },
+    {
+      "transform": "direct-u16",
+      "bitplanePacking": "hybrid-rle-v1",
+      "gzipEncoderStrategy": "fixed",
+      "packedBitplaneBytes": 44640,
+      "precompressedGzipBytes": 13249
+    },
+    {
+      "transform": "zigzag-sample",
+      "bitplanePacking": "hybrid-rle-v1",
+      "gzipEncoderStrategy": "filtered",
+      "packedBitplaneBytes": 25238,
+      "precompressedGzipBytes": 13304
+    },
+    {
+      "transform": "delta1-zigzag",
+      "bitplanePacking": "hybrid-rle-v1",
+      "gzipEncoderStrategy": "default",
+      "packedBitplaneBytes": 24999,
+      "precompressedGzipBytes": 13421
+    },
+    {
+      "transform": "delta2-zigzag",
+      "bitplanePacking": "packed-v1",
+      "gzipEncoderStrategy": "rle",
+      "packedBitplaneBytes": 44640,
+      "precompressedGzipBytes": 13474
+    },
+    {
+      "transform": "delta2-zigzag",
+      "bitplanePacking": "packed-v1",
+      "gzipEncoderStrategy": "filtered",
+      "packedBitplaneBytes": 44640,
+      "precompressedGzipBytes": 13500
+    },
+    {
+      "transform": "delta1-zigzag",
+      "bitplanePacking": "hybrid-rle-v1",
+      "gzipEncoderStrategy": "filtered",
+      "packedBitplaneBytes": 24999,
+      "precompressedGzipBytes": 13502
+    },
+    {
+      "transform": "delta2-zigzag",
+      "bitplanePacking": "packed-v1",
+      "gzipEncoderStrategy": "default",
+      "packedBitplaneBytes": 44640,
+      "precompressedGzipBytes": 13504
+    },
+    {
+      "transform": "zigzag-sample",
+      "bitplanePacking": "hybrid-rle-v1",
+      "gzipEncoderStrategy": "rle",
+      "packedBitplaneBytes": 25238,
+      "precompressedGzipBytes": 13642
+    },
+    {
+      "transform": "zigzag-sample",
+      "bitplanePacking": "hybrid-rle-v1",
+      "gzipEncoderStrategy": "fixed",
+      "packedBitplaneBytes": 25238,
+      "precompressedGzipBytes": 13820
+    },
+    {
+      "transform": "delta1-zigzag",
+      "bitplanePacking": "hybrid-rle-v1",
+      "gzipEncoderStrategy": "rle",
+      "packedBitplaneBytes": 24999,
+      "precompressedGzipBytes": 14002
+    },
+    {
+      "transform": "delta2-zigzag",
+      "bitplanePacking": "packed-v1",
+      "gzipEncoderStrategy": "fixed",
+      "packedBitplaneBytes": 44640,
+      "precompressedGzipBytes": 14189
+    },
+    {
+      "transform": "delta1-zigzag",
+      "bitplanePacking": "hybrid-rle-v1",
+      "gzipEncoderStrategy": "fixed",
+      "packedBitplaneBytes": 24999,
+      "precompressedGzipBytes": 14222
+    },
+    {
+      "transform": "delta2-zigzag",
+      "bitplanePacking": "hybrid-rle-v1",
+      "gzipEncoderStrategy": "default",
+      "packedBitplaneBytes": 26420,
+      "precompressedGzipBytes": 14519
+    },
+    {
+      "transform": "delta2-zigzag",
+      "bitplanePacking": "hybrid-rle-v1",
+      "gzipEncoderStrategy": "filtered",
+      "packedBitplaneBytes": 26420,
+      "precompressedGzipBytes": 14650
+    },
+    {
+      "transform": "delta2-zigzag",
+      "bitplanePacking": "hybrid-rle-v1",
+      "gzipEncoderStrategy": "rle",
+      "packedBitplaneBytes": 26420,
+      "precompressedGzipBytes": 15124
+    },
+    {
+      "transform": "delta2-zigzag",
+      "bitplanePacking": "hybrid-rle-v1",
+      "gzipEncoderStrategy": "fixed",
+      "packedBitplaneBytes": 26420,
+      "precompressedGzipBytes": 15294
+    },
+    {
+      "transform": "delta1-zigzag",
+      "bitplanePacking": "hybrid-rle-v1",
+      "gzipEncoderStrategy": "huffman-only",
+      "packedBitplaneBytes": 24999,
+      "precompressedGzipBytes": 16155
+    },
+    {
+      "transform": "zigzag-sample",
+      "bitplanePacking": "hybrid-rle-v1",
+      "gzipEncoderStrategy": "huffman-only",
+      "packedBitplaneBytes": 25238,
+      "precompressedGzipBytes": 16335
+    },
+    {
+      "transform": "delta1-zigzag",
+      "bitplanePacking": "packed-v1",
+      "gzipEncoderStrategy": "huffman-only",
+      "packedBitplaneBytes": 44640,
+      "precompressedGzipBytes": 16950
+    },
+    {
+      "transform": "zigzag-sample",
+      "bitplanePacking": "packed-v1",
+      "gzipEncoderStrategy": "huffman-only",
+      "packedBitplaneBytes": 44640,
+      "precompressedGzipBytes": 17109
+    },
+    {
+      "transform": "delta2-zigzag",
+      "bitplanePacking": "hybrid-rle-v1",
+      "gzipEncoderStrategy": "huffman-only",
+      "packedBitplaneBytes": 26420,
+      "precompressedGzipBytes": 17568
+    },
+    {
+      "transform": "delta2-zigzag",
+      "bitplanePacking": "packed-v1",
+      "gzipEncoderStrategy": "huffman-only",
+      "packedBitplaneBytes": 44640,
+      "precompressedGzipBytes": 18107
+    },
+    {
+      "transform": "xor-previous",
+      "bitplanePacking": "packed-v1",
+      "gzipEncoderStrategy": "rle",
+      "packedBitplaneBytes": 44640,
+      "precompressedGzipBytes": 23213
+    },
+    {
+      "transform": "xor-previous",
+      "bitplanePacking": "hybrid-rle-v1",
+      "gzipEncoderStrategy": "rle",
+      "packedBitplaneBytes": 44640,
+      "precompressedGzipBytes": 23213
+    },
+    {
+      "transform": "direct-u16",
+      "bitplanePacking": "packed-v1",
+      "gzipEncoderStrategy": "rle",
+      "packedBitplaneBytes": 44640,
+      "precompressedGzipBytes": 23508
+    },
+    {
+      "transform": "direct-u16",
+      "bitplanePacking": "hybrid-rle-v1",
+      "gzipEncoderStrategy": "rle",
+      "packedBitplaneBytes": 44640,
+      "precompressedGzipBytes": 23508
+    },
+    {
+      "transform": "xor-previous",
+      "bitplanePacking": "packed-v1",
+      "gzipEncoderStrategy": "huffman-only",
+      "packedBitplaneBytes": 44640,
+      "precompressedGzipBytes": 26131
+    },
+    {
+      "transform": "xor-previous",
+      "bitplanePacking": "hybrid-rle-v1",
+      "gzipEncoderStrategy": "huffman-only",
+      "packedBitplaneBytes": 44640,
+      "precompressedGzipBytes": 26131
+    },
+    {
+      "transform": "direct-u16",
+      "bitplanePacking": "packed-v1",
+      "gzipEncoderStrategy": "huffman-only",
+      "packedBitplaneBytes": 44640,
+      "precompressedGzipBytes": 27822
+    },
+    {
+      "transform": "direct-u16",
+      "bitplanePacking": "hybrid-rle-v1",
+      "gzipEncoderStrategy": "huffman-only",
+      "packedBitplaneBytes": 44640,
+      "precompressedGzipBytes": 27822
+    }
+  ]
+}

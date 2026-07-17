@@ -4,18 +4,56 @@ import { useEffect, useState } from "react";
 import { PlayIcon, RadioIcon } from "lucide-react";
 import {
   SOUND_URLS,
+  getSoundVolume,
   playSample,
-  playSynth,
-  renderSynthOffline,
-  audioBufferToWavDataUrl,
   type SoundName,
 } from "@/lib/audio";
+import {
+  audioBufferToWavDataUrl,
+  playSynth,
+  prepareSynthAudio,
+  renderSynthOffline,
+} from "@/lib/synth-audio";
 import { useSoundSettings } from "@/contexts/sound-context";
 
 declare global {
   interface Window {
     __renderSynthForAnalysis?: (name: SoundName) => Promise<string>;
+    __benchmarkSynthPreparation?: () => Promise<{
+      elapsedMs: number;
+      maxEventLoopGapMs: number;
+      timerTicks: number;
+    }>;
   }
+}
+
+async function benchmarkSynthPreparation() {
+  const startedAt = performance.now();
+  let previousTick = startedAt;
+  let maxEventLoopGapMs = 0;
+  let timerTicks = 0;
+  let running = true;
+  const recordTick = () => {
+    const now = performance.now();
+    maxEventLoopGapMs = Math.max(maxEventLoopGapMs, now - previousTick);
+    previousTick = now;
+    timerTicks += 1;
+  };
+  const tick = () => {
+    recordTick();
+    if (running) window.setTimeout(tick, 0);
+  };
+  window.setTimeout(tick, 0);
+  await prepareSynthAudio();
+  const elapsedMs = performance.now() - startedAt;
+  running = false;
+  await new Promise<void>((resolve) => {
+    window.setTimeout(() => {
+      recordTick();
+      resolve();
+    }, 0);
+  });
+  return { elapsedMs, maxEventLoopGapMs, timerTicks };
 }
 
 const SOUND_GROUPS: Array<{
@@ -83,9 +121,14 @@ export function AudioAudition() {
   const [playing, setPlaying] = useState<string | null>(null);
 
   useEffect(() => {
+    const deferPrewarm = new URLSearchParams(window.location.search)
+      .has("defer-prewarm");
+    if (!deferPrewarm) void prepareSynthAudio();
+    window.__benchmarkSynthPreparation = benchmarkSynthPreparation;
     window.__renderSynthForAnalysis = async (name) =>
       audioBufferToWavDataUrl(await renderSynthOffline(name));
     return () => {
+      delete window.__benchmarkSynthPreparation;
       delete window.__renderSynthForAnalysis;
     };
   }, []);
@@ -167,7 +210,13 @@ export function AudioAudition() {
                     </PlayButton>
                     <PlayButton
                       active={playing === synthKey}
-                      onPlay={() => audition(synthKey, () => playSynth(sound.name))}
+                      onPlay={() =>
+                        audition(synthKey, () => {
+                          void playSynth(sound.name, {
+                            gain: getSoundVolume(sound.name),
+                          });
+                        })
+                      }
                     >
                       Synth
                     </PlayButton>

@@ -6,17 +6,18 @@ import {
   toggleMute as toggleAudioMute,
   isMuted as getAudioMuted,
   playClick,
-  playSwipeForward,
-  playSwipeBackward,
   getAudioEngine,
   setAudioEngine,
+  playPaperRustle,
+  primeAudio,
+  DEFAULT_AUDIO_ENGINE,
   type AudioEngine,
 } from "@/lib/audio";
 
 export type SoundCategory = "interaction" | "intro" | "ambient" | "transition";
 export type RouteId = "home" | "thoughts" | "artifacts";
 
-type InteractionSound = "click" | "confetti" | "navigate";
+type InteractionSound = "click" | "confetti" | "navigate" | "rustle";
 
 type SoundContextType = {
   isMuted: boolean;
@@ -32,13 +33,33 @@ const SoundContext = createContext<SoundContextType | undefined>(undefined);
 
 export const SoundProvider = ({ children }: { children: React.ReactNode }) => {
   const [isMuted, setIsMuted] = useState(true);
-  const [engine, setEngineState] = useState<AudioEngine>("sample");
+  const [engine, setEngineState] = useState<AudioEngine>(
+    DEFAULT_AUDIO_ENGINE,
+  );
 
   useEffect(() => {
     initAudio();
     // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time localStorage sync on mount to read persisted mute state
     setIsMuted(getAudioMuted());
     setEngineState(getAudioEngine());
+
+    const primeOnInteraction = () => {
+      void primeAudio();
+    };
+    window.addEventListener("pointerdown", primeOnInteraction, {
+      capture: true,
+    });
+    window.addEventListener("keydown", primeOnInteraction, {
+      capture: true,
+    });
+    return () => {
+      window.removeEventListener("pointerdown", primeOnInteraction, {
+        capture: true,
+      });
+      window.removeEventListener("keydown", primeOnInteraction, {
+        capture: true,
+      });
+    };
   }, []);
 
   const toggleMute = useCallback(() => {
@@ -47,8 +68,13 @@ export const SoundProvider = ({ children }: { children: React.ReactNode }) => {
   }, []);
 
   const playSound = useCallback((sound: InteractionSound) => {
-    if (sound === "navigate" || sound === "click") {
+    if (sound === "navigate") {
       playClick();
+      playPaperRustle();
+    } else if (sound === "click") {
+      playClick();
+    } else if (sound === "rustle") {
+      playPaperRustle();
     }
     // "confetti" is a no-op for now
   }, []);
@@ -57,12 +83,8 @@ export const SoundProvider = ({ children }: { children: React.ReactNode }) => {
     // Intros removed for now
   }, []);
 
-  const playTransition = useCallback((direction: "forward" | "backward") => {
-    if (direction === "forward") {
-      playSwipeForward();
-    } else {
-      playSwipeBackward();
-    }
+  const playTransition = useCallback(() => {
+    playPaperRustle();
   }, []);
 
   const setEngine = useCallback((nextEngine: AudioEngine) => {

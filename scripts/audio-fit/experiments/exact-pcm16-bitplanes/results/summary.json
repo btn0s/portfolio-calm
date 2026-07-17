@@ -1,0 +1,87 @@
+{
+  "version": 1,
+  "experiment": "exact-pcm16-bitplanes",
+  "generatedAt": "2026-07-17T03:43:45.466Z",
+  "sourceBudgetBytes": 688584,
+  "allSoundsExact": true,
+  "totals": {
+    "sourceBytes": 688584,
+    "uncompressedPcm16Bytes": 972836,
+    "packedBitplaneBytes": 972848,
+    "precompressedGzipBytes": 324365,
+    "excitationBase64Characters": 432496,
+    "modelJsonBytes": 435191,
+    "modelJsonGzipBytes": 326278,
+    "hypotheticalUncompressedModelJsonGzipBytes": 333244,
+    "modelJsonBudgetMarginBytes": 253393,
+    "modelJsonBudgetUtilization": 0.6320085857353641,
+    "precompressedPayloadBudgetMarginBytes": 364219
+  },
+  "sounds": [
+    {
+      "id": "click-alt",
+      "transform": "delta2-zigzag",
+      "bitplanePacking": "packed-v1",
+      "durationSamples": 17555,
+      "sourceBytes": 11702,
+      "precompressedGzipBytes": 10349,
+      "modelJsonBytes": 14338,
+      "modelJsonGzipBytes": 10793,
+      "differingPcm16Samples": 0,
+      "decodeMedianMs": 0.2379579999999919,
+      "decodeP95Ms": 0.2775840000000471
+    },
+    {
+      "id": "click-original",
+      "transform": "delta1-zigzag",
+      "bitplanePacking": "packed-v1",
+      "durationSamples": 22320,
+      "sourceBytes": 123116,
+      "precompressedGzipBytes": 12251,
+      "modelJsonBytes": 16874,
+      "modelJsonGzipBytes": 12667,
+      "differingPcm16Samples": 0,
+      "decodeMedianMs": 0.27379100000007384,
+      "decodeP95Ms": 0.34474999999997635
+    },
+    {
+      "id": "drop",
+      "transform": "delta2-zigzag",
+      "bitplanePacking": "packed-v1",
+      "durationSamples": 63360,
+      "sourceBytes": 26400,
+      "precompressedGzipBytes": 22219,
+      "modelJsonBytes": 30167,
+      "modelJsonGzipBytes": 22457,
+      "differingPcm16Samples": 0,
+      "decodeMedianMs": 0.7870420000000422,
+      "decodeP95Ms": 0.8418339999999489
+    },
+    {
+      "id": "paper",
+      "transform": "delta1-zigzag",
+      "bitplanePacking": "packed-v1",
+      "durationSamples": 311040,
+      "sourceBytes": 129600,
+      "precompressedGzipBytes": 197074,
+      "modelJsonBytes": 263309,
+      "modelJsonGzipBytes": 197354,
+      "differingPcm16Samples": 0,
+      "decodeMedianMs": 4.2507080000000315,
+      "decodeP95Ms": 4.414916999999605
+    },
+    {
+      "id": "sad-party-horn",
+      "transform": "delta2-zigzag",
+      "bitplanePacking": "packed-v1",
+      "durationSamples": 72143,
+      "sourceBytes": 397766,
+      "precompressedGzipBytes": 82472,
+      "modelJsonBytes": 110503,
+      "modelJsonGzipBytes": 83007,
+      "differingPcm16Samples": 0,
+      "decodeMedianMs": 1.0420420000000377,
+      "decodeP95Ms": 1.153874999999971
+    }
+  ]
+}
