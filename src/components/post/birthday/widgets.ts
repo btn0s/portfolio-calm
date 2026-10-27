@@ -9,12 +9,12 @@ import { FLIGHTS, distance, type Flight } from './flights';
 import history from './history.json';
 import wave from './finale-wave.json';
 
-const INK = '#0a0a0a';
+const INK = '#ededed';
 const MUTE = '#b5b5b5';
 const PINK = '#e83d97';
 const BLUE = '#2495d6';
-const INK3 = '#8f8f8f';
-const LINE = '#ededed';
+const INK3 = '#7a7a7a';
+const LINE = '#26262a';
 const SVG = 'http://www.w3.org/2000/svg';
 const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -129,7 +129,7 @@ function timeline(root: HTMLElement) {
   // The night: the gap with no prompts.
   let gap = { a: 0, b: 0 };
   for (let i = 1; i < prompts.length; i++) if (prompts[i].h - prompts[i - 1].h > gap.b - gap.a) gap = { a: prompts[i - 1].h, b: prompts[i].h };
-  svg.append(s('rect', { x: x(gap.a + 0.2), y: 40, width: x(gap.b - 0.2) - x(gap.a + 0.2), height: 130, fill: '#00000005', rx: 8 }));
+  svg.append(s('rect', { x: x(gap.a + 0.2), y: 40, width: x(gap.b - 0.2) - x(gap.a + 0.2), height: 130, fill: '#ffffff06', rx: 8 }));
   const sleep = s('text', { x: (x(gap.a) + x(gap.b)) / 2, y: 110, 'text-anchor': 'middle', fill: INK3, 'font-size': 13 });
   sleep.textContent = 'asleep';
   svg.append(sleep);
@@ -153,7 +153,7 @@ function timeline(root: HTMLElement) {
     lane = px - lastX < 90 ? (lane + 1) % 3 : 0;
     lastX = px;
     svg.append(s('line', { x1: px, x2: px, y1: 8 + lane * 15, y2: 170, stroke: LINE }));
-    const t = s('text', { x: px + 4, y: 12 + lane * 15, fill: '#525252', 'font-size': 12, 'font-weight': 600 });
+    const t = s('text', { x: px + 4, y: 12 + lane * 15, fill: '#a3a3a3', 'font-size': 12, 'font-weight': 600 });
     t.textContent = label;
     svg.append(t);
   }
@@ -163,7 +163,7 @@ function timeline(root: HTMLElement) {
     const k = Math.round(p.h * 10);
     const n = stacks.get(k) ?? 0;
     stacks.set(k, n + 1);
-    const dot = s('circle', { class: 'dot', cx: x(p.h), cy: 150 - n * 11, r: 4.5, fill: PINK, stroke: '#fff', 'stroke-width': 2 });
+    const dot = s('circle', { class: 'dot', cx: x(p.h), cy: 150 - n * 11, r: 4.5, fill: PINK, stroke: '#111113', 'stroke-width': 2 });
     const hr = Math.floor(p.h);
     const min = Math.round((p.h - hr) * 60);
     const html = `<small>Hour ${hr}:${String(min).padStart(2, '0')}${p.photos ? ` · ${p.photos} photo${p.photos > 1 ? 's' : ''}` : ''}</small>${esc(p.text || '(photos)')}`;
@@ -562,7 +562,7 @@ function waveWidget(root: HTMLElement) {
     };
     g.clearRect(0, 0, W, H);
     // Selected window.
-    g.fillStyle = '#e83d9712';
+    g.fillStyle = '#e83d971f';
     g.fillRect(x(shown.start), pad.t - 4, x(shown.hit) - x(shown.start), H - pad.t - pad.b + 8);
     // Beat grid.
     g.strokeStyle = LINE;
@@ -580,7 +580,7 @@ function waveWidget(root: HTMLElement) {
     for (let i = 0; i < n; i++) {
       const t = wave.start + (i / n) * wave.dur;
       const inside = t >= shown.start && t <= shown.hit;
-      g.fillStyle = inside ? PINK : '#d9d4dc';
+      g.fillStyle = inside ? PINK : '#3b3a40';
       const a = wave.peaks[i] * amp;
       g.fillRect(pad.l + i * bw, mid - a, Math.max(1, bw - 0.6), a * 2);
     }
@@ -692,7 +692,7 @@ function flight(root: HTMLElement) {
     g.arc(x(now), y(f.speed(now)), 5, 0, Math.PI * 2);
     g.fillStyle = PINK;
     g.fill();
-    g.strokeStyle = '#fafafa';
+    g.strokeStyle = '#111113';
     g.lineWidth = 2;
     g.stroke();
     g.fillStyle = INK3;
@@ -730,7 +730,7 @@ function flight(root: HTMLElement) {
 
 // ── 8. Make a hitch ──────────────────────────────────────────────────────────────────────
 function hitch(root: HTMLElement) {
-  const box = h('div', { class: 'canvas-box light' });
+  const box = h('div', { class: 'canvas-box' });
   const controls = h('div', { class: 'controls' });
   root.append(h('div', { class: 'split' }, box, controls));
   const { renderer, scene, camera } = stage(box);

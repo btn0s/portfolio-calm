@@ -6,7 +6,6 @@ import { baseUrl } from '@/app/sitemap'
 import type { Metadata } from "next";
 import { Barcode } from '@/components/barcode'
 import { PixelPattern } from '@/components/pixel-pattern'
-import { PaperSheet } from '@/components/post/paper-sheet'
 import './post.css'
 
 export async function generateStaticParams() {
@@ -133,7 +132,7 @@ export default async function Post({
         </div>
       </header>
 
-      <PaperSheet>
+      <div className="post-body">
       <article className="post">
         <CustomMDX source={post.content} />
       </article>
@@ -176,7 +175,7 @@ export default async function Post({
           </p>
         </div>
       </footer>
-      </PaperSheet>
+      </div>
     </section>
     </>
   );
