@@ -402,7 +402,9 @@ export function ReceiptStack({
   const getBackStageContainerClassName = (isSubpage: boolean) => {
     const baseClasses = "fixed z-10";
     return isSubpage
-      ? cn(baseClasses, "bottom-0 left-0 right-0 px-4 w-full md:left-1/2 md:right-auto md:-translate-x-1/2 md:max-w-xl md:px-0")
+      // On subpages the stack slides out of view, but this box stays where it was: let clicks fall
+      // through it to the page, and only the (moved) stack itself catch them.
+      ? cn(baseClasses, "pointer-events-none bottom-0 left-0 right-0 px-4 w-full md:left-1/2 md:right-auto md:-translate-x-1/2 md:max-w-xl md:px-0")
       : cn(baseClasses, "top-28 left-0 right-0 w-full max-w-xl mx-auto");
   };
 
@@ -526,7 +528,7 @@ export function ReceiptStack({
       {/* BackStage: Fixed container for back cards */}
       <div className={getBackStageContainerClassName(isSubpage)}>
         <motion.div
-          className="flex flex-col items-center justify-center isolate pb-12 min-h-[600px] md:min-h-[800px]"
+          className="pointer-events-auto flex flex-col items-center justify-center isolate pb-12 min-h-[600px] md:min-h-[800px]"
           initial={{
             y: shouldReduceMotion ? 0 : (isSubpage ? "100%" : 0),
           }}
