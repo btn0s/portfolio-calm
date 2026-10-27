@@ -6,6 +6,8 @@ import { baseUrl } from '@/app/sitemap'
 import type { Metadata } from "next";
 import { Barcode } from '@/components/barcode'
 import { PixelPattern } from '@/components/pixel-pattern'
+import { PaperSheet } from '@/components/post/paper-sheet'
+import './post.css'
 
 export async function generateStaticParams() {
   try {
@@ -61,7 +63,7 @@ export default async function Post({
 
   return (
     <>
-      <section className="pb-32 w-full max-w-2xl mx-auto">
+      <section className="w-full max-w-2xl mx-auto">
       <script
         type="application/ld+json"
         suppressHydrationWarning
@@ -131,12 +133,13 @@ export default async function Post({
         </div>
       </header>
 
-      <article className="prose prose-neutral prose-sm max-w-none">
+      <PaperSheet>
+      <article className="post">
         <CustomMDX source={post.content} />
       </article>
 
       {/* Technical Footer */}
-      <footer className="mt-32 pt-16 border-t-2 border-foreground/10 flex flex-col items-center gap-12">
+      <footer className="post-end pt-16 border-t border-foreground/10 flex flex-col items-center gap-12">
         <div className="grid grid-cols-1 sm:grid-cols-2 w-full gap-12">
           <div className="flex flex-col gap-4">
             <div className="flex items-center gap-2">
@@ -173,6 +176,7 @@ export default async function Post({
           </p>
         </div>
       </footer>
+      </PaperSheet>
     </section>
     </>
   );

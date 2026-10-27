@@ -1,0 +1,97 @@
+/* Posts: the dossier header stays on the dark site; the body is a sheet of paper with
+   two widths, a reading column and a wider one for figures and widgets. */
+
+.paper-sheet {
+  /* Light tokens, so anything inside that uses the theme reads as ink on paper. */
+  --background: #fbfaf7;
+  --foreground: oklch(0.145 0 0);
+  --muted: oklch(0.96 0 0);
+  --muted-foreground: oklch(0.52 0 0);
+  --border: oklch(0.9 0 0);
+  --ink: #111;
+  --ink-2: #575757;
+  --ink-3: #8c8c8c;
+  --line: #e9e6e1;
+  --col: 640px;
+  --wide: 900px;
+  color-scheme: light;
+
+  position: relative;
+  left: 50%;
+  width: 100vw;
+  margin-left: -50vw;
+  margin-top: 8px;
+  padding: 72px 24px 128px;
+  background: var(--background);
+  color: var(--ink-2);
+  border-radius: 20px 20px 0 0;
+  box-shadow: 0 -1px 0 #ffffff1f, 0 -24px 60px -20px #000000a0;
+}
+
+.post {
+  display: grid;
+  grid-template-columns:
+    [wide-start] minmax(0, 1fr)
+    [prose-start] min(var(--col), 100%) [prose-end]
+    minmax(0, 1fr) [wide-end];
+  max-width: var(--wide);
+  margin: 0 auto;
+  font: 400 17px/1.7 var(--font-sans-body), -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+.post > * { grid-column: prose; }
+.post > .wide,
+.post > img,
+.post > video,
+.post > figure,
+.post > table { grid-column: wide; }
+
+.post p { margin: 0 0 1.1em; }
+.post h2 { font: 700 18px/1.4 var(--font-sans-body), sans-serif; color: var(--ink); margin: 2.6em 0 0.7em; letter-spacing: -0.005em; }
+.post h3 { font: 700 16px/1.4 var(--font-sans-body), sans-serif; color: var(--ink); margin: 2em 0 0.5em; }
+.post > h2:first-child, .post > h3:first-child { margin-top: 0; }
+.post h2 .anchor, .post h3 .anchor { display: none; }
+.post strong, .post b { color: var(--ink); font-weight: 700; }
+.post em { color: var(--ink); }
+.post a { color: var(--ink); text-decoration: underline; text-decoration-color: #c9c5bf; text-underline-offset: 3px; transition: text-decoration-color 0.2s; }
+.post a:hover { text-decoration-color: var(--ink); }
+.post ul, .post ol { margin: 0 0 1.1em; padding-left: 1.2em; }
+.post li { margin: 0.3em 0; padding-left: 0.2em; }
+.post li::marker { color: var(--ink-3); }
+.post hr { border: 0; border-top: 1px solid var(--line); margin: 3em 0; }
+.post blockquote { margin: 0 0 1.1em; padding: 0 0 0 16px; border-left: 2px solid #dcd8d2; color: var(--ink); }
+.post blockquote p { margin: 0; }
+.post code { font: 0.84em var(--font-mono), ui-monospace, monospace; color: var(--ink); background: #00000008 !important; border: 1px solid var(--line); padding: 0.05em 0.3em; border-radius: 4px !important; box-shadow: none !important; }
+.post pre { background: #f2f0ec; border: 1px solid var(--line); border-radius: 10px; padding: 16px; overflow-x: auto; font-size: 13px; }
+.post pre code { background: none !important; border: 0; padding: 0; }
+.post > img, .post > video { width: 100%; height: auto; border-radius: 12px; margin: 1.6em 0 2em; box-shadow: 0 1px 2px #0000000f, 0 12px 32px -16px #00000033; }
+.post table { width: 100%; border-collapse: collapse; font-size: 15px; margin: 1.6em 0 2em; }
+.post th { text-align: left; color: var(--ink); font-weight: 700; border-bottom: 1px solid #d8d4ce; padding: 8px 10px 8px 0; }
+.post td { border-bottom: 1px solid var(--line); padding: 8px 10px 8px 0; }
+
+/* Figures and widgets breathe a little more than paragraphs. */
+.post > .wide { width: 100%; max-width: none; margin: 1.6em 0 2.4em; }
+.post > p:has(> img:only-child) { grid-column: wide; }
+.post > p:has(> img:only-child) img { width: 100%; height: auto; border-radius: 12px; box-shadow: 0 1px 2px #0000000f, 0 12px 32px -16px #00000033; }
+
+/* The closing block, on paper. */
+.paper-sheet .post-end { max-width: var(--col); margin: 96px auto 0; }
+
+/* Chrome over the sheet: ink on paper. */
+html[data-paper] aside:has(#nav) {
+  --foreground: oklch(0.145 0 0);
+  --muted-foreground: oklch(0.5 0 0);
+  --muted: oklch(0.92 0 0);
+  background: linear-gradient(#fbfaf7f2, #fbfaf700);
+  transition: background 0.2s;
+}
+html[data-paper] aside:has(#nav) img { filter: none; }
+html[data-paper] body > footer {
+  --muted-foreground: oklch(0.55 0 0);
+  --foreground: oklch(0.145 0 0);
+}
+
+@media (max-width: 760px) {
+  .paper-sheet { padding: 48px 20px 96px; border-radius: 16px 16px 0 0; }
+  .post { font-size: 16px; }
+}
