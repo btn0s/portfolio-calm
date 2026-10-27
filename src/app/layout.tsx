@@ -173,7 +173,7 @@ export default function RootLayout({
             >
               <div
                 className={cn(
-                  "max-w-full md:max-w-xl mx-auto",
+                  "max-w-full md:max-w-[640px] mx-auto",
                   !hasChildren && "hidden"
                 )}
               >

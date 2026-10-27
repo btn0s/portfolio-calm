@@ -100,7 +100,7 @@ export default async function Post({
               </span>
               <div className="h-px bg-foreground/10 flex-1 min-w-[40px]" />
             </div>
-            <h1 className="font-black text-2xl sm:text-3xl md:text-4xl tracking-tighter uppercase leading-[0.9] max-w-[15ch] break-words">
+            <h1 className="font-black text-2xl sm:text-3xl md:text-4xl tracking-tighter uppercase leading-[0.9] max-w-[20ch] break-words">
               {post.metadata.title}
             </h1>
           </div>
