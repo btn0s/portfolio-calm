@@ -154,6 +154,13 @@
   .room b { font-weight: 500; color: var(--ink); }
   .room span:last-child { margin-left: auto; font: 12px var(--mono); }
 
+  /* Behind the camera */
+  .cams { position: relative; aspect-ratio: 16 / 9; border-radius: 12px; overflow: hidden; background: #000; }
+  .cams video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: opacity 0.25s var(--ease); }
+  .cams video.off { opacity: 0; pointer-events: none; }
+  .cams + .head { display: flex; align-items: center; gap: 12px; margin-top: 14px; }
+  .cams + .head .seg { flex: 1; }
+
   /* Mood board */
   .board { margin: 0; }
   .board-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }

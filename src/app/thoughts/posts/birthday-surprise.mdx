@@ -99,6 +99,10 @@ No agent was going to suggest that. It came from knowing her.
 
 <Widget name="flight" />
 
+**Look at it from outside.** From her seat, the flight is just speed. To see the actual path, we added a debug camera that films the show while hers keeps flying, and a clock we could step one frame at a time, so every frame renders exactly, however slow the machine.
+
+<Widget name="cameras" />
+
 ## Make it feel inevitable
 
 **A dropped frame during a surprise feels like a bug.** It breaks the spell, so performance got the same attention as the visuals.
@@ -130,7 +134,7 @@ Of course she did. The last thing we built was for her: a page with every photo 
 - **three.js on WebGPU** for the stage, **gsap** for the cards, **Vite** and **Vercel** to build and host.
 - **Suno** for both songs. Licensed recordings for the crowd and sound effects.
 - **A headless, muted browser** for screenshots and profiling, and **my actual iPhone** for the truth.
-- **Small throwaway tools** we built along the way: the scrubber, the profiler, the phone telemetry endpoint, the photo replacer.
+- **Small throwaway tools** we built along the way: the scrubber, the profiler, the phone telemetry endpoint, the photo replacer, and the debug camera with its frame-by-frame clock.
 
 ## What I'd tell you
 

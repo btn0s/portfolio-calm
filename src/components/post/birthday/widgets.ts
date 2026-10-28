@@ -1101,4 +1101,59 @@ function race(root: HTMLElement) {
   draw();
 }
 
-export { timeline, tickets, ball, mood, crowd, waveWidget as wave, flight, hitch, race };
+// The finale filmed from outside: the same 13 seconds from four cameras, swapped in place.
+function cameras(root: HTMLElement) {
+  const ANGLES = [
+    { id: 'phone', label: 'Her phone', note: 'What she sees.' },
+    { id: 'chase', label: 'Chase', note: 'A second camera follows the real one: the pink frustum is her view, the blue line is where it has been.' },
+    { id: 'wire', label: 'Wireframe', note: 'The same shot with every surface as wire: the tunnel panels, the photo cards, the column and the tickets.' },
+    { id: 'map', label: 'Wide', note: 'Pulled back and up, so you can see the path bend through the field.' },
+  ] as const;
+  type Id = (typeof ANGLES)[number]['id'];
+  const stage = h('div', { class: 'cams' });
+  const vids = new Map<Id, HTMLVideoElement>();
+  for (const a of ANGLES) {
+    const v = h('video', { src: `/thoughts/birthday/bts/${a.id}.mp4`, poster: `/thoughts/birthday/bts/${a.id}.jpg`, muted: '', playsinline: '', loop: '', preload: a.id === 'phone' ? 'auto' : 'metadata', 'aria-label': `${a.label} view of the finale` }) as HTMLVideoElement;
+    v.muted = true;
+    if (a.id !== 'phone') v.classList.add('off');
+    vids.set(a.id, v);
+    stage.append(v);
+  }
+  const note = h('p', { class: 'caption' }, ANGLES[0].note);
+  const play = iconButton('pause', 'Pause');
+  const bar = h('div', { class: 'head' });
+  root.append(stage, bar, note);
+  let cur: Id = 'phone';
+  let playing = false;
+  const setPlaying = (on: boolean) => {
+    playing = on;
+    const v = vids.get(cur)!;
+    if (on) void v.play().catch(() => {});
+    else v.pause();
+    play.set(on ? 'pause' : 'play', on ? 'Pause' : 'Play');
+  };
+  chips(bar, ANGLES.map(({ id, label }) => ({ id, label })), (id) => {
+    if (id === cur) return;
+    const from = vids.get(cur)!;
+    const to = vids.get(id)!;
+    to.currentTime = from.currentTime;
+    const show = () => {
+      to.classList.remove('off');
+      from.classList.add('off');
+      from.pause();
+    };
+    if (playing) void to.play().then(show, show);
+    else to.addEventListener('seeked', show, { once: true });
+    cur = id;
+    note.textContent = ANGLES.find((a) => a.id === id)!.note;
+  }, 'phone');
+  bar.append(play);
+  play.onclick = () => setPlaying(!playing);
+  play.set('play', 'Play');
+  if (!reduced) {
+    const io = new IntersectionObserver(([e]) => setPlaying(e.isIntersecting), { threshold: 0.4 });
+    io.observe(stage);
+  }
+}
+
+export { timeline, tickets, ball, mood, crowd, waveWidget as wave, flight, hitch, race, cameras };

@@ -3,7 +3,7 @@
 import { useEffect, useRef } from "react";
 import "./birthday.css";
 
-type Name = "timeline" | "tickets" | "ball" | "mood" | "crowd" | "wave" | "flight" | "hitch" | "race";
+type Name = "timeline" | "tickets" | "ball" | "mood" | "crowd" | "wave" | "flight" | "hitch" | "race" | "cameras";
 
 /** Mounts one of the post's interactive figures once it reaches the client. */
 export function Widget({ name }: { name: Name }) {
