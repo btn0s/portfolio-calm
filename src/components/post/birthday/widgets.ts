@@ -10,7 +10,6 @@ import history from './history.json';
 import wave from './finale-wave.json';
 
 const INK = '#ededed';
-const MUTE = '#b5b5b5';
 const PINK = '#e83d97';
 const BLUE = '#2495d6';
 const INK3 = '#7a7a7a';
@@ -30,7 +29,8 @@ function s<K extends keyof SVGElementTagNameMap>(tag: K, attrs: Record<string, s
   return e;
 }
 function chips<T extends string>(parent: HTMLElement, items: { id: T; label: string }[], pick: (id: T) => void, initial: T) {
-  const row = h('div', { class: 'seg', role: 'group' });
+  // Up to three choices share the full width on a phone, like a native segmented control.
+  const row = h('div', { class: items.length <= 3 ? 'seg fill' : 'seg', role: 'group' });
   const buttons = items.map((it) => {
     const b = h('button', { class: 'chip', type: 'button', 'aria-pressed': String(it.id === initial) }, it.label);
     b.onclick = () => {
@@ -42,6 +42,40 @@ function chips<T extends string>(parent: HTMLElement, items: { id: T; label: str
   });
   parent.append(row);
   return row;
+}
+const ICON = {
+  play: '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M5 3.2v9.6a.6.6 0 0 0 .9.5l7.6-4.8a.6.6 0 0 0 0-1L5.9 2.7a.6.6 0 0 0-.9.5Z" fill="currentColor"/></svg>',
+  pause: '<svg viewBox="0 0 16 16" aria-hidden="true"><rect x="3.5" y="2.5" width="3" height="11" rx="1" fill="currentColor"/><rect x="9.5" y="2.5" width="3" height="11" rx="1" fill="currentColor"/></svg>',
+  replay: '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8a5 5 0 1 0 1.6-3.7M3 2.5v2.8h2.8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  prev: '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M10 3.5 5.5 8l4.5 4.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  next: '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6 3.5 10.5 8 6 12.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+};
+/** A round icon button; `set` swaps its icon and label. */
+function iconButton(icon: keyof typeof ICON, label: string) {
+  const b = h('button', { class: 'icon', type: 'button' });
+  const set = (i: keyof typeof ICON, l: string) => {
+    b.innerHTML = ICON[i];
+    b.setAttribute('aria-label', l);
+  };
+  set(icon, label);
+  return Object.assign(b, { set });
+}
+/** Horizontal drag on `el` reports x; vertical swipes still scroll the page. Mouse can scrub on hover. */
+function scrub(el: HTMLElement, at: (x: number, w: number) => void, hover = false) {
+  el.style.touchAction = 'pan-y';
+  let down = false;
+  const go = (e: PointerEvent) => {
+    const r = el.getBoundingClientRect();
+    at(Math.min(r.width, Math.max(0, e.clientX - r.left)), r.width);
+  };
+  el.addEventListener('pointerdown', (e) => {
+    down = true;
+    el.setPointerCapture(e.pointerId);
+    go(e);
+  });
+  el.addEventListener('pointermove', (e) => (down || (hover && e.pointerType === 'mouse')) && go(e));
+  el.addEventListener('pointerup', () => (down = false));
+  el.addEventListener('pointercancel', () => (down = false));
 }
 /** The control bar every widget opens with: actions on the left, choices next to them. */
 function toolbar(root: HTMLElement, ...kids: HTMLElement[]) {
@@ -87,54 +121,23 @@ function canvas2d(parent: HTMLElement, cls = '') {
   return { c, ctx, size: () => c.getBoundingClientRect() };
 }
 
-// Tooltip, shared.
-const tip = document.body.appendChild(h('div', { id: 'bts-tip', role: 'tooltip' }));
-function showTip(html: string, x: number, y: number) {
-  tip.innerHTML = html;
-  tip.classList.add('on');
-  const r = tip.getBoundingClientRect();
-  tip.style.left = `${Math.min(innerWidth - r.width - 8, Math.max(8, x + 14))}px`;
-  tip.style.top = `${Math.min(innerHeight - r.height - 8, y + 14)}px`;
-}
-const hideTip = () => tip.classList.remove('on');
-// A tapped tooltip stays until the next tap elsewhere or a scroll.
-document.addEventListener('click', (e) => {
-  if ((e.target as Element).closest('.hit')) return;
-  hideTip();
-  document.querySelectorAll('#timeline .dot.on').forEach((d) => d.classList.remove('on'));
-});
-addEventListener('scroll', hideTip, { passive: true });
 const esc = (t: string) => t.replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' })[c]!);
 
 // Strips: tap a frame to see it big.
 document.addEventListener('click', (e) => {
-  const img = (e.target as HTMLElement).closest('.strip img, .crowd-grid img') as HTMLImageElement | null;
+  const img = (e.target as HTMLElement).closest('.strip img') as HTMLImageElement | null;
   if (!img) return;
   const box = h('div', { class: 'lightbox' }, h('img', { src: img.src, alt: img.alt }));
   box.onclick = () => box.remove();
   document.body.append(box);
 });
 // ── 1. The weekend timeline ──────────────────────────────────────────────────────────────
+// One prompt at a time, big enough to read; drag along the weekend underneath to move through them.
 function timeline(root: HTMLElement) {
   const END = 24;
-  const W = 1000;
-  const H = 230;
-  const L = 8;
-  const R = 8;
-  const x = (hr: number) => L + (hr / END) * (W - L - R);
-  const svg = s('svg', { viewBox: `0 0 ${W} ${H}`, role: 'img', 'aria-label': 'Timeline of prompts and commits over 24 hours' });
   const prompts = history.prompts.filter((p) => p.h <= END);
-  const hits: SVGCircleElement[] = [];
   const commits = history.commits.filter((c) => c.h <= END);
-  // The night: the gap with no prompts.
-  let gap = { a: 0, b: 0 };
-  for (let i = 1; i < prompts.length; i++) if (prompts[i].h - prompts[i - 1].h > gap.b - gap.a) gap = { a: prompts[i - 1].h, b: prompts[i].h };
-  svg.append(s('rect', { x: x(gap.a + 0.2), y: 40, width: x(gap.b - 0.2) - x(gap.a + 0.2), height: 130, fill: '#ffffff06', rx: 8 }));
-  const sleep = s('text', { x: (x(gap.a) + x(gap.b)) / 2, y: 110, 'text-anchor': 'middle', fill: INK3, 'font-size': 13 });
-  sleep.textContent = 'asleep';
-  svg.append(sleep);
-  // Chapters.
-  const marks: [number, string][] = [
+  const chapters: [number, string][] = [
     [0, 'Tickets'],
     [0.32, 'Treasure hunt'],
     [0.97, 'Simpler'],
@@ -146,70 +149,120 @@ function timeline(root: HTMLElement) {
     [22.3, 'iPhone bug'],
     [23, 'She loved it'],
   ];
-  let lastX = -999;
-  let lane = 0;
-  for (const [hr, label] of marks) {
-    const px = x(hr);
-    lane = px - lastX < 90 ? (lane + 1) % 3 : 0;
-    lastX = px;
-    svg.append(s('line', { x1: px, x2: px, y1: 8 + lane * 15, y2: 170, stroke: LINE }));
-    const t = s('text', { x: px + 4, y: 12 + lane * 15, fill: '#a3a3a3', 'font-size': 12, 'font-weight': 600 });
-    t.textContent = label;
-    svg.append(t);
+  const chapterAt = (hr: number) => chapters.filter(([a]) => a <= hr + 1e-6).pop()![1];
+  let gap = { a: 0, b: 0 };
+  for (let k = 1; k < prompts.length; k++) if (prompts[k].h - prompts[k - 1].h > gap.b - gap.a) gap = { a: prompts[k - 1].h, b: prompts[k].h };
+
+  const when = h('span', {});
+  const chapter = h('span', { class: 'chapter' });
+  const count = h('span', { class: 'count' });
+  const text = h('p', { class: 'tl-text' });
+  const box = h('div', { class: 'tl-chart', tabindex: '0', role: 'slider', 'aria-label': 'Prompt', 'aria-valuemin': '1', 'aria-valuemax': String(prompts.length) });
+  root.append(h('div', { class: 'tl-read' }, h('div', { class: 'tl-meta' }, when, chapter, count), text), box);
+  root.append(h('p', { class: 'caption' }, `${prompts.length} prompts and ${commits.length} commits in 24 hours. Drag across to read them.`));
+  const { ctx: g, size } = canvas2d(box);
+
+  let i = 0;
+  const X = (hr: number, W: number) => 6 + (hr / END) * (W - 12);
+  function draw() {
+    const { width: W, height: H } = size();
+    const base = H - 24;
+    g.clearRect(0, 0, W, H);
+    // The night off.
+    g.fillStyle = '#ffffff07';
+    g.beginPath();
+    g.roundRect(X(gap.a + 0.25, W), 4, X(gap.b - 0.25, W) - X(gap.a + 0.25, W), base - 4, 6);
+    g.fill();
+    g.fillStyle = INK3;
+    g.font = '11px ui-monospace, monospace';
+    g.textAlign = 'center';
+    g.fillText('asleep', (X(gap.a, W) + X(gap.b, W)) / 2, 18);
+    // Chapter starts, labelled when there's room.
+    g.textAlign = 'left';
+    let lastEnd = -1;
+    for (const [hr, label] of chapters) {
+      const px = Math.round(X(hr, W)) + 0.5;
+      g.fillStyle = LINE;
+      g.fillRect(px, 4, 1, base - 4);
+      if (W > 600) {
+        g.font = '600 11px Helvetica, Arial, sans-serif';
+        const tw = g.measureText(label).width;
+        if (px + 4 > lastEnd + 6) {
+          g.fillStyle = '#8a8a8a';
+          g.fillText(label, px + 4, 14);
+          lastEnd = px + 4 + tw;
+        }
+      }
+    }
+    // Commits under the axis.
+    g.fillStyle = BLUE;
+    for (const c of commits) g.fillRect(X(c.h, W) - 0.75, base + 4, 1.5, 6);
+    g.fillStyle = LINE;
+    g.fillRect(6, base, W - 12, 1);
+    // Hours.
+    g.fillStyle = INK3;
+    g.font = '10px ui-monospace, monospace';
+    for (let hr = 0; hr <= END; hr += 6) {
+      g.textAlign = hr === 0 ? 'left' : hr === END ? 'right' : 'center';
+      g.fillText(`${hr}h`, X(hr, W), H - 2);
+    }
+    // Prompts, stacked in columns a dot wide; the ones already read are bright.
+    const r = W > 600 ? 3 : 2.25;
+    const col = r * 2 + 1;
+    const stacks = new Map<number, number>();
+    prompts.forEach((p, k) => {
+      const c = Math.round(X(p.h, W) / col);
+      const n = stacks.get(c) ?? 0;
+      stacks.set(c, n + 1);
+      g.globalAlpha = k <= i ? 1 : 0.35;
+      g.fillStyle = PINK;
+      g.beginPath();
+      g.arc(c * col, base - 6 - n * (r * 2 + 1.5), r, 0, Math.PI * 2);
+      g.fill();
+      if (k === i) {
+        g.globalAlpha = 1;
+        g.fillStyle = INK;
+        g.fillRect(Math.round(c * col) - 0.5, 4, 1, base - 4);
+        g.beginPath();
+        g.arc(c * col, base - 6 - n * (r * 2 + 1.5), r + 2.5, 0, Math.PI * 2);
+        g.strokeStyle = INK;
+        g.lineWidth = 1.5;
+        g.stroke();
+      }
+    });
+    g.globalAlpha = 1;
   }
-  // Prompts: a beeswarm of dots, stacked within 6-minute buckets.
-  const stacks = new Map<number, number>();
-  for (const p of prompts) {
-    const k = Math.round(p.h * 10);
-    const n = stacks.get(k) ?? 0;
-    stacks.set(k, n + 1);
-    const dot = s('circle', { class: 'dot', cx: x(p.h), cy: 150 - n * 11, r: 4.5, fill: PINK, stroke: '#111113', 'stroke-width': 2 });
+  function pick(k: number) {
+    i = Math.max(0, Math.min(prompts.length - 1, k));
+    const p = prompts[i];
     const hr = Math.floor(p.h);
     const min = Math.round((p.h - hr) * 60);
-    const html = `<small>Hour ${hr}:${String(min).padStart(2, '0')}${p.photos ? ` · ${p.photos} photo${p.photos > 1 ? 's' : ''}` : ''}</small>${esc(p.text || '(photos)')}`;
-    const hit = s('circle', { class: 'hit', cx: x(p.h), cy: 150 - n * 11, r: 9, fill: 'transparent' });
-    const show = (e: PointerEvent) => {
-      svg.querySelectorAll('.dot.on').forEach((d) => d.classList.remove('on'));
-      dot.classList.add('on');
-      showTip(html, e.clientX, e.clientY);
-    };
-    hit.addEventListener('pointerenter', show);
-    hit.addEventListener('pointermove', (e) => e.pointerType === 'mouse' && showTip(html, e.clientX, e.clientY));
-    hit.addEventListener('pointerleave', (e) => {
-      if (e.pointerType !== 'mouse') return;
-      dot.classList.remove('on');
-      hideTip();
-    });
-    hit.addEventListener('click', (e) => show(e as PointerEvent));
-    svg.append(dot);
-    hits.push(hit);
+    when.textContent = `Hour ${hr}:${String(min).padStart(2, '0')}`;
+    chapter.textContent = chapterAt(p.h);
+    count.textContent = `${i + 1} / ${prompts.length}`;
+    text.textContent = p.text || `(${p.photos} photo${p.photos > 1 ? 's' : ''})`;
+    text.classList.toggle('photos', !p.text);
+    box.setAttribute('aria-valuenow', String(i + 1));
+    box.setAttribute('aria-valuetext', text.textContent);
+    draw();
   }
-  hits.forEach((c) => svg.append(c));
-  // Commits: ticks under the axis.
-  for (const c of commits) {
-    const tick = s('rect', { x: x(c.h) - 1, y: 178, width: 2.5, height: 16, rx: 1, fill: BLUE });
-    const html = `<small>${c.sha}</small>${esc(c.msg)}`;
-    tick.addEventListener('pointerenter', (e) => showTip(html, e.clientX, e.clientY));
-    tick.addEventListener('pointerleave', hideTip);
-    svg.append(tick);
-    svg.append(Object.assign(s('rect', { x: x(c.h) - 5, y: 174, width: 10, height: 24, fill: 'transparent' }), {}));
-  }
-  const axis = s('g', { class: 'axis' });
-  axis.append(s('line', { x1: L, x2: W - R, y1: 172, y2: 172 }));
-  for (let hr = 0; hr <= END; hr += 4) {
-    const t = s('text', { x: x(hr), y: 214, 'text-anchor': hr === 0 ? 'start' : hr === END ? 'end' : 'middle' });
-    t.textContent = `${hr}h`;
-    axis.append(t);
-  }
-  svg.append(axis);
-  root.classList.add('screen', 'pad');
-  root.append(svg);
-  root.append(
-    h('div', { class: 'legend' }, h('span', {}, h('i', { style: `background:${PINK};height:9px;width:9px;border-radius:50%` }), `${prompts.length} prompts`), h('span', {}, h('i', { style: `background:${BLUE};height:12px;width:3px` }), `${commits.length} commits`), h('span', { class: 'hint' }, matchMedia('(hover: hover)').matches ? 'Hover a dot to read the prompt' : 'Tap a dot to read the prompt')),
-  );
+  scrub(box, (px, W) => {
+    let best = 0;
+    prompts.forEach((p, k) => Math.abs(X(p.h, W) - px) < Math.abs(X(prompts[best].h, W) - px) && (best = k));
+    if (best !== i) pick(best);
+  }, true);
+  box.addEventListener('keydown', (e) => {
+    const step = { ArrowLeft: -1, ArrowRight: 1, Home: -1e9, End: 1e9 }[e.key];
+    if (step === undefined) return;
+    e.preventDefault();
+    pick(i + step);
+  });
+  new ResizeObserver(draw).observe(box);
+  pick(0);
 }
 
 // ── 2. Ticket options ────────────────────────────────────────────────────────────────────
+// A rail you swipe through, ending on the one we chose.
 function tickets(root: HTMLElement) {
   const opts = [
     { id: 'option1', label: 'Night sky' },
@@ -218,11 +271,39 @@ function tickets(root: HTMLElement) {
     { id: 'option4', label: 'Mirror ball' },
     { id: 'letterpress', label: 'Letterpress' },
     { id: 'final', label: 'Chosen' },
-  ] as const;
-  const img = h('img', { src: '/thoughts/birthday/tix/final.jpg', alt: 'The chosen ticket' });
-  root.append(h('div', { class: 'tix-stage' }, img));
-  for (const o of opts) new Image().src = `/thoughts/birthday/tix/${o.id}.jpg`;
-  toolbar(root, chips(root, [...opts], (id) => (img.src = `/thoughts/birthday/tix/${id}.jpg`), 'final'));
+  ];
+  const rail = h('div', { class: 'rail' });
+  const dots = h('div', { class: 'dots' });
+  const prev = iconButton('prev', 'Previous ticket');
+  const next = iconButton('next', 'Next ticket');
+  const items = opts.map((o, k) => {
+    const fig = h('figure', { class: o.id === 'final' ? 'tix chosen' : 'tix' }, h('img', { src: `/thoughts/birthday/tix/${o.id}.jpg`, alt: `${o.label} ticket`, draggable: 'false' }), h('figcaption', {}, o.label));
+    rail.append(fig);
+    const d = h('button', { type: 'button', 'aria-label': o.label });
+    d.onclick = () => go(k);
+    dots.append(d);
+    return fig;
+  });
+  root.append(rail, h('div', { class: 'pager' }, prev, dots, next));
+  let at = -1;
+  const go = (k: number) => {
+    const fig = items[Math.max(0, Math.min(items.length - 1, k))];
+    rail.scrollTo({ left: fig.offsetLeft - rail.offsetLeft - (parseFloat(getComputedStyle(rail).scrollPaddingLeft) || 0), behavior: reduced ? 'auto' : 'smooth' });
+  };
+  const sync = () => {
+    const pad = parseFloat(getComputedStyle(rail).scrollPaddingLeft) || 0;
+    let k = 0;
+    items.forEach((f, n) => Math.abs(f.offsetLeft - rail.offsetLeft - pad - rail.scrollLeft) < Math.abs(items[k].offsetLeft - rail.offsetLeft - pad - rail.scrollLeft) && (k = n));
+    if (k === at) return;
+    at = k;
+    [...dots.children].forEach((d, n) => d.setAttribute('aria-current', String(n === k)));
+    prev.disabled = k === 0;
+    next.disabled = k === items.length - 1;
+  };
+  prev.onclick = () => go(at - 1);
+  next.onclick = () => go(at + 1);
+  rail.addEventListener('scroll', sync, { passive: true });
+  sync();
 }
 
 // ── 3. Mirror ball ───────────────────────────────────────────────────────────────────────
@@ -292,7 +373,7 @@ function stage(box: HTMLElement) {
 }
 
 function ball(root: HTMLElement) {
-  const box = h('div', { class: 'canvas-box' });
+  const box = h('div', { class: 'canvas-box grab' });
   const controls = h('div', { class: 'controls' });
   root.append(h('div', { class: 'split' }, box, controls));
   const { renderer, scene, camera } = stage(box);
@@ -301,41 +382,45 @@ function ball(root: HTMLElement) {
   scene.add(mesh);
   const lights = [new THREE.PointLight('#e83d97', 40, 0, 1.6), new THREE.PointLight('#2495d6', 40, 0, 1.6), new THREE.PointLight('#ffffff', 25, 0, 1.6)];
   lights.forEach((l) => scene.add(l));
-  const state = { rows: 22, wobble: 0.12, spin: 0.35 };
-  const rebuild = () => {
+  // The one control that matters: how far each tile is knocked off true.
+  const input = h('input', { type: 'range', min: '0', max: '0.3', step: '0.01', value: '0.12', 'aria-label': 'Tile wobble' }) as HTMLInputElement;
+  const out = h('output', {}, '0.12');
+  input.oninput = () => {
+    const w = Number(input.value);
+    out.textContent = w.toFixed(2);
     mesh.geometry.dispose();
-    mesh.geometry = ballGeometry(state.rows, state.wobble);
+    mesh.geometry = ballGeometry(22, w);
   };
-  const slider = (label: string, key: keyof typeof state, min: number, max: number, step: number, fmt: (v: number) => string, onChange: () => void) => {
-    const input = h('input', { type: 'range', min: String(min), max: String(max), step: String(step), value: String(state[key]) }) as HTMLInputElement;
-    const out = h('output', {}, fmt(state[key]));
-    input.oninput = () => {
-      state[key] = Number(input.value);
-      out.textContent = fmt(state[key]);
-      onChange();
-    };
-    controls.append(h('label', { class: 'slider' }, label, input, out));
-    resets.push(() => {
-      state[key] = initial[key];
-      input.value = String(initial[key]);
-      out.textContent = fmt(initial[key]);
-    });
-  };
-  const initial = { ...state };
-  const resets: (() => void)[] = [];
-  slider('Tile wobble', 'wobble', 0, 0.4, 0.01, (v) => v.toFixed(2), rebuild);
-  slider('Rows of tiles', 'rows', 6, 40, 1, (v) => String(v), rebuild);
-  slider('Spin', 'spin', 0, 1.5, 0.05, (v) => v.toFixed(2), () => {});
-  const reset = h('button', { class: 'chip', type: 'button' }, 'Reset to the show’s ball');
-  reset.onclick = () => {
-    resets.forEach((f) => f());
-    rebuild();
-  };
-  controls.append(h('div', { class: 'row' }, reset));
+  controls.append(
+    h('div', { class: 'knob' }, h('div', { class: 'knob-head' }, h('span', {}, 'Tile wobble'), out), input, h('div', { class: 'ends' }, h('span', {}, 'Chrome'), h('span', {}, 'Disco ball'))),
+  );
+  // Drag to spin it; it eases back to the show's lazy turn.
+  const SPIN = 0.35;
+  let vel = SPIN;
+  let lastX = 0;
+  let dragging = false;
+  box.style.touchAction = 'pan-y';
+  box.addEventListener('pointerdown', (e) => {
+    dragging = true;
+    lastX = e.clientX;
+    box.setPointerCapture(e.pointerId);
+  });
+  box.addEventListener('pointermove', (e) => {
+    if (!dragging) return;
+    mesh.rotation.y += (e.clientX - lastX) * 0.012;
+    vel = (e.clientX - lastX) * 0.6;
+    lastX = e.clientX;
+  });
+  const release = () => (dragging = false);
+  box.addEventListener('pointerup', release);
+  box.addEventListener('pointercancel', release);
   let t = 0;
   whileVisible(box, (dt) => {
     t += dt;
-    mesh.rotation.y += dt * state.spin;
+    if (!dragging) {
+      vel += (SPIN - vel) * Math.min(1, dt * 1.5);
+      mesh.rotation.y += dt * (reduced ? 0 : vel);
+    }
     mesh.rotation.x = 0.25;
     lights[0].position.set(Math.cos(t * 0.7) * 3, 1.5, Math.sin(t * 0.7) * 3 + 1);
     lights[1].position.set(Math.cos(t * 0.7 + 2.1) * 3, -1.2, Math.sin(t * 0.7 + 2.1) * 3 + 1);
@@ -346,12 +431,13 @@ function ball(root: HTMLElement) {
 
 // ── 4. Scene moods ───────────────────────────────────────────────────────────────────────
 function mood(root: HTMLElement) {
+  // Muffled to clear.
   const scenes: { id: Mood; label: string }[] = [
     { id: 'far', label: 'Through a wall' },
-    { id: 'intimate', label: 'Next room' },
-    { id: 'party', label: 'The party' },
+    { id: 'intimate', label: 'In the next room' },
     { id: 'inside', label: 'Inside the ball' },
-    { id: 'crowd', label: 'The crowd' },
+    { id: 'party', label: 'At the party' },
+    { id: 'crowd', label: 'In the crowd' },
   ];
   let current: Mood = 'far';
   let ctx: AudioContext | null = null;
@@ -361,7 +447,7 @@ function mood(root: HTMLElement) {
   const el = new Audio('/thoughts/birthday/music.m4a');
   el.loop = true;
   el.preload = 'none';
-  const play = h('button', { class: 'chip play', type: 'button', 'aria-pressed': 'false' }, '▶ Play');
+  const play = iconButton('play', 'Play the song');
   const apply = (seconds: number) => {
     if (!ctx || !filter || !gain) return;
     const m = MOODS[current];
@@ -390,24 +476,31 @@ function mood(root: HTMLElement) {
       await ctx.resume();
       await el.play();
       apply(0.6);
-      play.textContent = '❚❚ Pause';
-      play.setAttribute('aria-pressed', 'true');
+      play.set('pause', 'Pause');
     } else {
       el.pause();
-      play.textContent = '▶ Play';
-      play.setAttribute('aria-pressed', 'false');
+      play.set('play', 'Play the song');
     }
   };
-  const picker = chips(root, scenes, (id) => {
-    current = id;
+  const name = h('b', {}, scenes[0].label);
+  const hz = h('span', {}, '');
+  const input = h('input', { type: 'range', min: '0', max: String(scenes.length - 1), step: '1', value: '0', 'aria-label': 'Where the song is coming from' }) as HTMLInputElement;
+  const pickRoom = () => {
+    const sc = scenes[Number(input.value)];
+    current = sc.id;
+    name.textContent = sc.label;
+    hz.textContent = MOODS[sc.id].hz >= 20000 ? 'no filter' : `${MOODS[sc.id].hz.toLocaleString()} Hz`;
+    input.setAttribute('aria-valuetext', sc.label);
     apply(0.8);
-    readout.textContent = `Cutoff ${MOODS[id].hz.toLocaleString()} Hz`;
-  }, current);
-  const box = h('div', { class: 'screen', style: 'height:220px' });
-  root.append(box);
-  const readout = h('p', { class: 'note' }, `Cutoff ${MOODS.far.hz.toLocaleString()} Hz`);
-  root.append(readout);
-  toolbar(root, play, picker);
+  };
+  input.oninput = pickRoom;
+  const box = h('div', { class: 'screen', style: 'height:var(--chart-h, 220px)' });
+  root.append(
+    h('div', { class: 'head' }, play, h('div', { class: 'title' }, name, hz)),
+    box,
+    h('div', { class: 'knob' }, input, h('div', { class: 'ticks' }, ...scenes.map(() => h('i'))), h('div', { class: 'ends' }, h('span', {}, 'Muffled'), h('span', {}, 'Clear'))),
+  );
+  pickRoom();
   const { ctx: g, size } = canvas2d(box);
   box.firstElementChild!.setAttribute('style', 'width:100%;height:100%');
   const N = 160;
@@ -432,7 +525,7 @@ function mood(root: HTMLElement) {
     g.fillStyle = INK3;
     g.font = '11px ui-monospace, monospace';
     g.lineWidth = 1;
-    for (const f of [20, 100, 1000, 10000, 20000]) {
+    for (const f of W < 500 ? [20, 100, 1000, 10000] : [20, 100, 1000, 10000, 20000]) {
       g.beginPath();
       g.moveTo(px(f), pad.t);
       g.lineTo(px(f), H - pad.b);
@@ -480,26 +573,54 @@ function mood(root: HTMLElement) {
 }
 
 // ── 5. Crowds ────────────────────────────────────────────────────────────────────────────
+// Before and after, one over the other: drag the line to compare.
 function crowd(root: HTMLElement) {
-  const grid = h('div', { class: 'crowd-grid' });
-  const items: [string, string, string][] = [
-    ['/thoughts/birthday/versions/crowd-1-wave.jpg', 'Before', ''],
-    ['/thoughts/birthday/versions/crowd-4-photo.jpg', 'After', ''],
-  ];
-  for (const [src, title, said] of items) {
-    const img = h('img', { src, alt: title, loading: 'lazy' });
-    const fig = h('figure', {}, img, h('figcaption', {}, title));
-    img.onerror = () => fig.remove();
-    grid.append(fig);
+  const after = h('img', { src: '/thoughts/birthday/versions/crowd-4-photo.jpg', alt: 'After: a real stadium photo with live phone lights', draggable: 'false' });
+  const before = h('img', { src: '/thoughts/birthday/versions/crowd-1-wave.jpg', alt: 'Before: glowing dots doing a wave', draggable: 'false' });
+  const cmp = h('div', { class: 'cmp', role: 'slider', tabindex: '0', 'aria-label': 'Before and after', 'aria-valuemin': '0', 'aria-valuemax': '100' },
+    after,
+    h('div', { class: 'cmp-before' }, before),
+    h('span', { class: 'tag l' }, 'Before'),
+    h('span', { class: 'tag r' }, 'After'),
+    h('div', { class: 'cmp-line' }, h('i', {})),
+  );
+  root.append(cmp);
+  let p = 50;
+  const set = (v: number) => {
+    p = Math.max(0, Math.min(100, v));
+    cmp.style.setProperty('--p', `${p}%`);
+    cmp.setAttribute('aria-valuenow', String(Math.round(p)));
+  };
+  set(50);
+  scrub(cmp, (x, w) => set((x / w) * 100));
+  cmp.addEventListener('keydown', (e) => {
+    const d = { ArrowLeft: -5, ArrowRight: 5 }[e.key];
+    if (d === undefined) return;
+    e.preventDefault();
+    set(p + d);
+  });
+  // A small nudge the first time it's seen, so it reads as something to drag.
+  if (!reduced) {
+    const io = new IntersectionObserver(([e]) => {
+      if (!e.isIntersecting) return;
+      io.disconnect();
+      const t0 = performance.now();
+      const step = (now: number) => {
+        const k = Math.min(1, (now - t0) / 1400);
+        set(50 - Math.sin(k * Math.PI) * 18);
+        if (k < 1) requestAnimationFrame(step);
+      };
+      setTimeout(() => requestAnimationFrame(step), 400);
+    }, { threshold: 0.6 });
+    io.observe(cmp);
   }
-  root.append(grid);
 }
 
 // ── 6. The finale in the song ────────────────────────────────────────────────────────────
 type Cut = { sha: string; name: string; start: number; open?: number; drop?: number; hit: number; next: string };
 const CUTS: Cut[] = [
   { sha: 'f5ad7a1', name: 'First try', start: 20.14, drop: 21.94, hit: 24.25, next: 'no but the drums need to end at the explosion … the disco ball needs to open at almost exactly 0:23' },
-  { sha: '923b09c', name: 'Earlier, more room', start: 17, open: 19.2, drop: 21.94, hit: 23, next: 'ok yes yes yes but we need more movement' },
+  { sha: '923b09c', name: 'More room', start: 17, open: 19.2, drop: 21.94, hit: 23, next: 'ok yes yes yes but we need more movement' },
   { sha: 'today', name: 'Final', start: 18.4, open: 19.7, drop: 21.5, hit: 23, next: 'Starts at 0:18.40, takes off immediately, and bursts on the hit at 0:23.' },
 ];
 function waveWidget(root: HTMLElement) {
@@ -508,22 +629,20 @@ function waveWidget(root: HTMLElement) {
   el.preload = 'none';
   // The trimmed finale starts at 0:18.40, so an earlier cut plays from the top of the file.
   const IN = 18.4;
-  const play = h('button', { class: 'chip play', type: 'button', 'aria-pressed': 'false' }, '▶ Play');
+  const play = iconButton('play', 'Play this cut');
   const stop = () => {
     el.pause();
-    play.textContent = '▶ Play';
-    play.setAttribute('aria-pressed', 'false');
+    play.set('play', 'Play this cut');
   };
   play.onclick = () => {
     if (!el.paused) return stop();
     el.currentTime = Math.max(0, cut.start - IN);
     void el.play();
-    play.textContent = '■ Stop';
-    play.setAttribute('aria-pressed', 'true');
+    play.set('pause', 'Stop');
   };
   el.onended = stop;
   el.ontimeupdate = () => el.currentTime > cut.hit - IN + 1.2 && stop();
-  const box = h('div', { class: 'screen', style: 'height:210px' });
+  const box = h('div', { class: 'screen', style: 'height:var(--chart-h, 210px)' });
   const said = h('blockquote', {});
   const meta = h('p', { class: 'note' });
   root.append(box);
@@ -605,7 +724,7 @@ function waveWidget(root: HTMLElement) {
     // Axis.
     g.fillStyle = INK3;
     g.font = '11px ui-monospace, monospace';
-    for (let t = Math.ceil(wave.start); t <= wave.start + wave.dur; t++) g.fillText(`0:${t}`, x(t) - 10, H - 6);
+    for (let t = Math.ceil(wave.start); t <= wave.start + wave.dur; t += W < 500 ? 2 : 1) g.fillText(`0:${t}`, x(t) - 10, H - 6);
     // Playhead.
     if (!el.paused) {
       const t = IN + el.currentTime;
@@ -618,12 +737,11 @@ function waveWidget(root: HTMLElement) {
 // ── 7. The flight ────────────────────────────────────────────────────────────────────────
 function flight(root: HTMLElement) {
   let f: Flight = FLIGHTS[FLIGHTS.length - 1];
-  const chartBox = h('div', { class: 'screen', style: 'height:280px' });
+  const chartBox = h('div', { class: 'screen', style: 'height:var(--chart-h, 280px)' });
   const tunnelBox = h('div', { class: 'tunnel' });
   const clock = h('span', { class: 't' }, '');
   tunnelBox.append(clock);
   const said = h('blockquote', {});
-  const did = h('p', {});
   root.append(h('div', { class: 'flight-grid' }, h('div', {}, chartBox, h('div', { class: 'said' }, said)), tunnelBox));
   toolbar(root, chips(root, FLIGHTS.map((v, i) => ({ id: String(i), label: v.name })), (id) => {
     f = FLIGHTS[Number(id)];
@@ -673,7 +791,7 @@ function flight(root: HTMLElement) {
       g.stroke();
       g.fillText(String(v), 6, y(v) + 4);
     }
-    for (let s = 17; s <= 23; s++) g.fillText(`0:${s}`, x(s) - 12, H - 6);
+    for (let s = 17; s <= 23; s += W < 500 ? 2 : 1) g.fillText(`0:${s}`, x(s) - 12, H - 6);
     for (const v of FLIGHTS) {
       const on = v === f;
       g.beginPath();
@@ -742,7 +860,7 @@ function hitch(root: HTMLElement) {
   scene.add(group);
   const frames = canvas2d(controls, 'frames');
   const times: number[] = [];
-  const result = h('p', { class: 'note' }, '');
+  const result = h('p', { class: 'note' }, 'Add a shape and watch the frame time.');
   let worst = 0;
   let n = 0;
   // Every object gets a material the GPU has never seen: a physical material with its own shader variant.
@@ -760,7 +878,7 @@ function hitch(root: HTMLElement) {
   };
   const cold = h('button', { class: 'chip', type: 'button' }, 'Add a new shape');
   const warm = h('button', { class: 'chip', type: 'button' }, 'Add one, compiled first');
-  const clear = h('button', { class: 'chip', type: 'button' }, 'Clear');
+  const clear = h('button', { class: 'link', type: 'button' }, 'Clear');
   let watch = '';
   cold.onclick = () => {
     worst = 0;
@@ -786,7 +904,7 @@ function hitch(root: HTMLElement) {
     group.clear();
     worst = 0;
   };
-  controls.append(h('div', { class: 'row' }, cold, warm, clear), result);
+  controls.append(h('div', { class: 'pair' }, cold, warm), h('div', { class: 'row' }, result, clear));
   // Start with one shape on screen, compiled while the page loaded.
   const first = fresh();
   first.position.set(0, 0, 0);
@@ -851,7 +969,7 @@ function race(root: HTMLElement) {
     replay();
   }, 'bug');
   // Play runs the three seconds in slow motion; dragging the slider takes over.
-  const play = h('button', { class: 'chip play', type: 'button' }, '▶ Replay');
+  const play = iconButton('replay', 'Replay in slow motion');
   let raf = 0;
   const replay = () => {
     cancelAnimationFrame(raf);
@@ -876,7 +994,7 @@ function race(root: HTMLElement) {
   const fly = lane('The flight');
   const input = h('input', { type: 'range', min: '0', max: String(END), step: '0.01', value: String(t), 'aria-label': 'Seconds after the tap' }) as HTMLInputElement;
   const at = h('output', {}, '');
-  root.append(h('label', { class: 'slider', style: 'margin-top:14px' }, 'After the tap', input, at));
+  root.append(h('div', { class: 'knob', style: 'margin-top:16px' }, h('div', { class: 'knob-head' }, h('span', {}, 'After the tap'), at), input));
   const out = h('div', { class: 'readout' });
   root.append(out);
   toolbar(root, play, picker);
