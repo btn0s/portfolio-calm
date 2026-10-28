@@ -136,6 +136,31 @@
   .controls .row { justify-content: space-between; }
   .controls .note { margin: 0; }
 
+  /* Music player */
+  .player { display: grid; grid-template-columns: 56px 1fr auto; gap: 14px; align-items: center; }
+  .player .cover { width: 56px; height: 56px; border-radius: 8px; object-fit: cover; box-shadow: 0 0 0 1px #ffffff14, 0 6px 16px -6px #000c; }
+  .player .song { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+  .player .song b { font: 600 16px/1.2 var(--h); color: var(--ink); }
+  .player .song span { font-size: 13px; color: var(--ink-3); }
+  .player button.icon { width: 48px; height: 48px; color: #fff; background: linear-gradient(180deg, #f2609f, #d8307f); border-color: #c42a73; box-shadow: inset 0 1px 0 #ffffff59, 0 4px 12px -4px #e83d9799; }
+  .player button.icon svg { width: 18px; height: 18px; }
+  .progress { margin-top: 16px; }
+  .progress .bar { padding: 8px 0; cursor: pointer; }
+  .progress .rail-track { height: 4px; border-radius: 2px; background: #2a2a2e; overflow: hidden; transition: height 0.2s var(--ease); }
+  .progress .bar:active .rail-track, .progress .bar:hover .rail-track { height: 6px; }
+  .progress .rail-track i { display: block; height: 100%; width: 0; background: var(--ink); border-radius: 2px; }
+  .progress .times { display: flex; justify-content: space-between; font: 11px var(--mono); color: var(--ink-3); font-variant-numeric: tabular-nums; }
+  .room { display: flex; align-items: baseline; gap: 6px; margin: 20px 0 10px; font-size: 13px; color: var(--ink-3); }
+  .room b { font-weight: 500; color: var(--ink); }
+  .room span:last-child { margin-left: auto; font: 12px var(--mono); }
+
+  /* Mood board */
+  .board { margin: 0; }
+  .board-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .board-grid figure { margin: 0; }
+  .board-grid img { display: block; width: 100%; aspect-ratio: 8 / 5; object-fit: cover; border-radius: 8px; cursor: zoom-in; }
+  .board-grid figcaption { margin-top: 6px; font-size: 12px; color: var(--ink-3); }
+
   /* Timeline: one prompt, readable; the weekend underneath to drag through. */
   .tl-read { min-height: 9.6em; }
   .tl-meta { display: flex; gap: 10px; align-items: baseline; font: 12px var(--mono); color: var(--ink-3); margin-bottom: 10px; }

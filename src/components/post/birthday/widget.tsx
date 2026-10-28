@@ -37,3 +37,21 @@ export function Strip({ images }: { images: [string, string][] }) {
     </figure>
   );
 }
+
+/** The mood board: the tour's own screen looks, each named. */
+export function Board({ images, credit }: { images: [string, string][]; credit: string }) {
+  return (
+    <figure className="board wide">
+      <div className="board-grid">
+        {images.map(([src, label]) => (
+          <figure key={src}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={`/thoughts/birthday/${src}`} alt={label} loading="lazy" />
+            <figcaption>{label}</figcaption>
+          </figure>
+        ))}
+      </div>
+      <figcaption className="caption">{credit}</figcaption>
+    </figure>
+  );
+}

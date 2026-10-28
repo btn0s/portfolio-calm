@@ -41,7 +41,11 @@ The script barely changed after this. Every later round was about how each card 
 
 ## “I wonder if there’s more 3D we can do?”
 
-Next we brought in a real-time 3D stage built with three.js on WebGPU: a wall of LED panels showing the tour's screen looks (pink scanlines, a heat-map bullseye, flipping mirror triangles, rainbow bands) and a flock of mirror balls catching the light.
+Next we brought in a real-time 3D stage built with three.js on WebGPU. For the look, we pulled frames from a fan's 4K video of the tour and made a mood board of what was on the screens.
+
+<Board images={[["tour/scanlines.jpg", "Pink scanlines"], ["tour/bullseye.jpg", "Heat-map bullseye"], ["tour/triangles.jpg", "Mirror triangles"], ["tour/rainbow.jpg", "Rainbow bands"]]} credit="Frames from SandraOnTour's video of the tour." />
+
+Those four became the show's LED wall: pink scanlines with hand-drawn marks that boil a few times a second, a posterized bullseye, flipping triangles and rainbow bands, with a flock of mirror balls catching the light.
 
 > holy shit this is awesome ok there were some hitches on the last slides
 
@@ -56,6 +60,8 @@ Each mirror ball is real geometry: rows of small flat tiles, each tilted a few d
 > OK, now you’re gonna kill me, but I wonder if there is more interesting distinction between the scenes, so each slide right now just kind of changes camera and changes the background and keeps the disco balls and whatever.
 
 So each card became somewhere new in a concert: a lone ball in the dark, the party, inside the ball, facing the crowd, a tunnel of screens. Between cards a quick white flash covers the camera jump.
+
+There's no Harry Styles song in it. Using one wasn't an option, so I made an instrumental in Suno and called it “For Nathalie.” A second Suno track is the finale, picked for its big opening hit.
 
 The sound moves too. One song plays through all of it, and a low-pass filter makes it sound like it's coming through a wall, from the next room, from inside the ball, or right there at the party.
 

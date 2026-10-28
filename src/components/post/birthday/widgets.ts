@@ -121,11 +121,13 @@ function canvas2d(parent: HTMLElement, cls = '') {
   return { c, ctx, size: () => c.getBoundingClientRect() };
 }
 
+/** 83.2 → "1:23" */
+const mmss = (sec: number) => `${Math.floor(sec / 60)}:${String(Math.floor(sec % 60)).padStart(2, '0')}`;
 const esc = (t: string) => t.replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' })[c]!);
 
 // Strips: tap a frame to see it big.
 document.addEventListener('click', (e) => {
-  const img = (e.target as HTMLElement).closest('.strip img') as HTMLImageElement | null;
+  const img = (e.target as HTMLElement).closest('.strip img, .board img') as HTMLImageElement | null;
   if (!img) return;
   const box = h('div', { class: 'lightbox' }, h('img', { src: img.src, alt: img.alt }));
   box.onclick = () => box.remove();
@@ -307,33 +309,42 @@ function tickets(root: HTMLElement) {
 }
 
 // ── 3. Mirror ball ───────────────────────────────────────────────────────────────────────
-// The show's ball: rows of flat square tiles, each with its normal knocked off true by `wobble`.
-function ballGeometry(rows: number, wobble: number) {
+// The show's ball: rows of flat square tiles, each with its normal knocked a little off true.
+// `k` morphs it from a perfect sphere (0: tiles meet, normals smooth) to the show's ball (1).
+function ballGeometry(k: number) {
+  const rows = 22;
+  const wobble = 0.12;
   const pos: number[] = [];
   const nor: number[] = [];
   const col: number[] = [];
   const dLat = Math.PI / rows;
-  const hw = dLat * 0.43;
+  const hw = dLat * (0.5 - 0.07 * k);
   const n = new THREE.Vector3();
   const e = new THREE.Vector3();
   const u = new THREE.Vector3();
   const j = new THREE.Vector3();
+  const v = new THREE.Vector3();
   const up = new THREE.Vector3(0, 1, 0);
   let seed = 7;
   const rand = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
   for (let r = 0; r < rows; r++) {
     const lat = -Math.PI / 2 + dLat * (r + 0.5);
     const count = Math.max(6, Math.round((Math.PI * 2 * Math.cos(lat)) / dLat));
+    // Across the row: tiles meet at 0, square at 1.
+    const hwLon = (Math.PI * Math.cos(lat)) / count + (dLat * 0.43 - (Math.PI * Math.cos(lat)) / count) * k;
     for (let i = 0; i < count; i++) {
       const lon = ((i + (r % 2) * 0.5) / count) * Math.PI * 2;
       n.set(Math.cos(lat) * Math.sin(lon), Math.sin(lat), Math.cos(lat) * Math.cos(lon));
       e.crossVectors(up, n).normalize();
       u.crossVectors(n, e);
       j.set(rand() - 0.5, rand() - 0.5, rand() - 0.5).multiplyScalar(wobble).add(n).normalize();
-      const shade = 0.75 + rand() * 0.25;
+      const shade = 1 - k * (0.25 - rand() * 0.25);
       for (const [a, b] of [[-1, -1], [1, -1], [1, 1], [-1, -1], [1, 1], [-1, 1]]) {
-        pos.push(n.x + (e.x * a + u.x * b) * hw, n.y + (e.y * a + u.y * b) * hw, n.z + (e.z * a + u.z * b) * hw);
-        nor.push(j.x, j.y, j.z);
+        v.set(n.x + (e.x * a * hwLon + u.x * b * hw), n.y + (e.y * a * hwLon + u.y * b * hw), n.z + (e.z * a * hwLon + u.z * b * hw));
+        pos.push(v.x, v.y, v.z);
+        // Smooth: the sphere's own normal at this corner. Tiled: the tile's tilted normal.
+        v.normalize().lerp(j, k).normalize();
+        nor.push(v.x, v.y, v.z);
         col.push(shade, shade, shade);
       }
     }
@@ -378,22 +389,38 @@ function ball(root: HTMLElement) {
   root.append(h('div', { class: 'split' }, box, controls));
   const { renderer, scene, camera } = stage(box);
   const mat = new THREE.MeshStandardMaterial({ metalness: 1, roughness: 0.16, vertexColors: true, envMapIntensity: 1.1 });
-  const mesh = new THREE.Mesh(ballGeometry(22, 0.12), mat);
+  const mesh = new THREE.Mesh(ballGeometry(1), mat);
   scene.add(mesh);
   const lights = [new THREE.PointLight('#e83d97', 40, 0, 1.6), new THREE.PointLight('#2495d6', 40, 0, 1.6), new THREE.PointLight('#ffffff', 25, 0, 1.6)];
   lights.forEach((l) => scene.add(l));
-  // The one control that matters: how far each tile is knocked off true.
-  const input = h('input', { type: 'range', min: '0', max: '0.3', step: '0.01', value: '0.12', 'aria-label': 'Tile wobble' }) as HTMLInputElement;
-  const out = h('output', {}, '0.12');
-  input.oninput = () => {
-    const w = Number(input.value);
-    out.textContent = w.toFixed(2);
+  // One slider: a perfect sphere at one end, the show's tiles at the other.
+  const input = h('input', { type: 'range', min: '0', max: '1', step: '0.01', value: '1', 'aria-label': 'From a smooth sphere to mirror tiles' }) as HTMLInputElement;
+  const morph = (k: number) => {
     mesh.geometry.dispose();
-    mesh.geometry = ballGeometry(22, w);
+    mesh.geometry = ballGeometry(k);
   };
-  controls.append(
-    h('div', { class: 'knob' }, h('div', { class: 'knob-head' }, h('span', {}, 'Tile wobble'), out), input, h('div', { class: 'ends' }, h('span', {}, 'Chrome'), h('span', {}, 'Disco ball'))),
-  );
+  input.oninput = () => morph(Number(input.value));
+  controls.append(h('div', { class: 'knob' }, input, h('div', { class: 'ends' }, h('span', {}, 'Smooth sphere'), h('span', {}, 'Mirror tiles'))));
+  // The first time it's seen, it starts as chrome and tiles itself, so the slider explains itself.
+  if (!reduced) {
+    input.value = '0';
+    morph(0);
+    const io = new IntersectionObserver(([en]) => {
+      if (!en.isIntersecting) return;
+      io.disconnect();
+      const t0 = performance.now() + 600;
+      const step = (now: number) => {
+        if (input.matches(':active')) return;
+        const x = Math.max(0, Math.min(1, (now - t0) / 1600));
+        const k = x < 0.5 ? 4 * x * x * x : 1 - (-2 * x + 2) ** 3 / 2;
+        input.value = String(k);
+        morph(k);
+        if (x < 1) requestAnimationFrame(step);
+      };
+      requestAnimationFrame(step);
+    }, { threshold: 0.5 });
+    io.observe(box);
+  }
   // Drag to spin it; it eases back to the show's lazy turn.
   const SPIN = 0.35;
   let vel = SPIN;
@@ -446,7 +473,6 @@ function mood(root: HTMLElement) {
   let analyser: AnalyserNode | null = null;
   const el = new Audio('/thoughts/birthday/music.m4a');
   el.loop = true;
-  el.preload = 'none';
   const play = iconButton('play', 'Play the song');
   const apply = (seconds: number) => {
     if (!ctx || !filter || !gain) return;
@@ -482,21 +508,53 @@ function mood(root: HTMLElement) {
       play.set('play', 'Play the song');
     }
   };
-  const name = h('b', {}, scenes[0].label);
+  const name = h('b', {}, scenes[0].label.toLowerCase());
   const hz = h('span', {}, '');
   const input = h('input', { type: 'range', min: '0', max: String(scenes.length - 1), step: '1', value: '0', 'aria-label': 'Where the song is coming from' }) as HTMLInputElement;
   const pickRoom = () => {
     const sc = scenes[Number(input.value)];
     current = sc.id;
-    name.textContent = sc.label;
+    name.textContent = sc.label.toLowerCase();
     hz.textContent = MOODS[sc.id].hz >= 20000 ? 'no filter' : `${MOODS[sc.id].hz.toLocaleString()} Hz`;
     input.setAttribute('aria-valuetext', sc.label);
     apply(0.8);
   };
   input.oninput = pickRoom;
   const box = h('div', { class: 'screen', style: 'height:var(--chart-h, 220px)' });
+  // The player: the song itself, with a scrubbable timeline.
+  const DUR = 188.4;
+  const fill = h('i', {});
+  const bar = h('div', { class: 'bar', role: 'slider', tabindex: '0', 'aria-label': 'Position in the song', 'aria-valuemin': '0', 'aria-valuemax': String(Math.round(DUR)) }, h('div', { class: 'rail-track' }, fill));
+  const elapsed = h('span', {}, '0:00');
+  const left = h('span', {}, `-${mmss(DUR)}`);
+  const seek = (sec: number) => {
+    el.currentTime = Math.max(0, Math.min(DUR - 0.5, sec));
+    progress();
+  };
+  function progress() {
+    const d = el.duration || DUR;
+    fill.style.width = `${(el.currentTime / d) * 100}%`;
+    elapsed.textContent = mmss(el.currentTime);
+    left.textContent = `-${mmss(d - el.currentTime)}`;
+    bar.setAttribute('aria-valuenow', String(Math.round(el.currentTime)));
+  }
+  el.ontimeupdate = progress;
+  scrub(bar, (x, w) => seek((x / w) * (el.duration || DUR)));
+  bar.addEventListener('keydown', (e) => {
+    const d = { ArrowLeft: -5, ArrowRight: 5 }[e.key];
+    if (d === undefined) return;
+    e.preventDefault();
+    seek(el.currentTime + d);
+  });
+  el.preload = 'metadata';
   root.append(
-    h('div', { class: 'head' }, play, h('div', { class: 'title' }, name, hz)),
+    h('div', { class: 'player' },
+      h('img', { class: 'cover', src: '/thoughts/birthday/cover.jpg', alt: '' }),
+      h('div', { class: 'song' }, h('b', {}, 'For Nathalie'), h('span', {}, 'Instrumental, made in Suno')),
+      play,
+    ),
+    h('div', { class: 'progress' }, bar, h('div', { class: 'times' }, elapsed, left)),
+    h('div', { class: 'room' }, h('span', {}, 'Playing'), name, hz),
     box,
     h('div', { class: 'knob' }, input, h('div', { class: 'ticks' }, ...scenes.map(() => h('i'))), h('div', { class: 'ends' }, h('span', {}, 'Muffled'), h('span', {}, 'Clear'))),
   );

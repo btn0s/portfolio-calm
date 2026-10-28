@@ -5,7 +5,7 @@ import { highlight } from 'sugar-high'
 import React from 'react'
 import remarkGfm from 'remark-gfm'
 import { Video } from './video'
-import { Strip, Widget } from './post/birthday/widget'
+import { Board, Strip, Widget } from './post/birthday/widget'
 
 function Table({ data }: { data: { headers: string[]; rows: string[][] } }) {
   const headers = data.headers.map((header, index) => (
@@ -101,6 +101,7 @@ const components = {
   Video,
   Widget,
   Strip,
+  Board,
   a: CustomLink,
   code: Code,
   Table,
