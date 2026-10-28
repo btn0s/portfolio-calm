@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 
 // Dev-only inline editor: add ?edit to a post's URL and its prose becomes editable. Save
-// writes the changes back to the MDX; Copy puts a before/after list on the clipboard.
+// writes the changes back to the MDX and commits them; Publish pushes them live.
 const BLOCKS = ".post > p, .post > h2, .post > h3, .post > ul > li, .post > ol > li, .post > blockquote > p";
 
 // The block's inline markup as markdown, so bold, italics, code and links survive the edit.
@@ -93,11 +93,6 @@ export function EditMode({ slug }: { slug: string }) {
 
   if (!on) return null;
 
-  const list = () => changes.map((c) => `BEFORE: ${c.before}\nAFTER:  ${c.after}`).join("\n\n");
-  const copy = async () => {
-    await navigator.clipboard.writeText(`Edits to ${slug}:\n\n${list()}`);
-    setStatus("Copied");
-  };
   const publish = async () => {
     if (!confirm(`Publish ${pending} saved change${pending > 1 ? "s" : ""} to btn0s.dev?`)) return;
     setStatus("Publishing…");
@@ -112,7 +107,7 @@ export function EditMode({ slug }: { slug: string }) {
     const res = await fetch("/api/dev-edit", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ slug, edits: changes.map(({ before, after }) => ({ before, after })) }) });
     const out = (await res.json()) as { applied: number; missed: string[] };
     if (out.missed.length) {
-      setStatus(`Saved ${out.applied}, couldn't place ${out.missed.length}. Copy those instead.`);
+      setStatus(`Saved ${out.applied}, couldn't place ${out.missed.length}`);
       setChanges((cs) => cs.filter((c) => out.missed.includes(c.before)));
       return;
     }
@@ -126,9 +121,6 @@ export function EditMode({ slug }: { slug: string }) {
         {changes.length ? `${changes.length} edit${changes.length > 1 ? "s" : ""}` : "Click any text to edit"}
         {status && ` · ${status}`}
       </span>
-      <button type="button" onClick={copy} disabled={!changes.length}>
-        Copy edits
-      </button>
       <button type="button" className="primary" onClick={save} disabled={!changes.length}>
         Save
       </button>
