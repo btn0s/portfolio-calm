@@ -199,7 +199,9 @@
   .canvas-box.grab { cursor: grab; }
   .canvas-box.grab:active { cursor: grabbing; }
   
-  .controls { display: grid; gap: 14px; }
+  .controls { display: grid; gap: 18px; }
+  .controls > .knob { margin-top: 0; }
+  .controls > button.link { justify-self: start; padding: 0; }
   .frames { width: 100%; height: 120px; border-radius: 10px; background: linear-gradient(180deg, #0f0f11, #131315); border: 1px solid #232327; box-shadow: inset 0 1px 4px #000000b3; }
 
   /* Crowd: before over after, drag the line. */

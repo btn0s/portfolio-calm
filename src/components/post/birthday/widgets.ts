@@ -311,9 +311,10 @@ function tickets(root: HTMLElement) {
 // ── 3. Mirror ball ───────────────────────────────────────────────────────────────────────
 // The show's ball: rows of flat square tiles, each with its normal knocked a little off true.
 // `k` morphs it from a perfect sphere (0: tiles meet, normals smooth) to the show's ball (1).
-function ballGeometry(k: number) {
-  const rows = 22;
-  const wobble = 0.12;
+type BallShape = { k: number; rows: number; wobble: number };
+const SHOW_BALL: BallShape = { k: 1, rows: 22, wobble: 0.12 };
+
+function ballGeometry({ k, rows, wobble }: BallShape) {
   const pos: number[] = [];
   const nor: number[] = [];
   const col: number[] = [];
@@ -362,6 +363,12 @@ function ballGeometry(k: number) {
   g.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
   return g;
 }
+/** How many tiles a ball with `rows` rows has. */
+const tileCount = (rows: number) => {
+  let n = 0;
+  for (let r = 0; r < rows; r++) n += Math.max(6, Math.round((Math.PI * 2 * Math.cos(-Math.PI / 2 + (Math.PI / rows) * (r + 0.5))) / (Math.PI / rows)));
+  return n;
+};
 
 function stage(box: HTMLElement) {
   const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
@@ -389,22 +396,46 @@ function ball(root: HTMLElement) {
   root.append(h('div', { class: 'split' }, box, controls));
   const { renderer, scene, camera } = stage(box);
   const mat = new THREE.MeshStandardMaterial({ metalness: 1, roughness: 0.16, vertexColors: true, envMapIntensity: 1.1 });
-  const mesh = new THREE.Mesh(ballGeometry(1), mat);
+  const shape: BallShape = { ...SHOW_BALL };
+  const mesh = new THREE.Mesh(ballGeometry(shape), mat);
   scene.add(mesh);
   const lights = [new THREE.PointLight('#e83d97', 40, 0, 1.6), new THREE.PointLight('#2495d6', 40, 0, 1.6), new THREE.PointLight('#ffffff', 25, 0, 1.6)];
   lights.forEach((l) => scene.add(l));
-  // One slider: a perfect sphere at one end, the show's tiles at the other.
-  const input = h('input', { type: 'range', min: '0', max: '1', step: '0.01', value: '1', 'aria-label': 'From a smooth sphere to mirror tiles' }) as HTMLInputElement;
-  const morph = (k: number) => {
+  const rebuild = () => {
     mesh.geometry.dispose();
-    mesh.geometry = ballGeometry(k);
+    mesh.geometry = ballGeometry(shape);
   };
-  input.oninput = () => morph(Number(input.value));
-  controls.append(h('div', { class: 'knob' }, input, h('div', { class: 'ends' }, h('span', {}, 'Smooth sphere'), h('span', {}, 'Mirror tiles'))));
-  // The first time it's seen, it starts as chrome and tiles itself, so the slider explains itself.
+  const SPIN = 0.35;
+  let spin = SPIN;
+  // One slider per thing that makes it a disco ball, each with the show's value as its default.
+  type Dial = { label: string; min: number; max: number; step: number; value: number; read: (v: number) => string; set: (v: number) => void; ends?: [string, string] };
+  const dials: Dial[] = [
+    { label: 'Shape', min: 0, max: 1, step: 0.01, value: 1, read: (v) => (v < 0.05 ? 'Sphere' : v > 0.95 ? 'Tiles' : `${Math.round(v * 100)}%`), set: (v) => ((shape.k = v), rebuild()), ends: ['Smooth sphere', 'Mirror tiles'] },
+    { label: 'Tile tilt', min: 0, max: 0.4, step: 0.005, value: SHOW_BALL.wobble, read: (v) => `±${((v / 2) * (180 / Math.PI)).toFixed(1)}°`, set: (v) => ((shape.wobble = v), rebuild()), ends: ['Perfectly flat', 'Hand-glued'] },
+    { label: 'Tiles', min: 8, max: 40, step: 1, value: SHOW_BALL.rows, read: (v) => tileCount(v).toLocaleString(), set: (v) => ((shape.rows = v), rebuild()) },
+    { label: 'Polish', min: 0.02, max: 0.6, step: 0.01, value: 0.16, read: (v) => (v < 0.1 ? 'Mirror' : v < 0.3 ? 'Glossy' : 'Brushed'), set: (v) => (mat.roughness = v) },
+    { label: 'Spin', min: 0, max: 2, step: 0.01, value: SPIN, read: (v) => `${((v / (Math.PI * 2)) * 60).toFixed(1)} rpm`, set: (v) => (spin = v) },
+  ];
+  const inputs = dials.map((d) => {
+    const out = h('output', {}, d.read(d.value));
+    const input = h('input', { type: 'range', min: String(d.min), max: String(d.max), step: String(d.step), value: String(d.value), 'aria-label': d.label }) as HTMLInputElement;
+    input.oninput = () => {
+      const v = Number(input.value);
+      out.textContent = d.read(v);
+      d.set(v);
+    };
+    controls.append(h('div', { class: 'knob' }, h('div', { class: 'knob-head' }, h('span', {}, d.label), out), input, ...(d.ends ? [h('div', { class: 'ends' }, h('span', {}, d.ends[0]), h('span', {}, d.ends[1]))] : [])));
+    return input;
+  });
+  const reset = h('button', { class: 'link', type: 'button' }, 'Reset to the show’s ball');
+  reset.onclick = () => dials.forEach((d, i) => ((inputs[i].value = String(d.value)), inputs[i].dispatchEvent(new Event('input'))));
+  controls.append(reset);
+  const input = inputs[0];
+  const morph = () => input.dispatchEvent(new Event('input'));
+  // The first time it's seen, it starts as chrome and tiles itself, so the sliders explain themselves.
   if (!reduced) {
     input.value = '0';
-    morph(0);
+    morph();
     const io = new IntersectionObserver(([en]) => {
       if (!en.isIntersecting) return;
       io.disconnect();
@@ -414,15 +445,14 @@ function ball(root: HTMLElement) {
         const x = Math.max(0, Math.min(1, (now - t0) / 1600));
         const k = x < 0.5 ? 4 * x * x * x : 1 - (-2 * x + 2) ** 3 / 2;
         input.value = String(k);
-        morph(k);
+        morph();
         if (x < 1) requestAnimationFrame(step);
       };
       requestAnimationFrame(step);
     }, { threshold: 0.5 });
     io.observe(box);
   }
-  // Drag to spin it; it eases back to the show's lazy turn.
-  const SPIN = 0.35;
+  // Drag to spin it; it eases back to the turn set on the Spin slider.
   let vel = SPIN;
   let lastX = 0;
   let dragging = false;
@@ -445,7 +475,7 @@ function ball(root: HTMLElement) {
   whileVisible(box, (dt) => {
     t += dt;
     if (!dragging) {
-      vel += (SPIN - vel) * Math.min(1, dt * 1.5);
+      vel += (spin - vel) * Math.min(1, dt * 1.5);
       mesh.rotation.y += dt * (reduced ? 0 : vel);
     }
     mesh.rotation.x = 0.25;
