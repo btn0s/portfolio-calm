@@ -7,10 +7,11 @@ import { useEffect, useState } from "react";
 const BLOCKS = ".post > p, .post > h2, .post > h3, .post > ul > li, .post > ol > li, .post > blockquote > p";
 
 // The block's inline markup as markdown, so bold, italics, code and links survive the edit.
-function toMarkdown(node: Node): string {
+// A line break typed in a block becomes `br`: a new paragraph, list item or quote paragraph.
+function inline(node: Node, br: string): string {
   if (node.nodeType === Node.TEXT_NODE) return node.textContent ?? "";
   if (!(node instanceof HTMLElement)) return "";
-  const inner = [...node.childNodes].map(toMarkdown).join("");
+  const inner = [...node.childNodes].map((n) => inline(n, br)).join("");
   switch (node.tagName) {
     case "STRONG":
     case "B":
@@ -23,10 +24,19 @@ function toMarkdown(node: Node): string {
     case "A":
       return `[${inner}](${node.getAttribute("href")})`;
     case "BR":
-      return " ";
+      return br;
+    case "DIV":
+      return br + inner;
     default:
       return inner;
   }
+}
+
+function toMarkdown(el: HTMLElement): string {
+  if (/^H\d$/.test(el.tagName)) return el.textContent ?? "";
+  const br = el.tagName === "LI" ? "\u0000- " : el.parentElement?.tagName === "BLOCKQUOTE" ? "\u0000>\n> " : "\u0000\n";
+  const parts = inline(el, br).split(br).map((p) => p.trim()).filter(Boolean);
+  return parts.join(br).replaceAll("\u0000", "\n");
 }
 
 type Change = { el: HTMLElement; before: string; after: string };
@@ -40,11 +50,11 @@ export function EditMode({ slug }: { slug: string }) {
     if (!new URLSearchParams(location.search).has("edit")) return;
     setOn(true);
     const els = [...document.querySelectorAll<HTMLElement>(BLOCKS)];
-    const original = new Map(els.map((el) => [el, { text: el.textContent ?? "", md: el.tagName.startsWith("H") ? el.textContent ?? "" : toMarkdown(el) }]));
+    const original = new Map(els.map((el) => [el, { text: el.textContent ?? "", md: toMarkdown(el) }]));
     const collect = () => {
       const list: Change[] = [];
       for (const [el, o] of original) {
-        const md = el.tagName.startsWith("H") ? el.textContent ?? "" : toMarkdown(el);
+        const md = toMarkdown(el);
         const changed = md !== o.md;
         el.classList.toggle("edited", changed);
         if (changed) list.push({ el, before: o.text, after: md });
@@ -61,8 +71,14 @@ export function EditMode({ slug }: { slug: string }) {
         e.preventDefault();
         document.execCommand("insertText", false, e.clipboardData?.getData("text/plain") ?? "");
       });
-      // One block is one line of MDX, so Enter ends the edit instead of splitting it.
-      el.addEventListener("keydown", (e) => e.key === "Enter" && (e.preventDefault(), el.blur()));
+      // Enter splits the block (headings just finish); Escape finishes editing.
+      el.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") el.blur();
+        if (e.key !== "Enter") return;
+        e.preventDefault();
+        if (/^H\d$/.test(el.tagName)) el.blur();
+        else document.execCommand("insertLineBreak");
+      });
     }
     document.documentElement.classList.add("edit-mode");
   }, []);
