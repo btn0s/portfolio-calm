@@ -7,6 +7,7 @@ import type { Metadata } from "next";
 import { Barcode } from '@/components/barcode'
 import { PixelPattern } from '@/components/pixel-pattern'
 import './post.css'
+import { EditMode } from '@/components/edit-mode'
 
 export async function generateStaticParams() {
   try {
@@ -138,6 +139,7 @@ export default async function Post({
       <article className="post">
         <CustomMDX source={post.content} />
       </article>
+      {process.env.NODE_ENV === 'development' && <EditMode slug={slug} />}
 
       {/* Technical Footer */}
       <footer className="post-end pt-16 border-t border-foreground/10 flex flex-col items-center gap-12">

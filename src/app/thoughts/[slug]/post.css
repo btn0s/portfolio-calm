@@ -73,3 +73,13 @@
   .post-body { padding: 16px 20px 96px; }
   .post { font-size: 16px; }
 }
+
+/* Dev-only inline editor (?edit) */
+.edit-mode .editable { outline: 1px dashed transparent; outline-offset: 4px; border-radius: 2px; transition: outline-color 0.15s; cursor: text; }
+.edit-mode .editable:hover { outline-color: #ffffff30; }
+.edit-mode .editable:focus { outline: 1px solid #e83d97; }
+.edit-mode .editable.edited { box-shadow: -10px 0 0 -8px #e83d97; }
+.edit-bar { position: fixed; z-index: 100; left: 50%; bottom: 20px; transform: translateX(-50%); display: flex; align-items: center; gap: 8px; padding: 6px 6px 6px 14px; border-radius: 12px; background: #1b1b1fee; border: 1px solid #ffffff1a; box-shadow: 0 10px 30px -10px #000; backdrop-filter: blur(12px); font: 13px/1 system-ui, sans-serif; color: #c9c9cf; white-space: nowrap; }
+.edit-bar button { height: 32px; padding: 0 12px; border-radius: 8px; border: 1px solid #ffffff1f; background: #ffffff0d; color: #ececf0; font: inherit; cursor: pointer; }
+.edit-bar button.primary { background: #e83d97; border-color: #e83d97; color: #fff; }
+.edit-bar button:disabled { opacity: 0.4; cursor: default; }
