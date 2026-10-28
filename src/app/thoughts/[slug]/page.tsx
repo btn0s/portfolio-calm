@@ -65,7 +65,7 @@ export default async function Post({
 
   return (
     <>
-      <section className="w-full max-w-2xl mx-auto">
+      <section className="w-full max-w-[640px] mx-auto">
       <script
         type="application/ld+json"
         suppressHydrationWarning

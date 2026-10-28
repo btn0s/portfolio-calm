@@ -7,13 +7,14 @@
   --line: #262626;
   --col: 640px;
   --wide: 900px;
+  --gutter: 24px;
 
   /* Break out of the site's narrow column so figures can run wider than the text. */
   position: relative;
   left: 50%;
   width: 100vw;
   margin-left: -50vw;
-  padding: 24px 24px 128px;
+  padding: 24px var(--gutter) 128px;
   color: var(--ink-2);
 }
 
@@ -61,7 +62,7 @@
 /* Figures and widgets breathe a little more than paragraphs. */
 .post > .wide { width: 100%; max-width: none; margin: 1.6em 0 2.4em; }
 @media (max-width: 760px) {
-  .post > .widget.wide, .post > .strip.wide { width: calc(100% + 40px); margin-left: -20px; margin-right: -20px; }
+  .post > .widget.wide, .post > .strip.wide { width: calc(100% + 2 * var(--gutter)); margin-left: calc(-1 * var(--gutter)); margin-right: calc(-1 * var(--gutter)); }
 }
 .post > p:has(> img:only-child) { grid-column: wide; }
 .post > p:has(> img:only-child) img { width: 100%; height: auto; border-radius: 12px; box-shadow: 0 0 0 1px #ffffff0d, 0 16px 40px -20px #000000cc; }
@@ -70,7 +71,8 @@
 .post-body .post-end { max-width: var(--col); margin: 96px auto 0; }
 
 @media (max-width: 760px) {
-  .post-body { padding: 16px 20px 96px; }
+  /* Same 16px gutter as the site header above, so the edges line up. */
+  .post-body { --gutter: 16px; padding: 16px var(--gutter) 96px; }
   .post { font-size: 16px; }
 }
 
