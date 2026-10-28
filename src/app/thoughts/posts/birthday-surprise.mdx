@@ -11,11 +11,11 @@ For my wife's birthday I got us tickets to see Harry Styles. They only existed i
 
 <Strip images={[["1.jpg", ""], ["2.jpg", ""], ["3.jpg", ""], ["4.jpg", ""], ["5.jpg", ""]]} />
 
-This isn't a build log. It's a look at how I make things with an agent now: where the ideas came from, how I steered, what we built so we could talk to each other, and how we made a WebGPU show feel smooth on an iPhone.
+Here's how I make things with an agent: where the ideas came from, how I steered, the tools we built to talk to each other, and how we kept a WebGPU show smooth on an iPhone.
 
 ## The loop
 
-**I talk, it builds, I react.** That's the whole process. I never wrote a spec. I described what I wanted the way I'd describe it to a friend, looked at what came back, and said what felt off.
+**I talk, it builds, I react.** I never wrote a spec. I described what I wanted the way I'd describe it to a friend, looked at what came back, and said what felt off.
 
 **The agent is fast, so my job changes.** It can build three versions before I've finished my coffee. What it can't do is know my wife. So I spent my time on three things: making the big calls, saying exactly how something felt, and checking it on the real thing.
 
@@ -73,9 +73,9 @@ The mirror balls are real geometry: rows of small flat tiles, each tilted a few 
 
 <Widget name="mood" />
 
-## Design the surprise, not the screens
+## Set up the surprise
 
-**The biggest change wasn't visual.** A surprise lands harder when she thinks she already knows what she's getting.
+**A surprise lands harder when she thinks she already knows what she's getting.**
 
 > i want to … do a version where we do a super cheesy slide show of our love and then after like 10s it glitches and fades to black then our hey babe shows on the black
 
@@ -99,7 +99,7 @@ No agent was going to suggest that. It came from knowing her.
 
 ## Make it feel inevitable
 
-**A dropped frame during a surprise feels like a bug.** It breaks the spell. So performance wasn't a pass at the end. It was part of the design.
+**A dropped frame during a surprise feels like a bug.** It breaks the spell, so performance got the same attention as the visuals.
 
 **Pay the cost before she taps.** Most of our hitches had one cause: the first time a GPU draws a new kind of object, it compiles a program for it, and that can freeze a frame. Claude wrote a small profiler that logged every compile with what was being drawn and where in the show it happened. The fix was to draw everything once, hidden behind the loading screen. One sneaky one: switching a light off changed the light count, which recompiled every material. Now that light stays on at zero brightness.
 
@@ -132,7 +132,7 @@ Of course she did. The last thing we built was for her: a page with every photo 
 
 ## What I'd tell you
 
-**Make the big calls yourself.** Simpler, the decoy, more space instead of more time. The agent built fast, but every turn that mattered came from knowing who it was for.
+**Make the big calls yourself.** Cutting the puzzles, opening on a fake slideshow, a longer flight path instead of a slower one. The agent built fast, but every turn that mattered came from knowing who it was for.
 
 **Speak in feelings, then in numbers.** Start with how it feels. When that stops working, build the tool that turns feelings into timestamps.
 
