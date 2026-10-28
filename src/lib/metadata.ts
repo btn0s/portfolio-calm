@@ -6,6 +6,7 @@ export interface PageMetadataOptions {
   description: string;
   path?: string;
   ogImage?: string;
+  ogVideo?: string;
   ogType?: "website" | "article";
   publishedTime?: string;
   keywords?: string[];
@@ -19,6 +20,7 @@ export function generatePageMetadata({
   description,
   path = "",
   ogImage,
+  ogVideo,
   ogType = "website",
   publishedTime,
   keywords,
@@ -29,6 +31,7 @@ export function generatePageMetadata({
       ? ogImage
       : `${baseUrl}${ogImage}`
     : `${baseUrl}/og.png`;
+  const videoUrl = ogVideo && (ogVideo.startsWith("http") ? ogVideo : `${baseUrl}${ogVideo}`);
 
   return {
     title,
@@ -49,6 +52,9 @@ export function generatePageMetadata({
           alt: title,
         },
       ],
+      ...(videoUrl && {
+        videos: [{ url: videoUrl, secureUrl: videoUrl, type: "video/mp4", width: 1200, height: 630 }],
+      }),
       ...(publishedTime && { publishedTime }),
     },
     twitter: {

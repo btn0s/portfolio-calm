@@ -36,6 +36,7 @@ export async function generateMetadata({
     publishedAt: publishedTime,
     summary: description,
     image,
+    video,
   } = post.metadata;
 
   return generatePageMetadata({
@@ -43,6 +44,7 @@ export async function generateMetadata({
     description,
     path: `/thoughts/${post.slug}`,
     ogImage: image,
+    ogVideo: video,
     ogType: "article",
     publishedTime,
   });
