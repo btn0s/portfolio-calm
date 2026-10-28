@@ -26,6 +26,7 @@ function inline(node: Node, br: string): string {
     case "BR":
       return br;
     case "DIV":
+    case "P":
       return br + inner;
     default:
       return inner;
@@ -71,14 +72,14 @@ export function EditMode({ slug }: { slug: string }) {
         e.preventDefault();
         document.execCommand("insertText", false, e.clipboardData?.getData("text/plain") ?? "");
       });
-      // Enter splits the block (headings just finish); Escape finishes editing.
-      el.addEventListener("keydown", (e) => {
-        if (e.key === "Escape") el.blur();
-        if (e.key !== "Enter") return;
-        e.preventDefault();
-        if (/^H\d$/.test(el.tagName)) el.blur();
-        else document.execCommand("insertLineBreak");
+      // Return splits the block (headings just finish). Phone keyboards send it as an
+      // insertParagraph input rather than a key, so handle it there, for every keyboard.
+      el.addEventListener("beforeinput", (e) => {
+        if (e.inputType !== "insertParagraph" && e.inputType !== "insertLineBreak") return;
+        if (/^H\d$/.test(el.tagName)) return e.preventDefault(), el.blur();
+        if (e.inputType === "insertParagraph") e.preventDefault(), document.execCommand("insertLineBreak");
       });
+      el.addEventListener("keydown", (e) => e.key === "Escape" && el.blur());
     }
     document.documentElement.classList.add("edit-mode");
   }, []);

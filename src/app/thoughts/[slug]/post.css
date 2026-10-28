@@ -83,3 +83,6 @@
 .edit-bar button { height: 32px; padding: 0 12px; border-radius: 8px; border: 1px solid #ffffff1f; background: #ffffff0d; color: #ececf0; font: inherit; cursor: pointer; }
 .edit-bar button.primary { background: #e83d97; border-color: #e83d97; color: #fff; }
 .edit-bar button:disabled { opacity: 0.4; cursor: default; }
+@media (max-width: 760px) {
+  .edit-bar { top: calc(env(safe-area-inset-top) + 10px); bottom: auto; }
+}
