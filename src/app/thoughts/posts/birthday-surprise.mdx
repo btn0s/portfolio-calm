@@ -21,7 +21,7 @@ In total this took about 117 prompts over the course of 24h using Opus 5.5 mostl
 
 <Widget name="timeline" />
 
-## The idea
+## It started as a print job
 
 It actually started as a print job. I thought ok it might be super cool to print some physical tickets and put them in a gift bag.
 
@@ -45,106 +45,113 @@ One card per tap. This was it, we were onto something.
 
 <Strip images={[["simple/s0-loader.jpg", "Loader"], ["simple/s1-card1.jpg", "Happy birthday, babe."], ["simple/s2-card2.jpg", "You're the best thing"], ["simple/s3-card3.jpg", "Babysitter"], ["simple/s5-reveal.jpg", "Reveal"], ["simple/s8-settled.jpg", "Settled"]]} />
 
-## The look
+## Go look at the real thing
 
-Once the words were set, it needed to look like his tour. If you ask an agent for "a concert," you get the average of every concert ever, so the trick is to hand it the real thing. We pulled frames from a fan's 4K video of the tour and made a mood board out of what was on the screens.
+Then it needed to look like his tour. I asked for some real recon: what's he actually putting on the screens? Written reviews say basically nothing about the visuals, so the agent pulled a frame every minute out of a fan's 4K video of a full stadium show, and we made a mood board out of what was on the LED wall.
 
 <Board images={[["tour/scanlines.jpg", "Pink scanlines"], ["tour/bullseye.jpg", "Heat-map bullseye"], ["tour/triangles.jpg", "Mirror triangles"], ["tour/rainbow.jpg", "Rainbow bands"]]} credit="Frames from SandraOnTour's video of the tour." />
 
-Those four became the show's LED wall, running live in three.js on WebGPU: pink scanlines with little hand-drawn marks that boil a few times a second, a posterized bullseye, flipping triangles, rainbow bands.
+Those four became the show's LED wall, running live in three.js on WebGPU: pink scanlines with little hand-drawn marks, a posterized bullseye, flipping triangles, rainbow bands.
 
 <Strip images={[["versions/v2-1-hey-babe.jpg", "Hey babe on the LED wall"], ["versions/v2-2-best-thing.jpg", "Best thing"], ["versions/v2-3-babysitter.jpg", "Babysitter"], ["versions/v2-4-reveal.jpg", "Reveal"]]} />
 
-The crowd scene took four tries. Glowing dots doing a wave, silhouettes holding up phones, none of it worked. Anything drawn just looked like a drawing of a crowd. My exact note was "the crowd looks very vibe coded" lol. What finally worked was a real stadium photo with live phone lights on top, and a real applause recording that swells as the house lights come up.
+The disco balls weren't even my idea. I'd sent the StubHub receipt in my very first prompt, and our seats are on the floor in a section called "DISCO" (his album is literally called *Kiss All the Time. Disco, Occasionally.*). So the agent put a mirror ball on the very first tickets, I loved it, and we leaned all the way in. They ended up in every scene. The only thing they really needed was a proper reflection map so they had something to reflect.
 
-<Widget name="crowd" />
-
-Same deal with sound. I told it "real sfx and music, nothing procedural." Using an actual Harry Styles song wasn't an option, so I made an instrumental in Suno and called it "For Nathalie." A second Suno track became the finale, mostly because it opens with a huge hit. Everything else is licensed and credited: stadium noise, applause, a record scratch.
-
-
-Usually there's one detail carrying a whole effect, and that's where the time should go. The mirror balls are a good example. They're real geometry, rows of tiny flat tiles, and each tile is tilted a few degrees off. That little wobble *is* the disco ball. A perfect sphere just looks like chrome. Play with the tilt and you'll see what I mean.
+Here's one to play with.
 
 <Widget name="ball" />
 
-Early on, every card just moved the camera and swapped the background, and it all kind of blurred together. I asked for "more interesting distinction between the scenes," and each card turned into its own spot at a concert: a lone ball in the dark, the party, inside the ball, facing the crowd, a tunnel of screens. A quick white flash between cards hides the camera jump.
+## React to what comes back
+
+Most of the build was just me watching it on my phone and saying what felt off.
+
+> I wonder if there is more interesting distinction between the scenes, so each slide right now just kind of changes camera and changes the background and keeps the disco balls
+
+So each card turned into its own spot at a concert: a lone ball in the dark, the party, inside the ball, facing the crowd, a tunnel of screens. A quick white flash between cards hides the camera jump.
 
 <Strip images={[["versions/v3-1-intimate.jpg", "Hey babe, close and dim"], ["versions/v3-2-party.jpg", "Happy birthday, the party"], ["versions/v3-3-inside.jpg", "Best thing, inside the light"], ["versions/v3-4-crowd.jpg", "Return the favor, the stars"], ["versions/v3-5-tunnel.jpg", "Babysitter, the tunnel"]]} />
 
-The sound moves around too. One song plays through the whole thing, and a low-pass filter makes it sound like it's coming through a wall, then from the next room, then inside the ball, then right there at the party. You don't really notice it. You just kind of feel where you are.
+The crowd scene took a few rounds. First it was glowing dots, then glowing dots doing a wave, and none of it read as a crowd. My exact note was "still don't like the crowd looks very vibe coded lol". What finally worked was a photoreal stadium shot (generated, from the stage looking out) with live phone lights twinkling on top, and a real applause recording that swells as the house lights come up.
+
+<Widget name="crowd" />
+
+For music, I really wanted an actual Harry Styles song, which obviously wasn't happening. So I asked for Suno, and we made an instrumental called "For Nathalie," plus a second track for the finale that opens on a huge hit.
+
+Then the agent did something I loved: it made the song sound like it's coming from somewhere. Muffled through a wall, then from the next room, then underwater inside the ball, then right there at the party. I asked for even more of it ("super muffled on the hey babe… even more muffled and low"). You don't really notice it. You just kind of feel where you are.
 
 <Widget name="mood" />
 
-## The twist
+## The ideas only you'll have
 
-Then came my favorite idea of the whole project. A surprise hits way harder when she thinks she already knows what she's getting:
+Then I had my favorite idea of the whole thing. A surprise hits way harder when she thinks she already knows what she's getting:
 
 > i want to … do a version where we do a super cheesy slide show of our love and then after like 10s it glitches and fades to black then our hey babe shows on the black
 
-So it opens on the most gloriously terrible "Our Love Story" slideshow. Pachelbel's Canon, sparkles, a cube turn, a film strip, every photo flying into a heart. Then a record scratch, a glitch, black, and "Hey babe." The next card calls it out: *"You didn't really think all I got you was a cheesy slideshow, did you?"*
+The first pass was cute but too tame, and the music was made in the browser. My note: "MORE cheesy and real sfx and music nothing procedural." So now it opens on the most gloriously terrible "Our Love Story" slideshow (Pachelbel's Canon, sparkles, star wipes, 3D flips, every photo flying in), then a record scratch, a glitch, black, and "Hey babe." The next card calls it out: *"You didn't really think all I got you was a cheesy slideshow, did you?"*
 
-No agent was ever going to come up with that one. That came from knowing her.
+It's her first birthday as a mom, so I sent over a few more photos for that too.
 
 <Strip images={[["versions/decoy-1-title.jpg", "Our Love Story"], ["versions/decoy-4-my-everything.jpg", "My Everything"], ["versions/decoy-5-glitch-start.jpg", "The glitch starts"], ["versions/decoy-6-glitch-invert.jpg", "Glitch to black"]]} />
 
-## The finale
+## When words run out, make a tool
 
-The finale is where the tickets show up, so it had to land. I can hear the exact moment in a song where it should hit. I can't describe it in words though. So I asked for the finale track on a little player I could scrub, and just sent back screenshots like "ok the drum run starts here." After that we were talking in timestamps. The burst went from 0:24.25 to 0:23.73 to 0:23.00, and the start landed on 0:18.40.
+The finale is where the tickets show up, so it had to land. I can hear the exact moment in the song where it should hit, but I can't describe it. So I asked for the finale track on a little player I could scrub, and just sent back screenshots like "ok the drum run starts here."
+
+After that we were talking in timestamps. The burst went from 0:24.25 to 0:23.73 ("the drums need to end at the explosion") to "almost exactly 0:23," and the song ended up starting at 0:18.40.
 
 <Widget name="wave" />
 
 <Strip images={[["versions/fin-a-2-ball-drop.jpg", "A giant ball drops"], ["versions/fin-b-2-panels-fly.jpg", "Photo panels fly past"], ["versions/fin-c-2-column.jpg", "A column of photos and balls"], ["versions/fin-c-3-tickets.jpg", "The tickets land"]]} />
 
-I'm not a motion designer, and I told it that. What I could do was say exactly how it felt: robotic, slow, stuttery, dizzying. Each one of those words turned into one specific change to one curve, the camera's speed over the song. The note that finally cracked it was "you lengthen the fly by adding more SPACE not faking it with time delays."
+The flight into the finale took the most back and forth. I'm not a motion designer, so mostly I just described it:
+
+> immediately when we start the finale buildup i want to see MOVEMENT like the tunnel starts spinning we fly through it we fly through an asteroid field of pictures and disco balls and then the pillar and the big one settle in and explode
+
+Then a lot of "still feel the linear easing," "stuttery," "a little less dizzying." The one that finally cracked it: "you lengthen the fly by adding more SPACE not faking it with time delays." So the flight got longer by actually flying farther, past more photos and balls, at full speed.
 
 <Widget name="flight" />
 
-From her seat the flight is just speed, so I wanted to see it from the outside too. We added a debug camera that films the show while her camera keeps flying, plus a clock we can step one frame at a time so every frame renders perfectly. Switch the angles and it stays in sync.
+From her seat the flight is just speed, so for this post we went back and filmed it from the outside: a debug camera that follows her camera around, plus a fake clock that steps one frame at a time so every frame renders perfectly. Switch the angles and it stays in sync.
 
 <Widget name="cameras" />
 
-## The polish
+## The phone is always right
 
-A dropped frame in the middle of a surprise feels like a bug. It totally breaks the spell. So performance got just as much attention as the visuals.
+A dropped frame in the middle of a surprise feels like a bug, so I kept saying "hitches" until they were gone.
 
-Most of our hitches came from one thing. The first time a GPU draws a new kind of object, it has to compile a program for it, and that can freeze a frame. Claude wrote a little profiler that logged every compile, what was being drawn, and where in the show it happened. The fix was to draw everything once, hidden behind the loading screen, before she ever taps. My favorite sneaky one: turning a light off changed the light count, which made every material recompile. So now that light just stays on at zero brightness.
+Most of them came from the GPU compiling something the first time it's drawn. We added a probe that logged every compile and where in the show it happened, then drew everything once behind the loading screen before she ever taps. My favorite sneaky one: a light was attached to a disco ball, so hiding the ball removed the light, and changing the light count made every material recompile. Now that light just stays on at zero brightness.
 
 <Widget name="hitch" />
 
-Then there was the bug that almost broke me. Claude was testing in desktop Chrome, the logs were clean, and it kept telling me the stutter wasn't there. It was. Only on an iPhone though. So we added a tiny endpoint so my phone could send the song's position to my laptop every frame, and the very first run had the answer: at the cut, the finale was **already 2.2 seconds in**.
+Then there was the bug that almost broke me. The agent was testing in desktop Chrome, the logs were clean, and it kept telling me the stutter wasn't there. It was, only on an iPhone.
 
-To unlock audio, iOS needs a tap, so on the first tap we `play()` the finale and immediately `pause()` it. Turns out on iOS the `play()` promise can resolve before playback actually starts. So the pause lands too early, and the song just keeps playing silently in the background.
+> this is terrible i need to give this to her i can't keep repeating the same issues and you telling me they don't exist
 
-<Widget name="race" />
-
-The fix had two parts. When the finale fires its `playing` event, it gets stopped and rewound, and right before it's due we rewind it again just in case. And every visual follows the song's playhead instead of a timer, so if the audio's late, the burst is late with it and still lands on the hit.
-
-## The handoff
+## She loved it (mostly)
 
 > ok she loved it!! there are a few images she wants to replace hahaha
 
-Of course she did. So the last thing we built was for her: a page with every photo in the show and a Replace button on each one. Pick a photo, tap the faces, and it gets cropped to the same frame with the same white border everywhere it shows up. We rebuilt the link preview with her picks too, our photos drifting by as polaroids.
+Of course she did. So we made her a page with every photo in the show and a Replace button on each one. Pick a photo, tap the faces, and it gets cropped into the same frame everywhere it shows up.
+
+She also hit the stutter, and sometimes on a rewatch the flight skipped entirely. So we added a tiny endpoint so my phone could send the song's position to my laptop every frame, and the first run had the answer: at the cut, the finale was **already 2.2 seconds in**.
+
+iOS needs a tap to unlock audio, so on her first tap we `play()` the finale and immediately `pause()` it. On iOS the pause doesn't always take, and the song just keeps playing silently in the background.
+
+<Widget name="race" />
+
+The fix: the finale gets stopped and rewound once it's actually playing, and rewound again right before it's due. And every visual follows the song's playhead instead of a timer, so if the audio's late, the burst is late with it and still lands on the hit.
+
+And the link preview, for when I texted it to her: our photos drifting by as polaroids.
 
 <Video src="/thoughts/birthday/og.mp4" className="wide" />
 
-## The process
+## What I used
 
-Looking back, the process was pretty simple. I talk, it builds, I react. I never wrote a spec. I just described what I wanted the way I'd describe it to a friend, looked at what came back, and told it what felt off.
+- **Claude Code** (Opus 5.5) through **bb**, start to finish. 118 prompts and 79 commits.
+- **imgen** for the first round of tickets.
+- **three.js on WebGPU** for the 3D, **gsap** for the cards, **Vite** and **Vercel** to ship it.
+- **Suno** for both songs, plus real recordings for the applause, the slideshow and the sound effects.
+- **A muted headless browser** for screenshots and profiling, and **my actual iPhone** for the truth.
+- **A bunch of throwaway tools** we made along the way: the scrubber, the compile probe, the phone logging endpoint, the photo replacer, and the debug camera.
 
-The thing that changes is what my job is. The agent can build three versions before I've finished my coffee. What it can't do is know my wife. So most of my time went to three things: making the big calls, saying exactly how something felt, and checking it on the real thing.
-
-And here's what I used:
-
-- **Claude Code** for basically everything, start to finish. About 120 prompts and 80 commits.
-- **Local image generation** for the first round of ticket designs.
-- **three.js on WebGPU** for the 3D, **gsap** for the cards, **Vite** and **Vercel** to build and ship it.
-- **Suno** for both songs, plus licensed recordings for the crowd and sound effects.
-- **A headless, muted browser** for screenshots and profiling, and **my actual iPhone** for the truth.
-- **A bunch of little throwaway tools** we built along the way: the scrubber, the profiler, the phone logging endpoint, the photo replacer, and the debug camera.
-
-If you're going to try something like this, three things:
-
-**Make the big calls yourself.** Cutting the puzzles, opening on a fake slideshow, making the flight longer instead of slower. The agent built fast, but every turn that mattered came from knowing who it was for.
-
-**Talk in feelings first, then in numbers.** Start with how it feels. When words stop working, build a little tool that turns the feeling into something exact.
-
-**Trust the device, not the logs.** The agent will sound super confident. The phone is always right.
+Looking back, my job was mostly taste. The agent builds faster than I can react. What it can't do is know my wife. The puzzles getting cut, the fake slideshow, the exact drum hit: that part was me.
