@@ -1,6 +1,7 @@
 import fs from "fs";
 import path from "path";
 import { NextResponse } from "next/server";
+import { git } from "./git";
 
 // Dev-only: writes inline edits from <EditMode> back into a post's MDX. Each edit names a
 // block by its rendered text, so we find the source line whose text matches and swap it.
@@ -35,5 +36,12 @@ export async function POST(req: Request) {
     lines[i] = prefix + after.trim();
   }
   fs.writeFileSync(file, lines.join("\n"));
-  return NextResponse.json({ applied: edits.length - missed.length, missed });
+  const applied = edits.length - missed.length;
+  // Every save is its own commit, so nothing is lost and Publish has something to push.
+  const rel = path.relative(process.cwd(), file);
+  if (applied && (await git("status", "--porcelain", "--", rel))) {
+    await git("add", "--", rel);
+    await git("commit", "-m", `Edit ${slug}: ${applied} change${applied > 1 ? "s" : ""}`, "--", rel);
+  }
+  return NextResponse.json({ applied, missed });
 }

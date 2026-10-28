@@ -46,6 +46,12 @@ export function EditMode({ slug }: { slug: string }) {
   const [on, setOn] = useState(false);
   const [changes, setChanges] = useState<Change[]>([]);
   const [status, setStatus] = useState("");
+  const [pending, setPending] = useState(0);
+  const refresh = () =>
+    fetch("/api/dev-edit/publish")
+      .then((r) => r.json())
+      .then((o: { pending: number }) => setPending(o.pending))
+      .catch(() => {});
 
   useEffect(() => {
     if (!new URLSearchParams(location.search).has("edit")) return;
@@ -82,6 +88,7 @@ export function EditMode({ slug }: { slug: string }) {
       el.addEventListener("keydown", (e) => e.key === "Escape" && el.blur());
     }
     document.documentElement.classList.add("edit-mode");
+    void refresh();
   }, []);
 
   if (!on) return null;
@@ -90,6 +97,15 @@ export function EditMode({ slug }: { slug: string }) {
   const copy = async () => {
     await navigator.clipboard.writeText(`Edits to ${slug}:\n\n${list()}`);
     setStatus("Copied");
+  };
+  const publish = async () => {
+    if (!confirm(`Publish ${pending} saved change${pending > 1 ? "s" : ""} to btn0s.dev?`)) return;
+    setStatus("Publishing…");
+    const res = await fetch("/api/dev-edit/publish", { method: "POST" });
+    const out = (await res.json()) as { pushed?: number; error?: string };
+    if (out.error) return setStatus(`Couldn't publish: ${out.error}`);
+    setStatus("Published. Live in a minute or two.");
+    setPending(0);
   };
   const save = async () => {
     setStatus("Saving…");
@@ -115,6 +131,9 @@ export function EditMode({ slug }: { slug: string }) {
       </button>
       <button type="button" className="primary" onClick={save} disabled={!changes.length}>
         Save
+      </button>
+      <button type="button" onClick={publish} disabled={!pending || changes.length > 0} title={changes.length ? "Save first" : undefined}>
+        Publish{pending ? ` (${pending})` : ""}
       </button>
     </div>
   );
