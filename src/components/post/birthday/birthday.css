@@ -179,7 +179,7 @@
   .tl-chart canvas { width: 100%; height: 100%; display: block; }
 
   /* Tickets: a rail to swipe, the next one peeking in. */
-  .rail { display: flex; gap: 12px; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; margin: 0 -20px; padding: 0 20px; scroll-padding: 0 20px; overscroll-behavior-x: contain; }
+  .rail { display: flex; gap: 12px; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; margin: 0 -20px; padding: 0 20px; scroll-padding: 0 20px; overscroll-behavior-x: contain; padding-block: 4px 16px; margin-block: -4px -16px; }
   .rail::-webkit-scrollbar { display: none; }
   .tix { flex: 0 0 82%; margin: 0; scroll-snap-align: start; }
   .tix img { display: block; width: 100%; aspect-ratio: 1584 / 672; object-fit: cover; border-radius: 10px; background: #000; box-shadow: 0 0 0 1px #ffffff0d, 0 8px 20px -10px #000000cc; user-select: none; -webkit-user-select: none; }
@@ -241,7 +241,8 @@
     --chart-h: 170px;
     .widget { padding: 20px; border-radius: 0; border-left: 0; border-right: 0; }
     .split, .flight-grid { grid-template-columns: 1fr; }
-    .strip { grid-auto-columns: 42%; overflow-x: auto; scrollbar-width: none; margin-left: -20px; margin-right: -20px; padding: 0 20px; scroll-padding: 0 20px; scroll-snap-type: x mandatory; }
+    .strip { grid-auto-columns: 42%; overflow-x: auto; scrollbar-width: none; padding: 6px 20px 10px; scroll-padding: 0 20px; scroll-snap-type: x mandatory; }
+    .strip::-webkit-scrollbar { display: none; }
     .strip img { scroll-snap-align: start; }
     .toolbar { flex-wrap: nowrap; }
     .toolbar .seg { flex: 1; }
