@@ -13,19 +13,9 @@ For my wife's birthday I got us tickets to see Harry Styles. He's her favorite p
 
 <Strip images={[["1.jpg", ""], ["2.jpg", ""], ["3.jpg", ""], ["4.jpg", ""], ["5.jpg", ""]]} />
 
-I built it over a weekend with Claude Code. Here's a peek at my process with these new superpowers we call agents, my stack, and how we got a 3D show running smooth on her phone.
+I built it over a weekend with Claude Code. Here's how it came together, and at the end, a peek at my process with these new superpowers we call agents.
 
-## How I work with an agent
-
-Honestly it's pretty simple. I talk, it builds, I react. I never wrote a spec. I just described what I wanted the way I'd describe it to a friend, looked at what came back, and told it what felt off.
-
-The thing that changes is what my job is. The agent can build three versions before I've finished my coffee. What it can't do is know my wife. So most of my time went to three things: making the big calls, saying exactly how something felt, and checking it on the real thing.
-
-Here's the whole weekend, every prompt and every commit. Drag across it to read them.
-
-<Widget name="timeline" />
-
-## Go wide, then cut
+## The idea
 
 It actually started as a print job. I figured I'd print some physical tickets to hand her, so we generated a bunch of options: a night-sky stub, a kiss clock, an old-school admit-one, a mirror-ball ticket, letterpress.
 
@@ -43,11 +33,9 @@ One card per tap. The words barely changed after that. Everything from there on 
 
 <Strip images={[["simple/s0-loader.jpg", "Loader"], ["simple/s1-card1.jpg", "Happy birthday, babe."], ["simple/s2-card2.jpg", "You're the best thing"], ["simple/s3-card3.jpg", "Babysitter"], ["simple/s5-reveal.jpg", "Reveal"], ["simple/s8-settled.jpg", "Settled"]]} />
 
-## Steal from the real thing
+## The look
 
-If you ask an agent for "a concert," you get the average of every concert ever. It's generic. The fix is to hand it the real thing.
-
-So we pulled frames from a fan's 4K video of the tour and made a mood board out of what was on the screens.
+Once the words were set, it needed to look like his tour. If you ask an agent for "a concert," you get the average of every concert ever, so the trick is to hand it the real thing. We pulled frames from a fan's 4K video of the tour and made a mood board out of what was on the screens.
 
 <Board images={[["tour/scanlines.jpg", "Pink scanlines"], ["tour/bullseye.jpg", "Heat-map bullseye"], ["tour/triangles.jpg", "Mirror triangles"], ["tour/rainbow.jpg", "Rainbow bands"]]} credit="Frames from SandraOnTour's video of the tour." />
 
@@ -61,11 +49,8 @@ The crowd scene took four tries. Glowing dots doing a wave, silhouettes holding 
 
 Same deal with sound. I told it "real sfx and music, nothing procedural." Using an actual Harry Styles song wasn't an option, so I made an instrumental in Suno and called it "For Nathalie." A second Suno track became the finale, mostly because it opens with a huge hit. Everything else is licensed and credited: stadium noise, applause, a record scratch.
 
-## The details that sell it
 
-Usually there's one detail carrying the whole effect. Find it and spend your time there.
-
-The mirror balls are a good example. They're real geometry, rows of tiny flat tiles, and each tile is tilted a few degrees off. That little wobble *is* the disco ball. A perfect sphere just looks like chrome. Drag the slider and you'll see what I mean.
+Usually there's one detail carrying a whole effect, and that's where the time should go. The mirror balls are a good example. They're real geometry, rows of tiny flat tiles, and each tile is tilted a few degrees off. That little wobble *is* the disco ball. A perfect sphere just looks like chrome. Drag the slider and you'll see what I mean.
 
 <Widget name="ball" />
 
@@ -77,9 +62,9 @@ The sound moves around too. One song plays through the whole thing, and a low-pa
 
 <Widget name="mood" />
 
-## Setting up the surprise
+## The twist
 
-A surprise hits way harder when she thinks she already knows what she's getting. This was my favorite idea of the whole project:
+Then came my favorite idea of the whole project. A surprise hits way harder when she thinks she already knows what she's getting:
 
 > i want to … do a version where we do a super cheesy slide show of our love and then after like 10s it glitches and fades to black then our hey babe shows on the black
 
@@ -89,9 +74,9 @@ No agent was ever going to come up with that one. That came from knowing her.
 
 <Strip images={[["versions/decoy-1-title.jpg", "Our Love Story"], ["versions/decoy-4-my-everything.jpg", "My Everything"], ["versions/decoy-5-glitch-start.jpg", "The glitch starts"], ["versions/decoy-6-glitch-invert.jpg", "Glitch to black"]]} />
 
-## Build tools to talk to it
+## The finale
 
-I can hear the exact moment in a song where the finale should hit. I can't describe it in words though. So I asked for the finale track on a little player I could scrub, and just sent back screenshots like "ok the drum run starts here." After that we were talking in timestamps. The burst went from 0:24.25 to 0:23.73 to 0:23.00, and the start landed on 0:18.40.
+The finale is where the tickets show up, so it had to land. I can hear the exact moment in a song where it should hit. I can't describe it in words though. So I asked for the finale track on a little player I could scrub, and just sent back screenshots like "ok the drum run starts here." After that we were talking in timestamps. The burst went from 0:24.25 to 0:23.73 to 0:23.00, and the start landed on 0:18.40.
 
 <Widget name="wave" />
 
@@ -105,7 +90,7 @@ From her seat the flight is just speed, so I wanted to see it from the outside t
 
 <Widget name="cameras" />
 
-## Making it smooth
+## The polish
 
 A dropped frame in the middle of a surprise feels like a bug. It totally breaks the spell. So performance got just as much attention as the visuals.
 
@@ -121,7 +106,7 @@ To unlock audio, iOS needs a tap, so on the first tap we `play()` the finale and
 
 The fix had two parts. When the finale fires its `playing` event, it gets stopped and rewound, and right before it's due we rewind it again just in case. And every visual follows the song's playhead instead of a timer, so if the audio's late, the burst is late with it and still lands on the hit.
 
-## Handing it over
+## The handoff
 
 > ok she loved it!! there are a few images she wants to replace hahaha
 
@@ -129,7 +114,17 @@ Of course she did. So the last thing we built was for her: a page with every pho
 
 <Video src="/thoughts/birthday/og.mp4" className="wide" />
 
-## My stack for this one
+## The process
+
+Looking back, the process was pretty simple. I talk, it builds, I react. I never wrote a spec. I just described what I wanted the way I'd describe it to a friend, looked at what came back, and told it what felt off.
+
+The thing that changes is what my job is. The agent can build three versions before I've finished my coffee. What it can't do is know my wife. So most of my time went to three things: making the big calls, saying exactly how something felt, and checking it on the real thing.
+
+Here's the whole weekend, every prompt and every commit. Drag across it to read them.
+
+<Widget name="timeline" />
+
+And here's what I used:
 
 - **Claude Code** for basically everything, start to finish. About 120 prompts and 80 commits.
 - **Local image generation** for the first round of ticket designs.
@@ -138,7 +133,7 @@ Of course she did. So the last thing we built was for her: a page with every pho
 - **A headless, muted browser** for screenshots and profiling, and **my actual iPhone** for the truth.
 - **A bunch of little throwaway tools** we built along the way: the scrubber, the profiler, the phone logging endpoint, the photo replacer, and the debug camera.
 
-## If you're going to try this
+If you're going to try something like this, three things:
 
 **Make the big calls yourself.** Cutting the puzzles, opening on a fake slideshow, making the flight longer instead of slower. The agent built fast, but every turn that mattered came from knowing who it was for.
 
