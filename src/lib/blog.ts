@@ -62,6 +62,12 @@ function readMDXFile(filePath: string) {
   }
 }
 
+/** The picture a post is listed with: its `image` frontmatter, else the first raster image in its body. */
+export function coverFor(metadata: Metadata, content: string): string | undefined {
+  if (metadata.image) return metadata.image
+  return /(?:src=["']|\]\()(\/[^"')\s]+\.(?:png|jpe?g|webp))/i.exec(content)?.[1]
+}
+
 function getMDXData(dir: string) {
   const mdxFiles = getMDXFiles(dir)
   return mdxFiles.map((file) => {
@@ -72,6 +78,7 @@ function getMDXData(dir: string) {
       metadata,
       slug,
       content,
+      cover: coverFor(metadata, content),
     }
   })
 }

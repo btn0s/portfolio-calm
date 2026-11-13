@@ -1,24 +1,32 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { registerLightbox } from "../lightbox";
 import "./birthday.css";
+import "../indiefindr/indiefindr.css";
 
-type Name = "timeline" | "tickets" | "ball" | "mood" | "crowd" | "wave" | "flight" | "hitch" | "race" | "cameras";
+/** Each post's figures, loaded only when that post mounts one. */
+const POSTS = {
+  birthday: () => import("./widgets"),
+  indiefindr: () => import("../indiefindr/widgets"),
+};
+type Mount = (root: HTMLElement) => void;
 
-/** Mounts one of the post's interactive figures once it reaches the client. */
-export function Widget({ name }: { name: Name }) {
+/** Mounts one of a post's interactive figures once it reaches the client. */
+export function Widget({ name, post = "birthday" }: { name: string; post?: keyof typeof POSTS }) {
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
     let cancelled = false;
-    void import("./widgets").then((m) => {
+    void POSTS[post]().then((m) => {
       const root = ref.current;
-      if (cancelled || !root || root.childElementCount) return;
-      m[name](root);
+      const mount = (m as unknown as Record<string, Mount>)[name];
+      if (cancelled || !root || root.childElementCount || !mount) return;
+      mount(root);
     });
     return () => {
       cancelled = true;
     };
-  }, [name]);
+  }, [name, post]);
   return (
     <section className="widget wide" id={`${name}-section`}>
       <div ref={ref} id={name} />
@@ -27,12 +35,13 @@ export function Widget({ name }: { name: Name }) {
 }
 
 /** A row of screenshots from the show; tap one to see it big. */
-export function Strip({ images }: { images: [string, string][] }) {
+export function Strip({ images, dir = "birthday" }: { images: [string, string][]; dir?: string }) {
+  useEffect(registerLightbox, []);
   return (
     <figure className="strip wide">
       {images.map(([src, alt]) => (
         // eslint-disable-next-line @next/next/no-img-element
-        <img key={src} src={`/thoughts/birthday/${src}`} alt={alt} loading="lazy" />
+        <img key={src} src={`/thoughts/${dir}/${src}`} alt={alt} loading="lazy" />
       ))}
     </figure>
   );
@@ -40,6 +49,7 @@ export function Strip({ images }: { images: [string, string][] }) {
 
 /** The mood board: the tour's own screen looks, each named. */
 export function Board({ images, credit }: { images: [string, string][]; credit: string }) {
+  useEffect(registerLightbox, []);
   return (
     <figure className="board wide">
       <div className="board-grid">

@@ -125,14 +125,6 @@ function canvas2d(parent: HTMLElement, cls = '') {
 const mmss = (sec: number) => `${Math.floor(sec / 60)}:${String(Math.floor(sec % 60)).padStart(2, '0')}`;
 const esc = (t: string) => t.replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' })[c]!);
 
-// Strips: tap a frame to see it big.
-document.addEventListener('click', (e) => {
-  const img = (e.target as HTMLElement).closest('.strip img, .board img') as HTMLImageElement | null;
-  if (!img) return;
-  const box = h('div', { class: 'lightbox' }, h('img', { src: img.src, alt: img.alt }));
-  box.onclick = () => box.remove();
-  document.body.append(box);
-});
 // ── 1. The weekend timeline ──────────────────────────────────────────────────────────────
 // One prompt at a time, big enough to read; drag along the weekend underneath to move through them.
 function timeline(root: HTMLElement) {

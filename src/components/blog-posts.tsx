@@ -4,6 +4,7 @@ import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams, useRouter, usePathname } from 'next/navigation'
 import { formatDate } from '@/lib/blog-utils'
 import { ListItem } from './list-item'
+import { DitherImage } from './dither-image'
 
 type Filter = 'recent' | 'professional' | 'personal'
 
@@ -15,6 +16,7 @@ type BlogPost = {
     category?: 'professional' | 'personal'
   }
   slug: string
+  cover?: string
 }
 
 type BlogPostsProps = {
@@ -109,6 +111,15 @@ function BlogPostsContent({ posts }: BlogPostsProps) {
               href={`/thoughts/${post.slug}`}
               titleClassName="font-serif italic capitalize tracking-normal text-sm"
               descriptionClassName="font-serif italic opacity-60"
+              media={
+                <DitherImage
+                  src={post.cover}
+                  seed={post.slug}
+                  alt=""
+                  treatment="riso"
+                  className="shrink-0 w-[132px] aspect-[3/2] sm:mt-0.5 sm:w-[120px] mix-blend-multiply"
+                />
+              }
             />
           </div>
         ))}

@@ -1,0 +1,169 @@
+---
+title: "Building an indie game recommendation engine (again)"
+publishedAt: "2026-11-13"
+summary: "indiefindr's recommendations came from an expensive LLM pipeline, so I turned it off. One evening, two agents and an answer key later, it has a model that costs nothing to run, and the best idea in it was hand-written."
+category: 'personal'
+image: '/thoughts/indiefindr/cover.jpg'
+---
+
+Back in January I wrote about [how indiefindr works](/thoughts/indiefindr-case-study). You give it a game you love, and it finds indie games with the same vibe.
+
+Then I turned it off.
+
+This is how I got it running again for $0, in one evening, mostly by talking to an agent that talked to two other agents.
+
+My part was 14 prompts over about three hours, and three of those were just clicking "Recommended." I never typed a word to the two agents that did the actual work.
+
+<Widget post="indiefindr" name="timeline" />
+
+## What it was
+
+The old indiefindr ran a pipeline for every game:
+1. a model guesses what *kind* of game it is
+2. three Perplexity searches go looking for what real players recommend
+3. a final pass curates the top 10
+
+The results were genuinely good. They also took about 18 seconds and an estimated 2 to 30 cents per game, depending on how many retries it needed.
+
+## Why I turned it off
+
+Any game page without recommendations kicked off the pipeline when someone viewed it. Every recommendation pulled in up to six new games, and each of those got its own page. Crawlers found the sitemap and walked the whole thing.
+
+In April alone it generated about 6,000 recommendation lists. Between December and June the site had **408 visitors**. (ChatGPT sent 47 of them, more than Google, Bing and DuckDuckGo combined.)
+
+That's a lot of money spent recommending indie games to bots. So I took it down.
+
+## The cheap version was broken, and I didn't know why
+
+In June I swapped the pipeline for something free: Steam tag similarity plus a small trained ranking model. The recommendations got noticeably worse, and I shelved it.
+
+When I came back to it, the agents found out why in about twenty minutes. **Almost none of the games in my database had tags.** Of 25,555 games, 25,478 had an empty tag field, because the backfill job that was supposed to fill them never ran in production. (The ranking code also only looked at 5,000 of those games, picked in no particular order.)
+
+Every game scored zero against every other game, so ties went to the lowest Steam app ID. When we replayed it locally, every single game got the same list: *Counter-Strike*, *Team Fortress Classic*, *Day of Defeat*, *Half-Life*.
+
+<Strip dir="indiefindr" images={[["compare-initial.jpg", "Every game, same list: Counter-Strike, Team Fortress Classic, Day of Defeat, Half-Life"]]} />
+
+Mouthwashing fans, I'm sorry.
+
+It's a little humbling. In part one I wrote that metadata similarity "struggles with vibe." Turns out I never gave it any metadata.
+
+## The answer key I didn't know I had
+
+The expensive pipeline left something valuable behind: **8,648 recommendation lists**, about 86,000 game-to-game picks, all from before the June cutover. Earlier that evening I'd had an agent export them and write a handoff for bb. My first prompt wasn't even words, just a screenshot of that handoff.
+
+The coordinator's first question was how I wanted to relaunch. I didn't:
+
+> i do not want to relaunch with the AI suggestion pipeline even though it was good results wise. i want to use these as the golden set to train something that can suggest without it
+
+Each of those lists is a labeled example of what a good "games like X" answer looks like. So the question changed from "can a cheap model recommend games?" to **"how close can a free model get to the expensive one's answers?"** That one is measurable:
+- Set aside 20% of the games (1,730). Nothing gets trained or tuned on them.
+- For each held-out game, count how many of the LLM's 10 picks show up in the model's top 10. That's **recall@10**.
+
+For scale: 10 random games out of 25,000 would get about 0.04%. Recommending the most popular games gets 0.1%.
+
+## How the night ran
+
+All of this happened in [bb](https://getbb.app). I talk to one coordinator thread (Opus 5.5). It writes the briefs, hands the work to worker threads, reads what comes back, and tells me what matters.
+
+So my second prompt was basically a vibe:
+
+> whatever you can do to cheaply or better FREE get the same quality do it. maybe we can design the prompt and assign this to sol or astra?
+
+Two minutes later Sol was working from a brief I never wrote. Three minutes after that, Sol was stuck: auto mode had blocked a read from the production database, and it needed a human. My contribution: "ok to read prod." Then Sol asked a question that blocked its own turn, and mine was "answer the workers question."
+
+That's most of my job in this setup: unblock, decide, and occasionally have an idea.
+
+## Sol: the trained route
+
+Sol is GPT-6.1 Sol, running through Codex. Its brief boiled down to: do it properly, spend nothing. It climbed a ladder, all locally on my MacBook:
+- off-the-shelf text embeddings (bge-small and bge-base)
+- a contrastive fine-tune of bge-small on the LLM's picks
+- a small LightGBM ranking model on top
+
+A minute after it got the catalog, Sol flagged the empty tags. The coordinator turned that into the headline and sent it to backfill real tags and review counts for every game from Steam's public store API. That took about 11 minutes: 100 games per request, 25,316 games with tags, zero errors, $0.
+
+The tags changed everything. Plain tag matching jumped from basically nothing to **14.4%**, and the off-the-shelf embedders topped out around **5.6%**. Part one's instinct holds there: embeddings of store descriptions really don't capture vibe. Tags do.
+
+The fine-tunes ran about 40 minutes each on the laptop GPU. Sol kept me posted with 52 separate messages that said some version of "Training has reached N steps."
+
+## Fable: the hand-written route
+
+While Sol was training, I had an idea:
+
+> i've been seeing people using fable to hand write weights for open weight models instead of training them — i wanna try this and this feels like a perfect case. how can we do it and give it to fable 5.2
+
+The coordinator talked me down to something that would actually work: "Fable can't hand-write bge-small's 33M parameters in any useful way. What it can write is a small model where every number means something."
+
+So Fable (Claude Fable 5.2) got the same data, the same held-out games and the same scoring code, with one rule: **every number in the model has to be one you chose.** No optimizers, no regression, no grid search. It could look at the data and at its own misses, and change numbers by reasoning, like a person would.
+
+It wrote:
+- 40 named "vibe axes" (cozy, dread, whimsy, mastery, art-game…)
+- a table of how 410 Steam tags load onto those axes
+- a 181-concept vocabulary for reading tone in descriptions
+- a handful of blend weights
+
+Its first pass, with almost no tag data, already beat Sol's off-the-shelf embeddings. Then it did four rounds of edits and scored the held-out games exactly once: **18.3%**. That beat everything Sol had trained up to that point (15.9%).
+
+The best part was its own honest read of why. The 40 axes and the vocabulary barely mattered once real tags were in. **One idea did almost all the work.**
+
+Steam gives each tag a vote count. Turn those counts into a vector the obvious way (votes times how rare the tag is) and a game's top few tags carry nearly half the weight. Fable flattened it: votes to the power of 0.3, rarity to the power of 0.5, so the whole 20-tag profile counts. Flattened tag matching on its own scored better on validation than Fable's entire hand-built blend.
+
+<Widget post="indiefindr" name="flatten" />
+
+In Fable's words: "It is two hand-typed numbers."
+
+It also admitted two of its confident beliefs were wrong: a hand-written table of which tags matter most, and a list of tag pairs that "should" attract. Both made the scores worse, so it deleted them. And it was upfront that 0.3 was the closest it came to tuning: it tried four values on the training games, then picked 0.3 by reasoning about the shape rather than taking the best score.
+
+## Merging them
+
+The two models agreed on only about half their picks, so each was catching things the other missed. The coordinator sent Sol Fable's recipe, and Sol called Fable's scoring code directly instead of re-deriving it. It took Fable's flattened tags, combined them with its own fine-tuned embedder to pull about 300 candidates per game, and trained the ranking model on top, with Fable's score as one more input.
+
+At 11:34 PM the merged model came back with **20.8%**.
+
+<Widget post="indiefindr" name="ladder" />
+
+The mainstream number matters for an indie discovery site. A model can score well by recommending hits. Sol's tags-plus-ranker model leaned that way (1.2×). The merged model's typical pick is slightly *less* mainstream than the LLM's.
+
+## Does it actually look right?
+
+20.8% sounds low until you look at the lists. There are thousands of right answers and the LLM wrote down ten.
+
+<Widget post="indiefindr" name="picks" />
+
+For *Lil Gator Game* the merged model finds *A Short Hike*, *Haven Park* and *Alba*, and fills the rest with *Smushi Come Home* and *Tall Trails*, which feel right even though the LLM didn't list them. For *PIGFACE* it says *ULTRAKILL*, *Trepang2* and *DUSK*.
+
+Sometimes the LLM's ten were the weak ones. For an arcade game called *Go Morse Go!* it suggested *Unpacking*, *Tiny Glade* and *Pizza Tower*, which are just popular indies.
+
+It still misses where you need actual taste. *Papers, Please* is the obvious answer for *Death and Taxes*: Fable's model ranked it 19th, and the merge pulled it up to 5th. And both models read the art game *Eating Nature* as a cute nature game, the same failure the old pipeline needed a hardcoded list of art-game developers to fix.
+
+I didn't read any of this in a terminal. The agents built side-by-side pages so I could just look.
+
+<Strip dir="indiefindr" images={[["compare-fable.jpg", "Fable's page: the answer key vs the hand-written model vs Sol's"], ["compare-final.jpg", "The final page: the answer key vs the merged model"]]} />
+
+## What it cost
+
+**$0.** No API calls. The fine-tunes ran on my laptop. Serving is a lookup: every game's top 10 is computed ahead of time, so loading a page runs no model at all. Crawlers can walk the whole sitemap now and it costs me nothing.
+
+## What I learned
+
+- **Check the data before you blame the model.** My "the cheap approach doesn't work" conclusion from June was really "my backfill didn't run."
+- **Old LLM output is a training set.** If you've been paying an LLM to make judgments, those judgments are labels. You can use them to grade, and train, the thing that replaces it.
+- **Hand-written weights are real.** Fable's model beat a contrastive fine-tune outright, and its value wasn't the 40 axes. It was noticing one thing about the data that the trained models hadn't. The best result came from merging the two.
+- **Be honest about the yardstick.** Matching an LLM's picks isn't the same as being good. Recall bought with popular games doesn't count, so I tracked both.
+
+## What's next
+
+My last prompt of the experiment was "122k full send." indiefindr is coming back:
+- on a fresh, much simpler database
+- with the full ~122k-game Steam catalog instead of 25k
+- with new games ingested nightly
+- with click tracking from day one, so the next version can learn from real players instead of from an LLM
+
+## What I used
+
+- **bb** for all of it: one coordinator thread and two workers.
+- **Claude Code** (Opus 5.5) as the coordinator, which wrote every brief.
+- **Codex** (GPT-6.1 Sol) for the trained models, on my MacBook's GPU: bge-small, bge-base, sentence-transformers and LightGBM.
+- **Claude Code** (Fable 5.2) for the hand-written model.
+- **Steam's public store API** for the tags, free.
+- **imgen**, my little image-generation CLI, for the cover.

@@ -1,0 +1,81 @@
+/* The indiefindr post's figures. They sit in the birthday post's widget chrome (birthday.css)
+   and take the cover's orange as their accent. */
+.post-body {
+  .widget.indie {
+    --accent: #f08a3c;
+    --accent-2: #2aa198;
+    button.chip[aria-pressed='true'],
+    .seg button.chip[aria-pressed='true'] {
+      background: linear-gradient(180deg, #f59a52, #e0712a);
+      border-color: #c9631f;
+      box-shadow: inset 0 1px 0 #ffffff59, 0 1px 2px #c9631f40, 0 2px 6px -2px #f08a3c66;
+    }
+  }
+  .tl-text.result { color: var(--accent); }
+
+  /* The night: three lanes of dots. */
+  .if-lanes { --name: 52px; position: relative; margin-top: 16px; cursor: ew-resize; user-select: none; -webkit-user-select: none; border-radius: 8px; outline-offset: 4px; }
+  .if-lanes:focus-visible { outline: 2px solid var(--ink); }
+  .if-lane { display: grid; grid-template-columns: var(--name) 1fr; align-items: center; height: 34px; }
+  .if-lane-name { font: 12px var(--mono); color: var(--ink-3); }
+  .if-track { position: relative; height: 100%; border-bottom: 1px solid var(--line-2); }
+  .if-dot { position: absolute; top: 50%; width: 9px; height: 9px; margin: -4.5px 0 0 -4.5px; border-radius: 50%; background: var(--ink-2); transition: transform 0.2s var(--ease), background 0.2s; }
+  .if-dot.result { background: transparent; border: 2px solid var(--accent); }
+  .if-dot.on { transform: scale(1.7); background: var(--ink); }
+  .if-dot.result.on { background: var(--accent); }
+  .if-cursor { position: absolute; top: 0; bottom: 18px; width: 1px; background: var(--ink-3); opacity: 0.5; pointer-events: none; }
+  .if-axis { position: relative; height: 18px; margin-left: var(--name); font: 11px var(--mono); color: var(--ink-3); }
+  .if-axis span { position: absolute; top: 4px; transform: translateX(-50%); white-space: nowrap; }
+  .if-legend { display: flex; gap: 16px; margin-top: 10px; font-size: 12px; color: var(--ink-3); }
+  .if-legend span { display: inline-flex; align-items: center; gap: 6px; }
+  .if-legend .if-dot { position: static; margin: 0; }
+
+  /* The answer key vs a model. */
+  .if-seed { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+  .if-seed-art { width: 92px; aspect-ratio: 460 / 215; object-fit: cover; border-radius: 6px; box-shadow: 0 0 0 1px #ffffff14; flex: none; }
+  .if-seed .title { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }
+  .if-seed .title b { font: 500 15px/1.25 var(--h); color: var(--ink); }
+  .if-seed .title span { font: 12px var(--mono); color: var(--ink-3); }
+  .if-seed .seg { flex: none; }
+  .if-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .if-col { padding: 12px 14px; border-radius: 12px; background: linear-gradient(180deg, #0f0f11, #131315); border: 1px solid #232327; box-shadow: inset 0 1px 4px #000000b3; min-width: 0; }
+  .if-col-head { display: flex; flex-direction: column; gap: 1px; margin-bottom: 8px; }
+  .if-col-head b { font: 500 13px var(--h); color: var(--ink); }
+  .if-col-head span { font: 11px var(--mono); color: var(--ink-3); }
+  .if-col ol { list-style: decimal; margin: 0; padding-left: 1.6em; font-size: 13px; line-height: 1.75; color: var(--ink-2); }
+  .if-col li { padding-left: 2px; overflow-wrap: anywhere; }
+  .if-col li::marker { font: 11px var(--mono); color: var(--ink-3); }
+  .if-col li.hit { color: var(--accent); }
+
+  /* Bars: the ladder and the tag vector. */
+  .if-ladder, .if-tags { display: flex; flex-direction: column; gap: 8px; }
+  .if-row { display: grid; grid-template-columns: 13em 1fr 4em; gap: 12px; align-items: center; font-size: 13px; color: var(--ink-2); }
+  .if-label { display: flex; flex-direction: column; line-height: 1.25; }
+  .if-label small { font: 11px var(--mono); color: var(--ink-3); }
+  .if-row output { font: 12px var(--mono); color: var(--ink); text-align: right; }
+  .if-row.best .if-label { color: var(--ink); }
+  .if-bar { position: relative; height: 14px; border-radius: 4px; background: #ffffff0a; overflow: hidden; }
+  .if-bar i { position: absolute; inset: 0 auto 0 0; border-radius: 4px; background: var(--ink-3); transition: width 0.5s var(--ease); }
+  .if-row.best .if-bar i { background: var(--accent); }
+  .if-bar u { position: absolute; top: -2px; bottom: -2px; width: 2px; margin-left: -1px; background: var(--accent-2); }
+  .if-tag { display: grid; grid-template-columns: 11em 1fr; gap: 12px; align-items: center; font-size: 12px; color: var(--ink-2); }
+  .if-tag span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .if-tag .if-bar { height: 10px; }
+  .if-tag .if-bar i { background: var(--accent); }
+  .if-tags { gap: 4px; }
+
+  .widget.indie .seg button.chip { white-space: nowrap; }
+
+  @media (max-width: 760px) {
+    /* Two choices side by side don't fit a phone: each gets its own row. */
+    .widget.indie .toolbar { flex-wrap: wrap; }
+    .widget.indie .toolbar .seg { flex: 1 1 100%; }
+    .if-seed { flex-wrap: wrap; }
+    .if-seed .seg { width: 100%; display: flex; }
+    .if-seed .seg button.chip { flex: 1; }
+    .if-col { padding: 10px 10px; }
+    .if-col ol { font-size: 12px; }
+    .if-row { grid-template-columns: 9.5em 1fr 3.4em; gap: 8px; font-size: 12px; }
+    .if-tag { grid-template-columns: 8.5em 1fr; }
+  }
+}

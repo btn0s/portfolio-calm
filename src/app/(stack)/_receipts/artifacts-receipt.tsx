@@ -2,48 +2,56 @@ import { ReceiptShell } from "@/components/receipt/receipt-shell";
 import { Barcode } from "@/components/barcode";
 import { ListItem } from "@/components/list-item";
 import { Signature } from "@/components/signature";
+import { DitherImage } from "@/components/dither-image";
 
-const ARTIFACTS = [
+const ARTIFACTS: { title: string; description: string; href: string; date: string; image?: string }[] = [
   {
     title: 'Echelon',
     description: 'Asymmetric multiplayer stealth game prototype in Unreal Engine',
     href: '/artifacts/echelon',
+    image: '/images/artifacts/echelon/cover.png',
     date: '2024',
   },
   {
     title: 'Strella',
     description: 'IDE designed for design engineers - Visual Development Environment',
     href: '/artifacts/strella',
+    image: '/images/artifacts/strella/cover.png',
     date: '2024',
   },
   {
     title: 'Game Dev Prototypes',
     description: 'Collection of game development experiments and prototypes',
     href: '/artifacts/game-dev-prototypes',
+    image: '/images/artifacts/game-dev-prototypes/cover.png',
     date: '2023-2024',
   },
   {
     title: 'Tldraw RTS',
     description: 'Real-time strategy game prototype built with Tldraw SDK',
     href: '/artifacts/tldraw-rts',
+    image: '/images/artifacts/tldraw-rts/cover.jpg',
     date: '2023',
   },
   {
     title: 'Card Stack',
     description: 'Interactive receipt stack prototypes - drag/click shuffle and click-behind navigation',
     href: '/artifacts/card-stack',
+    image: '/images/artifacts/card-stack/cover.jpg',
     date: '2026',
   },
   {
     title: 'Delphi Falling Chips',
     description: 'Interactive visual experiment',
     href: '/artifacts/delphi-falling-chips',
+    image: '/images/artifacts/delphi-falling-chips/cover.jpg',
     date: '2024',
   },
   {
     title: 'Portfolio v1',
     description: 'Previous portfolio iteration',
     href: '/artifacts/portfolio-v1',
+    image: '/images/artifacts/portfolio-v1/cover.jpg',
     date: '2023',
   },
 ];
@@ -117,6 +125,16 @@ export function ArtifactsReceipt() {
                 className="bg-[#0047ab] p-5 hover:bg-white/10 transition-colors group relative border-b border-white/5 last:border-0 cursor-pointer text-white"
                 titleClassName="font-mono"
                 descriptionClassName="font-mono"
+                mediaPlacement="top"
+                media={
+                  <DitherImage
+                    src={artifact.image}
+                    seed={artifact.href}
+                    alt=""
+                    treatment="blueprint"
+                    className="w-full aspect-[4/1] outline outline-1 outline-white/25"
+                  />
+                }
               />
             ))}
           </div>
