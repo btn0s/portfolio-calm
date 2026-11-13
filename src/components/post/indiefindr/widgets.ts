@@ -116,14 +116,47 @@ function timeline(root: HTMLElement) {
 }
 
 // ── The answer key vs the models ────────────────────────────────────────────────────────────
-function picks(root: HTMLElement) {
-  theme(root);
-  type Pick = (typeof data.picks)[number];
-  let seed: Pick = data.picks[0];
-  let model: 'merged' | 'fable' = 'merged';
+// Every ranked list in the post, under one name each. Real slates only: the answer key, Fable's
+// and the merged model's come from the compare pages, as do the tags-only replay and Sol's model.
+type Pick = (typeof data.picks)[number];
+const COLUMNS = {
+  golden: ['The answer key (LLM)', 'what the old pipeline picked'],
+  tags: ['Tags only', 'with the tags missing'],
+  fable: ['Hand-written (Fable)', 'every number hand-typed'],
+  sol: ['Sol’s trained model', 'real tags + a ranking model'],
+  merged: ['Final merged model', 'free, precomputed'],
+} as const;
+type Column = keyof typeof COLUMNS;
+
+/** One ranked list of ten. Titles in `hits` are also in the answer key, and get the accent. */
+const column = (key: Column, titles: string[], hits: Set<string>) =>
+  h(
+    'div',
+    { class: 'if-col' },
+    h('div', { class: 'if-col-head' }, h('b', {}, COLUMNS[key][0]), h('span', {}, COLUMNS[key][1])),
+    h('ol', {}, ...titles.map((t) => h('li', hits.has(t) ? { class: 'hit' } : {}, t))),
+  );
+
+/** The seed game's Steam art and name, with a line of context under it. */
+function seedHead(...extra: Node[]) {
   const art = h('img', { class: 'if-seed-art', alt: '' }) as HTMLImageElement;
   const name = h('b', {});
   const note = h('span', {});
+  const el = h('div', { class: 'if-seed' }, art, h('div', { class: 'title' }, name, note), ...extra);
+  const show = (seed: Pick, line: string) => {
+    art.src = `/thoughts/indiefindr/seeds/${seed.appid}.jpg`;
+    name.textContent = `Games like ${seed.seed}`;
+    note.textContent = line;
+  };
+  return { el, show };
+}
+
+const titles = (list: [string, boolean][]) => list.map(([t]) => t);
+
+function picks(root: HTMLElement) {
+  theme(root);
+  let seed: Pick = data.picks[0];
+  let model: 'merged' | 'fable' = 'merged';
   const cols = h('div', { class: 'if-cols' });
   const seeds = chips(
     data.picks.map((p) => ({ id: p.seed, label: p.seed })),
@@ -144,41 +177,52 @@ function picks(root: HTMLElement) {
     },
     model,
   );
+  const head = seedHead(models);
   root.append(
     h('div', { class: 'toolbar' }, seeds),
-    h('div', { class: 'if-seed' }, art, h('div', { class: 'title' }, name, note), models),
+    head.el,
     cols,
-    h('p', { class: 'caption' }, 'Highlighted: a game both lists picked. These seeds were in the training split, which flatters every model a bit.'),
+    h('p', { class: 'caption' }, 'Highlighted: a game both lists picked. These six were among the games the models learned from, which flatters every model a bit.'),
   );
-  const list = (title: string, sub: string, items: [string, boolean][]) =>
-    h(
-      'div',
-      { class: 'if-col' },
-      h('div', { class: 'if-col-head' }, h('b', {}, title), h('span', {}, sub)),
-      h('ol', {}, ...items.map(([t, hit]) => h('li', hit ? { class: 'hit' } : {}, t))),
-    );
   function draw() {
     const theirs = seed[model] as [string, boolean][];
     const found = new Set(theirs.filter(([, hit]) => hit).map(([t]) => t));
-    art.src = `/thoughts/indiefindr/seeds/${seed.appid}.jpg`;
-    name.textContent = `Games like ${seed.seed}`;
-    note.textContent = `${found.size} of 10 in common`;
-    cols.replaceChildren(
-      list('The answer key', 'the old LLM pipeline', seed.golden.map((t) => [t, found.has(t)])),
-      list(model === 'merged' ? 'The merged model' : "Fable's model", model === 'merged' ? 'free, precomputed' : 'every number hand-typed', theirs),
-    );
+    head.show(seed, `${found.size} of 10 in common`);
+    cols.replaceChildren(column('golden', seed.golden, found), column(model, titles(theirs), found));
   }
   draw();
 }
+
+// ── The side-by-side pages ──────────────────────────────────────────────────────────────────
+// The agents' compare pages for one seed, rebuilt live: the answer key first, then the models.
+function slates(root: HTMLElement, keys: Column[], line: string, caption: string) {
+  theme(root);
+  const seed = data.picks.find((p) => p.seed === 'Mouthwashing')!;
+  const more = data.slates.Mouthwashing;
+  const lists: Record<Column, string[]> = { golden: seed.golden, tags: more.tags, fable: titles(seed.fable as [string, boolean][]), sol: more.sol, merged: titles(seed.merged as [string, boolean][]) };
+  const key = new Set(seed.golden);
+  const head = seedHead();
+  head.show(seed, line);
+  root.append(
+    head.el,
+    h('div', { class: 'if-cols if-slates', style: `--n:${keys.length + 1}` }, column('golden', seed.golden, new Set()), ...keys.map((k) => column(k, lists[k], key))),
+    h('p', { class: 'caption' }, caption),
+  );
+}
+const sameList = (root: HTMLElement) =>
+  slates(root, ['tags'], 'Replayed locally, with the tags as they were', 'With nothing to compare, every game tied, and every game got this same list.');
+const twoRoutes = (root: HTMLElement) =>
+  slates(root, ['fable', 'sol'], 'The page that compared the two routes', 'Highlighted: also in the answer key.');
+const finalPage = (root: HTMLElement) => slates(root, ['merged'], 'The final page', 'Highlighted: also in the answer key.');
 
 // ── The ladder ────────────────────────────────────────────────────────────────────────────
 function ladder(root: HTMLElement) {
   theme(root);
   const rows: { label: string; who: string; recall: number; skew?: number; best?: boolean }[] = [
-    { label: '10 random games', who: 'expected', recall: 0.04 },
-    { label: 'Most popular games', who: 'baseline', recall: 0.1, skew: 824 },
+    { label: '10 random games', who: 'for scale', recall: 0.04 },
+    { label: 'Most popular games', who: 'for scale', recall: 0.1, skew: 824 },
     { label: 'Off-the-shelf embeddings', who: 'Sol', recall: 5.6, skew: 0.05 },
-    { label: 'Fine-tuned embeddings', who: 'Sol', recall: 9.4, skew: 0.07 },
+    { label: 'Retrained embeddings', who: 'Sol', recall: 9.4, skew: 0.07 },
     { label: 'Steam tags', who: 'Sol', recall: 14.4, skew: 0.07 },
     { label: 'Tags + ranking model', who: 'Sol', recall: 15.9, skew: 1.2 },
     { label: 'Hand-written', who: 'Fable', recall: 18.3, skew: 0.67 },
@@ -193,8 +237,8 @@ function ladder(root: HTMLElement) {
       { class: 'toolbar' },
       chips(
         [
-          { id: 'recall', label: 'Recall@10' },
-          { id: 'skew', label: 'How mainstream' },
+          { id: 'recall', label: 'Matches the LLM' },
+          { id: 'skew', label: 'Popularity' },
         ],
         (id) => {
           mode = id as typeof mode;
@@ -206,7 +250,7 @@ function ladder(root: HTMLElement) {
     list,
     caption,
   );
-  // Mainstream is a ratio, so it's drawn on a log scale with the LLM's picks at 1×.
+  // Popularity is a ratio, so it's drawn on a log scale with the LLM's picks at 1×.
   const LO = Math.log10(0.02);
   const HI = Math.log10(1000);
   const logX = (v: number) => ((Math.log10(v) - LO) / (HI - LO)) * 100;
@@ -227,13 +271,13 @@ function ladder(root: HTMLElement) {
     caption.textContent =
       mode === 'recall'
         ? 'How many of the LLM’s 10 picks land in the model’s top 10, on 1,730 games nothing was tuned on.'
-        : 'Median review count of a model’s picks, relative to the LLM’s picks (the line). Under 1× is less mainstream. Log scale.';
+        : 'How popular a model’s picks are: their median review count, relative to the LLM’s picks (the line). Under 1× is less mainstream. Log scale.';
   }
   draw();
 }
 
 // ── Flattening ──────────────────────────────────────────────────────────────────────────
-// One game's 20 Steam tags as a vector: linear votes × IDF, or Fable's votes^0.3 × IDF^0.5.
+// One game's 20 Steam tags as a vector: the obvious votes × IDF, or Fable's votes^0.3 × IDF^0.5.
 function flatten(root: HTMLElement) {
   theme(root);
   const games = data.tags as Record<string, { tags: string[]; votes: number[]; linear: number[]; flat: number[] }>;
@@ -247,7 +291,7 @@ function flatten(root: HTMLElement) {
       { class: 'toolbar' },
       chips(
         [
-          { id: 'linear', label: 'Linear' },
+          { id: 'linear', label: 'The obvious way' },
           { id: 'flat', label: 'Flattened' },
         ],
         (id) => {
@@ -267,7 +311,7 @@ function flatten(root: HTMLElement) {
     ),
     bars,
     share,
-    h('p', { class: 'caption' }, 'Bar length is each tag’s weight in the vector the model compares, scaled to the biggest one.'),
+    h('p', { class: 'caption' }, 'Bar length is how much each tag counts when two games are compared, relative to the biggest.'),
   );
   function draw(rebuild = false) {
     const g = games[game];
@@ -285,9 +329,9 @@ function flatten(root: HTMLElement) {
       (el.querySelector('i') as HTMLElement).style.width = `${(v[i] / max) * 100}%`;
     }
     const top3 = order.slice(0, 3).reduce((s, i) => s + v[i] * v[i], 0);
-    share.innerHTML = `Top three tags: <b>${Math.round(top3 * 100)}%</b> of the vector. ${mode === 'linear' ? 'Three tags out of twenty carry nearly half of it.' : 'Much closer to even: the whole profile gets a say.'}`;
+    share.innerHTML = `Top three tags: <b>${Math.round(top3 * 100)}%</b> of the weight. ${mode === 'linear' ? 'Three tags out of twenty carry nearly half of it.' : 'Much closer to even: the whole profile gets a say.'}`;
   }
   draw(true);
 }
 
-export { timeline, picks, ladder, flatten };
+export { timeline, picks, ladder, flatten, sameList, twoRoutes, finalPage };
