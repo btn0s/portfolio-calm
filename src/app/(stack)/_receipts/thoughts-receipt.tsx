@@ -6,7 +6,7 @@ import { getBlogPosts } from '@/lib/blog'
 
 export function ThoughtsReceipt() {
   // Only what the list shows goes to the client, not every post's body.
-  const posts = getBlogPosts().map(({ metadata, slug, cover }) => ({ metadata, slug, cover }))
+  const posts = getBlogPosts().map(({ metadata, slug }) => ({ metadata, slug }))
   const today = new Date().toLocaleDateString('en-US', {
     weekday: 'short',
     year: 'numeric',

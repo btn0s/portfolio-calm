@@ -13,9 +13,6 @@ interface ListItemProps {
   descriptionClassName?: string
   target?: string
   rel?: string
-  /** A picture for the entry: beside the text, or as a band above it. */
-  media?: React.ReactNode
-  mediaPlacement?: 'side' | 'top'
 }
 
 export function ListItem({
@@ -30,18 +27,15 @@ export function ListItem({
   descriptionClassName,
   target,
   rel,
-  media,
-  mediaPlacement = 'side',
 }: ListItemProps) {
   const isExternal = href?.startsWith('http') || href?.startsWith('mailto')
   
-  const text = (
+  const content = (
     <div className={cn(
       "transition-transform duration-200",
-      media && "min-w-0 flex-1",
       href && "group-hover:translate-x-1.5 group-focus-visible:translate-x-1.5"
     )}>
-      <div className="flex justify-between items-baseline mb-1">
+      <div className={cn("flex justify-between items-baseline gap-4", (description || subtext) && "mb-1")}>
         <span className={cn(
           "font-bold uppercase text-xs text-pretty",
           href && underline && "underline decoration-dotted underline-offset-2 group-hover:decoration-solid",
@@ -68,13 +62,6 @@ export function ListItem({
           {subtext}
         </span>
       )}
-    </div>
-  )
-
-  const content = !media ? text : (
-    <div className={mediaPlacement === 'top' ? "flex flex-col gap-4" : "flex flex-col gap-3 sm:flex-row sm:items-start sm:gap-4"}>
-      {media}
-      {text}
     </div>
   )
 

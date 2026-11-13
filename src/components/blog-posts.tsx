@@ -2,9 +2,7 @@
 
 import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams, useRouter, usePathname } from 'next/navigation'
-import { formatDate } from '@/lib/blog-utils'
 import { ListItem } from './list-item'
-import { DitherImage } from './dither-image'
 
 type Filter = 'recent' | 'professional' | 'personal'
 
@@ -16,8 +14,11 @@ type BlogPost = {
     category?: 'professional' | 'personal'
   }
   slug: string
-  cover?: string
 }
+
+/** "Nov 26": the month and year a post went out. */
+const shortDate = (date: string) =>
+  new Date(`${date.slice(0, 10)}T00:00:00`).toLocaleDateString('en-US', { month: 'short', year: '2-digit' })
 
 type BlogPostsProps = {
   posts: BlogPost[]
@@ -99,26 +100,15 @@ function BlogPostsContent({ posts }: BlogPostsProps) {
           Personal
         </button>
       </div>
-      <div id="posts-list" className="space-y-6" role="tabpanel">
+      <div id="posts-list" role="tabpanel">
         {filteredPosts.map((post) => (
-          <div key={post.slug} className="relative group">
-            <div className="absolute -left-3 top-0 bottom-0 w-0.5 bg-foreground/10 group-hover:bg-foreground/40 transition-colors" />
+          <div key={post.slug} className="relative group py-2.5 border-b border-dotted border-current/25">
+            <div className="absolute -left-3 top-2.5 bottom-2.5 w-0.5 bg-foreground/10 group-hover:bg-foreground/40 transition-colors" />
             <ListItem
               title={post.metadata.title}
-              description={post.metadata.summary}
-              date={formatDate(post.metadata.publishedAt, false)}
-              subtext={`log/${post.slug}`}
+              date={shortDate(post.metadata.publishedAt)}
               href={`/thoughts/${post.slug}`}
               titleClassName="font-serif italic capitalize tracking-normal text-sm"
-              descriptionClassName="font-serif italic opacity-60"
-              media={
-                <DitherImage
-                  src={post.cover}
-                  title={post.metadata.title}
-                  alt=""
-                  className="shrink-0 w-[132px] aspect-[3/2] sm:mt-0.5 sm:w-[120px]"
-                />
-              }
             />
           </div>
         ))}

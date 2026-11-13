@@ -2,59 +2,20 @@ import { ReceiptShell } from "@/components/receipt/receipt-shell";
 import { Barcode } from "@/components/barcode";
 import { ListItem } from "@/components/list-item";
 import { Signature } from "@/components/signature";
-import { DitherImage } from "@/components/dither-image";
 
-const ARTIFACTS: { title: string; description: string; href: string; date: string; image?: string }[] = [
-  {
-    title: 'Echelon',
-    description: 'Asymmetric multiplayer stealth game prototype in Unreal Engine',
-    href: '/artifacts/echelon',
-    image: '/images/artifacts/echelon/cover.png',
-    date: '2024',
-  },
-  {
-    title: 'Strella',
-    description: 'IDE designed for design engineers - Visual Development Environment',
-    href: '/artifacts/strella',
-    image: '/images/artifacts/strella/cover.png',
-    date: '2024',
-  },
-  {
-    title: 'Game Dev Prototypes',
-    description: 'Collection of game development experiments and prototypes',
-    href: '/artifacts/game-dev-prototypes',
-    image: '/images/artifacts/game-dev-prototypes/cover.png',
-    date: '2023-2024',
-  },
-  {
-    title: 'Tldraw RTS',
-    description: 'Real-time strategy game prototype built with Tldraw SDK',
-    href: '/artifacts/tldraw-rts',
-    image: '/images/artifacts/tldraw-rts/cover.jpg',
-    date: '2023',
-  },
-  {
-    title: 'Card Stack',
-    description: 'Interactive receipt stack prototypes - drag/click shuffle and click-behind navigation',
-    href: '/artifacts/card-stack',
-    image: '/images/artifacts/card-stack/cover.jpg',
-    date: '2026',
-  },
-  {
-    title: 'Delphi Falling Chips',
-    description: 'Interactive visual experiment',
-    href: '/artifacts/delphi-falling-chips',
-    image: '/images/artifacts/delphi-falling-chips/cover.jpg',
-    date: '2024',
-  },
-  {
-    title: 'Portfolio v1',
-    description: 'Previous portfolio iteration',
-    href: '/artifacts/portfolio-v1',
-    image: '/images/artifacts/portfolio-v1/cover.jpg',
-    date: '2023',
-  },
+const ARTIFACTS = [
+  { title: 'Echelon', kind: 'GAME', href: '/artifacts/echelon', date: '2024' },
+  { title: 'Strella', kind: 'TOOL', href: '/artifacts/strella', date: '2024' },
+  { title: 'Game Dev Prototypes', kind: 'GAMES', href: '/artifacts/game-dev-prototypes', date: '2023-2024' },
+  { title: 'Tldraw RTS', kind: 'GAME', href: '/artifacts/tldraw-rts', date: '2023' },
+  { title: 'Card Stack', kind: 'PROTO', href: '/artifacts/card-stack', date: '2026' },
+  { title: 'Delphi Falling Chips', kind: 'EXP', href: '/artifacts/delphi-falling-chips', date: '2024' },
+  { title: 'Portfolio v1', kind: 'SITE', href: '/artifacts/portfolio-v1', date: '2023' },
 ];
+
+/** "GAME · 2024", with a span of years shortened to "23–24". */
+const meta = ({ kind, date }: { kind: string; date: string }) =>
+  `${kind} · ${date.includes('-') ? date.split('-').map((y) => y.slice(2)).join('–') : date}`;
 
 export function ArtifactsReceipt() {
   const today = new Date().toLocaleDateString('en-US', {
@@ -113,27 +74,17 @@ export function ArtifactsReceipt() {
             </h2>
           </div>
 
-          <div className="grid grid-cols-1 gap-px bg-white/10 border border-white/10">
+          <div>
             {ARTIFACTS.map((artifact) => (
-              <ListItem
-                key={artifact.title}
-                href={artifact.href}
-                title={artifact.title}
-                description={artifact.description}
-                date={artifact.date}
-                subtext={`artifacts/${artifact.href.split('/').pop()?.toLowerCase()}`}
-                className="bg-[#0047ab] p-5 hover:bg-white/10 transition-colors group relative border-b border-white/5 last:border-0 cursor-pointer text-white"
-                titleClassName="font-mono"
-                descriptionClassName="font-mono"
-                mediaPlacement="top"
-                media={
-                  <DitherImage
-                    src={artifact.image}
-                    alt=""
-                    className="w-full aspect-[4/1] outline outline-1 outline-white/25"
-                  />
-                }
-              />
+              <div key={artifact.title} className="border-b border-dotted border-white/25">
+                <ListItem
+                  href={artifact.href}
+                  title={artifact.title}
+                  date={meta(artifact)}
+                  className="px-2 py-2.5 hover:bg-white/10 transition-colors cursor-pointer text-white"
+                  titleClassName="font-mono"
+                />
+              </div>
             ))}
           </div>
         </section>
