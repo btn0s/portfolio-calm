@@ -115,6 +115,7 @@ function BlogPostsContent({ posts }: BlogPostsProps) {
                 <DitherImage
                   src={post.cover}
                   seed={post.slug}
+                  title={post.metadata.title}
                   alt=""
                   treatment="riso"
                   className="shrink-0 w-[132px] aspect-[3/2] sm:mt-0.5 sm:w-[120px] mix-blend-multiply"
