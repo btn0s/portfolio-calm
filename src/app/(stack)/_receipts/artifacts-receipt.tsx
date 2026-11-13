@@ -129,9 +129,7 @@ export function ArtifactsReceipt() {
                 media={
                   <DitherImage
                     src={artifact.image}
-                    seed={artifact.href}
                     alt=""
-                    treatment="blueprint"
                     className="w-full aspect-[4/1] outline outline-1 outline-white/25"
                   />
                 }

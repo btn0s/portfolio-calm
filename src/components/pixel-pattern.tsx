@@ -4,12 +4,12 @@ import React, { useEffect, useRef, useMemo } from "react";
 import { shouldRenderPixelPatternFrame } from "@/lib/pixel-animation";
 
 // Shader-style utilities
-const hash = (n: number) => {
+export const hash = (n: number) => {
   const x = Math.sin(n * 9999) * 10000;
   return x - Math.floor(x);
 };
 
-const noise2d = (x: number, y: number, seed: number = 0) =>
+export const noise2d = (x: number, y: number, seed: number = 0) =>
   hash(x * 12.9898 + y * 78.233 + seed);
 
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
