@@ -1,126 +1,33 @@
-'use client'
-
-import { useState, useEffect, Suspense } from 'react'
-import { useSearchParams, useRouter, usePathname } from 'next/navigation'
 import { ListItem } from './list-item'
-
-type Filter = 'recent' | 'professional' | 'personal'
+import { YearGroups } from './year-groups'
 
 type BlogPost = {
   metadata: {
     title: string
     publishedAt: string
-    summary: string
-    category?: 'professional' | 'personal'
   }
   slug: string
 }
 
-/** "Nov 26": the month and year a post went out. */
-const shortDate = (date: string) =>
-  new Date(`${date.slice(0, 10)}T00:00:00`).toLocaleDateString('en-US', { month: 'short', year: '2-digit' })
+const day = (post: BlogPost) => new Date(`${post.metadata.publishedAt.slice(0, 10)}T00:00:00`)
 
-type BlogPostsProps = {
-  posts: BlogPost[]
-}
-
-function BlogPostsContent({ posts }: BlogPostsProps) {
-  const allPosts = posts
-  const searchParams = useSearchParams()
-  const router = useRouter()
-  const pathname = usePathname()
-  const [filter, setFilter] = useState<Filter>((searchParams.get('filter') as Filter) || 'recent')
-
-  // Sync filter to URL
-  useEffect(() => {
-    const currentFilter = searchParams.get('filter') as Filter | null
-    // Only update URL if filter actually changed from what's in the URL
-    if (currentFilter === filter) return
-    
-    const params = new URLSearchParams(searchParams.toString())
-    if (filter === 'recent') {
-      params.delete('filter')
-    } else {
-      params.set('filter', filter)
-    }
-    const newUrl = params.toString() ? `${pathname}?${params.toString()}` : pathname
-    router.replace(newUrl, { scroll: false })
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filter])
-
-  const sortedPosts = [...allPosts].sort((a, b) => {
-    if (new Date(a.metadata.publishedAt) > new Date(b.metadata.publishedAt)) {
-      return -1;
-    }
-    return 1;
-  })
-
-  const filteredPosts = sortedPosts.filter((post) => {
-    if (filter === 'recent') return true
-    const category = post.metadata.category || 'personal'
-    return category === filter
-  })
+/** Every post, newest first, grouped by year. */
+export function BlogPosts({ posts }: { posts: BlogPost[] }) {
+  const sorted = [...posts].sort((a, b) => day(b).getTime() - day(a).getTime())
 
   return (
-    <>
-      <div className="flex items-center gap-3 mb-6 text-[10px] font-mono uppercase tracking-wider text-[#1a1a1a]/50" role="tablist" aria-label="Filter posts">
-        <button
-          onClick={() => setFilter('recent')}
-          aria-pressed={filter === 'recent'}
-          role="tab"
-          aria-controls="posts-list"
-          className={`transition-opacity hover:opacity-100 rounded-sm ${
-            filter === 'recent' ? 'opacity-100 font-bold' : 'opacity-40'
-          }`}
-        >
-          Recent
-        </button>
-        <span className="opacity-20" aria-hidden="true">/</span>
-        <button
-          onClick={() => setFilter('professional')}
-          aria-pressed={filter === 'professional'}
-          role="tab"
-          aria-controls="posts-list"
-          className={`transition-opacity hover:opacity-100 rounded-sm ${
-            filter === 'professional' ? 'opacity-100 font-bold' : 'opacity-40'
-          }`}
-        >
-          Professional
-        </button>
-        <span className="opacity-20" aria-hidden="true">/</span>
-        <button
-          onClick={() => setFilter('personal')}
-          aria-pressed={filter === 'personal'}
-          role="tab"
-          aria-controls="posts-list"
-          className={`transition-opacity hover:opacity-100 rounded-sm ${
-            filter === 'personal' ? 'opacity-100 font-bold' : 'opacity-40'
-          }`}
-        >
-          Personal
-        </button>
-      </div>
-      <div id="posts-list" role="tabpanel">
-        {filteredPosts.map((post) => (
-          <div key={post.slug} className="relative group py-2.5 border-b border-dotted border-current/25">
-            <div className="absolute -left-3 top-2.5 bottom-2.5 w-0.5 bg-foreground/10 group-hover:bg-foreground/40 transition-colors" />
-            <ListItem
-              title={post.metadata.title}
-              date={shortDate(post.metadata.publishedAt)}
-              href={`/thoughts/${post.slug}`}
-              titleClassName="font-serif italic capitalize tracking-normal text-sm"
-            />
-          </div>
-        ))}
-      </div>
-    </>
-  );
-}
-
-export function BlogPosts({ posts }: BlogPostsProps) {
-  return (
-    <Suspense fallback={<div className="space-y-6">Loading posts…</div>}>
-      <BlogPostsContent posts={posts} />
-    </Suspense>
+    <YearGroups items={sorted} year={(post) => day(post).getFullYear()}>
+      {(post) => (
+        <div key={post.slug} className="relative group py-2.5 border-b border-dotted border-current/25">
+          <div className="absolute -left-3 top-2.5 bottom-2.5 w-0.5 bg-foreground/10 group-hover:bg-foreground/40 transition-colors" />
+          <ListItem
+            title={post.metadata.title}
+            date={day(post).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+            href={`/thoughts/${post.slug}`}
+            titleClassName="font-serif italic capitalize tracking-normal text-sm max-w-[32ch] text-balance"
+          />
+        </div>
+      )}
+    </YearGroups>
   )
 }

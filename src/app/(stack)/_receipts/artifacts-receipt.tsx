@@ -1,21 +1,18 @@
 import { ReceiptShell } from "@/components/receipt/receipt-shell";
 import { Barcode } from "@/components/barcode";
 import { ListItem } from "@/components/list-item";
+import { YearGroups } from "@/components/year-groups";
 import { Signature } from "@/components/signature";
 
 const ARTIFACTS = [
-  { title: 'Echelon', kind: 'GAME', href: '/artifacts/echelon', date: '2024' },
-  { title: 'Strella', kind: 'TOOL', href: '/artifacts/strella', date: '2024' },
-  { title: 'Game Dev Prototypes', kind: 'GAMES', href: '/artifacts/game-dev-prototypes', date: '2023-2024' },
-  { title: 'Tldraw RTS', kind: 'GAME', href: '/artifacts/tldraw-rts', date: '2023' },
-  { title: 'Card Stack', kind: 'PROTO', href: '/artifacts/card-stack', date: '2026' },
-  { title: 'Delphi Falling Chips', kind: 'EXP', href: '/artifacts/delphi-falling-chips', date: '2024' },
-  { title: 'Portfolio v1', kind: 'SITE', href: '/artifacts/portfolio-v1', date: '2023' },
+  { title: 'Card Stack', kind: 'PROTO', href: '/artifacts/card-stack', year: 2026 },
+  { title: 'Echelon', kind: 'GAME', href: '/artifacts/echelon', year: 2024 },
+  { title: 'Strella', kind: 'TOOL', href: '/artifacts/strella', year: 2024 },
+  { title: 'Game Dev Prototypes', kind: 'GAMES', href: '/artifacts/game-dev-prototypes', year: 2024 },
+  { title: 'Delphi Falling Chips', kind: 'EXP', href: '/artifacts/delphi-falling-chips', year: 2024 },
+  { title: 'Tldraw RTS', kind: 'GAME', href: '/artifacts/tldraw-rts', year: 2023 },
+  { title: 'Portfolio v1', kind: 'SITE', href: '/artifacts/portfolio-v1', year: 2023 },
 ];
-
-/** "GAME · 2024", with a span of years shortened to "23–24". */
-const meta = ({ kind, date }: { kind: string; date: string }) =>
-  `${kind} · ${date.includes('-') ? date.split('-').map((y) => y.slice(2)).join('–') : date}`;
 
 export function ArtifactsReceipt() {
   const today = new Date().toLocaleDateString('en-US', {
@@ -74,19 +71,19 @@ export function ArtifactsReceipt() {
             </h2>
           </div>
 
-          <div>
-            {ARTIFACTS.map((artifact) => (
+          <YearGroups items={ARTIFACTS} year={(artifact) => artifact.year}>
+            {(artifact) => (
               <div key={artifact.title} className="border-b border-dotted border-white/25">
                 <ListItem
                   href={artifact.href}
                   title={artifact.title}
-                  date={meta(artifact)}
-                  className="px-2 py-2.5 hover:bg-white/10 transition-colors cursor-pointer text-white"
-                  titleClassName="font-mono"
+                  date={artifact.kind}
+                  className="-mx-2 px-2 py-2.5 hover:bg-white/10 transition-colors cursor-pointer text-white"
+                  titleClassName="font-mono max-w-[32ch] text-balance"
                 />
               </div>
-            ))}
-          </div>
+            )}
+          </YearGroups>
         </section>
 
         <div className="mt-auto pt-8 border-t-2 border-white/40 border-double flex flex-col items-center gap-6">

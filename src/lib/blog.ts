@@ -7,7 +7,6 @@ type Metadata = {
   summary: string
   image?: string
   video?: string
-  category?: 'professional' | 'personal'
 }
 
 export function parseFrontmatter(fileContent: string) {
@@ -26,11 +25,7 @@ export function parseFrontmatter(fileContent: string) {
     let value = valueArr.join(': ').trim()
     value = value.replace(/^['"](.*)['"]$/, '$1') // Remove quotes
     const trimmedKey = key.trim() as keyof Metadata
-    if (trimmedKey === 'category') {
-      metadata[trimmedKey] = value as 'professional' | 'personal'
-    } else {
-      metadata[trimmedKey] = value
-    }
+    metadata[trimmedKey] = value
   })
 
   const missingFields: string[] = []

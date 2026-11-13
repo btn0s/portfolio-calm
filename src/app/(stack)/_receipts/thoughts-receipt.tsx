@@ -5,8 +5,7 @@ import { Barcode } from "@/components/barcode";
 import { getBlogPosts } from '@/lib/blog'
 
 export function ThoughtsReceipt() {
-  // Only what the list shows goes to the client, not every post's body.
-  const posts = getBlogPosts().map(({ metadata, slug }) => ({ metadata, slug }))
+  const posts = getBlogPosts()
   const today = new Date().toLocaleDateString('en-US', {
     weekday: 'short',
     year: 'numeric',
@@ -56,7 +55,7 @@ export function ThoughtsReceipt() {
             </h2>
             <div className="h-px bg-black/5 flex-1" />
           </div>
-          <div className="receipt-thoughts space-y-8">
+          <div className="receipt-thoughts">
             <BlogPosts posts={posts} />
           </div>
         </section>
