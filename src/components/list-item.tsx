@@ -35,7 +35,7 @@ export function ListItem({
       "transition-transform duration-200",
       href && "group-hover:translate-x-1.5 group-focus-visible:translate-x-1.5"
     )}>
-      <div className="flex justify-between items-baseline mb-1">
+      <div className={cn("flex justify-between items-baseline gap-4", (description || subtext) && "mb-1")}>
         <span className={cn(
           "font-bold uppercase text-xs text-pretty",
           href && underline && "underline decoration-dotted underline-offset-2 group-hover:decoration-solid",

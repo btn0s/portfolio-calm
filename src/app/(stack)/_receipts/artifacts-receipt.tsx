@@ -1,51 +1,17 @@
 import { ReceiptShell } from "@/components/receipt/receipt-shell";
 import { Barcode } from "@/components/barcode";
 import { ListItem } from "@/components/list-item";
+import { YearGroups } from "@/components/year-groups";
 import { Signature } from "@/components/signature";
 
 const ARTIFACTS = [
-  {
-    title: 'Echelon',
-    description: 'Asymmetric multiplayer stealth game prototype in Unreal Engine',
-    href: '/artifacts/echelon',
-    date: '2024',
-  },
-  {
-    title: 'Strella',
-    description: 'IDE designed for design engineers - Visual Development Environment',
-    href: '/artifacts/strella',
-    date: '2024',
-  },
-  {
-    title: 'Game Dev Prototypes',
-    description: 'Collection of game development experiments and prototypes',
-    href: '/artifacts/game-dev-prototypes',
-    date: '2023-2024',
-  },
-  {
-    title: 'Tldraw RTS',
-    description: 'Real-time strategy game prototype built with Tldraw SDK',
-    href: '/artifacts/tldraw-rts',
-    date: '2023',
-  },
-  {
-    title: 'Card Stack',
-    description: 'Interactive receipt stack prototypes - drag/click shuffle and click-behind navigation',
-    href: '/artifacts/card-stack',
-    date: '2026',
-  },
-  {
-    title: 'Delphi Falling Chips',
-    description: 'Interactive visual experiment',
-    href: '/artifacts/delphi-falling-chips',
-    date: '2024',
-  },
-  {
-    title: 'Portfolio v1',
-    description: 'Previous portfolio iteration',
-    href: '/artifacts/portfolio-v1',
-    date: '2023',
-  },
+  { title: 'Card Stack', kind: 'PROTO', href: '/artifacts/card-stack', year: 2026 },
+  { title: 'Echelon', kind: 'GAME', href: '/artifacts/echelon', year: 2024 },
+  { title: 'Strella', kind: 'TOOL', href: '/artifacts/strella', year: 2024 },
+  { title: 'Game Dev Prototypes', kind: 'GAMES', href: '/artifacts/game-dev-prototypes', year: 2024 },
+  { title: 'Delphi Falling Chips', kind: 'EXP', href: '/artifacts/delphi-falling-chips', year: 2024 },
+  { title: 'Tldraw RTS', kind: 'GAME', href: '/artifacts/tldraw-rts', year: 2023 },
+  { title: 'Portfolio v1', kind: 'SITE', href: '/artifacts/portfolio-v1', year: 2023 },
 ];
 
 export function ArtifactsReceipt() {
@@ -105,21 +71,19 @@ export function ArtifactsReceipt() {
             </h2>
           </div>
 
-          <div className="grid grid-cols-1 gap-px bg-white/10 border border-white/10">
-            {ARTIFACTS.map((artifact) => (
-              <ListItem
-                key={artifact.title}
-                href={artifact.href}
-                title={artifact.title}
-                description={artifact.description}
-                date={artifact.date}
-                subtext={`artifacts/${artifact.href.split('/').pop()?.toLowerCase()}`}
-                className="bg-[#0047ab] p-5 hover:bg-white/10 transition-colors group relative border-b border-white/5 last:border-0 cursor-pointer text-white"
-                titleClassName="font-mono"
-                descriptionClassName="font-mono"
-              />
-            ))}
-          </div>
+          <YearGroups items={ARTIFACTS} year={(artifact) => artifact.year}>
+            {(artifact) => (
+              <div key={artifact.title} className="border-b border-dotted border-white/25">
+                <ListItem
+                  href={artifact.href}
+                  title={artifact.title}
+                  date={artifact.kind}
+                  className="-mx-2 px-2 py-2.5 hover:bg-white/10 transition-colors cursor-pointer text-white"
+                  titleClassName="font-mono max-w-[32ch] text-balance"
+                />
+              </div>
+            )}
+          </YearGroups>
         </section>
 
         <div className="mt-auto pt-8 border-t-2 border-white/40 border-double flex flex-col items-center gap-6">

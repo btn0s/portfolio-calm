@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 
 // Dev-only inline editor: add ?edit to a post's URL and its prose becomes editable. Save
 // writes the changes back to the MDX and commits them; Publish pushes them live.
@@ -42,8 +42,12 @@ function toMarkdown(el: HTMLElement): string {
 
 type Change = { el: HTMLElement; before: string; after: string };
 
+// `?edit` in the URL, read on the client only (false while the server renders and hydrates).
+const editRequested = () => new URLSearchParams(location.search).has("edit");
+const noSubscribe = () => () => {};
+
 export function EditMode({ slug }: { slug: string }) {
-  const [on, setOn] = useState(false);
+  const on = useSyncExternalStore(noSubscribe, editRequested, () => false);
   const [changes, setChanges] = useState<Change[]>([]);
   const [status, setStatus] = useState("");
   const [pending, setPending] = useState(0);
@@ -54,8 +58,7 @@ export function EditMode({ slug }: { slug: string }) {
       .catch(() => {});
 
   useEffect(() => {
-    if (!new URLSearchParams(location.search).has("edit")) return;
-    setOn(true);
+    if (!editRequested()) return;
     const els = [...document.querySelectorAll<HTMLElement>(BLOCKS)];
     const original = new Map(els.map((el) => [el, { text: el.textContent ?? "", md: toMarkdown(el) }]));
     const collect = () => {

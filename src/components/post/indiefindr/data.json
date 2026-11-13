@@ -1,0 +1,1108 @@
+{
+"tags": {
+"Lil Gator Game": {
+"tags": [
+"Casual",
+"Cozy",
+"Cute",
+"Relaxing",
+"Wholesome",
+"Family Friendly",
+"Funny",
+"Short",
+"Colorful",
+"Indie",
+"LGBTQ+",
+"3D Platformer",
+"Adventure",
+"3D",
+"Collectathon",
+"Third Person",
+"Singleplayer",
+"Action-Adventure",
+"Comedy",
+"RPG"
+],
+"votes": [
+752,
+737,
+719,
+719,
+697,
+687,
+638,
+611,
+591,
+517,
+487,
+432,
+432,
+336,
+333,
+311,
+296,
+244,
+235,
+215
+],
+"linear": [
+0.1906,
+0.3977,
+0.2387,
+0.2662,
+0.4225,
+0.2578,
+0.2245,
+0.3449,
+0.1857,
+0.1075,
+0.2721,
+0.2222,
+0.0955,
+0.096,
+0.1893,
+0.1209,
+0.0485,
+0.0913,
+0.1002,
+0.0666
+],
+"flat": [
+0.2053,
+0.2978,
+0.2318,
+0.2448,
+0.3103,
+0.2431,
+0.2303,
+0.2879,
+0.2126,
+0.1662,
+0.2676,
+0.2476,
+0.1623,
+0.1711,
+0.2408,
+0.1951,
+0.1248,
+0.1779,
+0.1878,
+0.1559
+]
+},
+"PIGFACE": {
+"tags": [
+"Shooter",
+"FPS",
+"Fast-Paced",
+"Immersive Sim",
+"Female Protagonist",
+"First-Person",
+"Gore",
+"Horror",
+"Action",
+"Action-Adventure",
+"3D",
+"Retro",
+"1990's",
+"Tactical",
+"Singleplayer",
+"Violent",
+"Combat",
+"Indie",
+"Early Access",
+"Stealth"
+],
+"votes": [
+717,
+685,
+674,
+674,
+663,
+636,
+566,
+545,
+539,
+539,
+539,
+496,
+447,
+447,
+431,
+431,
+420,
+366,
+129,
+43
+],
+"linear": [
+0.2856,
+0.3162,
+0.391,
+0.3347,
+0.2697,
+0.2157,
+0.2711,
+0.2105,
+0.1244,
+0.212,
+0.1619,
+0.1955,
+0.2446,
+0.2096,
+0.0742,
+0.2079,
+0.1686,
+0.08,
+0.0609,
+0.0241
+],
+"flat": [
+0.2498,
+0.2652,
+0.2959,
+0.2738,
+0.2466,
+0.2223,
+0.2552,
+0.2265,
+0.1745,
+0.2279,
+0.1991,
+0.2225,
+0.2541,
+0.2352,
+0.141,
+0.2359,
+0.2136,
+0.1513,
+0.1626,
+0.1274
+]
+},
+"Grimshire": {
+"tags": [
+"Dark",
+"Farming Sim",
+"Pixel Graphics",
+"Survival",
+"Cozy",
+"Resource Management",
+"Nature",
+"Agriculture",
+"RPG",
+"Life Sim",
+"Simulation",
+"Story Rich",
+"Emotional",
+"Singleplayer",
+"Sandbox",
+"Crafting",
+"Early Access",
+"Cooking",
+"Fishing",
+"Building"
+],
+"votes": [
+858,
+858,
+834,
+742,
+736,
+588,
+552,
+527,
+527,
+509,
+411,
+380,
+361,
+343,
+337,
+319,
+288,
+288,
+282,
+251
+],
+"linear": [
+0.3066,
+0.4618,
+0.2376,
+0.2712,
+0.3477,
+0.236,
+0.2432,
+0.3118,
+0.1428,
+0.2317,
+0.1075,
+0.099,
+0.1612,
+0.0492,
+0.1198,
+0.1285,
+0.1132,
+0.1579,
+0.1684,
+0.0943
+],
+"flat": [
+0.2514,
+0.3086,
+0.2226,
+0.2434,
+0.2761,
+0.2379,
+0.2446,
+0.2795,
+0.1892,
+0.2426,
+0.1725,
+0.1681,
+0.2168,
+0.121,
+0.1895,
+0.1984,
+0.1901,
+0.2244,
+0.2328,
+0.1783
+]
+}
+},
+"picks": [
+{
+"seed": "Lil Gator Game",
+"appid": 1586800,
+"header": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1586800/header.jpg?t=1764859841",
+"golden": [
+"Lonesome Village",
+"Paradise Marsh",
+"Calico",
+"TOEM: A Photo Adventure",
+"A Tiny Sticker Tale",
+"Alba: A Wildlife Adventure",
+"Garden Paws",
+"A Short Hike",
+"Haven Park",
+"Mail Time"
+],
+"fable": [
+[
+"Seal World",
+false
+],
+[
+"Smushi Come Home",
+false
+],
+[
+"Tall Trails",
+false
+],
+[
+"Misc. A Tiny Tale",
+false
+],
+[
+"Haven Park",
+true
+],
+[
+"Alba: A Wildlife Adventure",
+true
+],
+[
+"Zitifono",
+false
+],
+[
+"Little Kitty, Big City",
+false
+],
+[
+"Alpaca Stacka",
+false
+],
+[
+"A Corgi's Cozy Hike",
+false
+]
+],
+"merged": [
+[
+"Seal World",
+false
+],
+[
+"Misc. A Tiny Tale",
+false
+],
+[
+"Zitifono",
+false
+],
+[
+"Smushi Come Home",
+false
+],
+[
+"Tall Trails",
+false
+],
+[
+"Haven Park",
+true
+],
+[
+"Alpaca Stacka",
+false
+],
+[
+"A Short Hike",
+true
+],
+[
+"Alba: A Wildlife Adventure",
+true
+],
+[
+"Cellar Creek",
+false
+]
+]
+},
+{
+"seed": "Grimshire",
+"appid": 2238470,
+"header": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2238470/header.jpg?t=1765839096",
+"golden": [
+"Roots of Pacha",
+"Mirthwood",
+"Blood Builder",
+"Seeds of Calamity",
+"Pintman:Escape the Lockdown",
+"Island Berry",
+"Gaucho and the Grassland",
+"Cape Fathom",
+"I Am Future: Cozy Apocalypse Survival",
+"Cropia"
+],
+"fable": [
+[
+"Stardew Valley",
+false
+],
+[
+"Clanfolk",
+false
+],
+[
+"Cowboy Life Simulator",
+false
+],
+[
+"Cropia",
+true
+],
+[
+"Immortal Life",
+false
+],
+[
+"Staxel",
+false
+],
+[
+"Cornucopia®",
+false
+],
+[
+"Seeds of Calamity",
+true
+],
+[
+"I Am Future: Cozy Apocalypse Survival",
+true
+],
+[
+"Dinkum",
+false
+]
+],
+"merged": [
+[
+"Stardew Valley",
+false
+],
+[
+"Clanfolk",
+false
+],
+[
+"Cape Fathom",
+true
+],
+[
+"Fields of Mistria",
+false
+],
+[
+"Blood Builder",
+true
+],
+[
+"Cropia",
+true
+],
+[
+"Seeds of Calamity",
+true
+],
+[
+"Roots of Pacha",
+true
+],
+[
+"Dinkum",
+false
+],
+[
+"Cornucopia®",
+false
+]
+]
+},
+{
+"seed": "Death and Taxes",
+"appid": 1166290,
+"header": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1166290/header.jpg?t=1761671137",
+"golden": [
+"OPUS: Rocket of Whispers",
+"The Hex",
+"Milk inside a bag of milk inside a bag of milk",
+"The Stillness of the Wind",
+"Graveyard Keeper",
+"The Life and Suffering of Sir Brante",
+"Spiritfarer®: Farewell Edition",
+"Eye of the Beholder",
+"Papers, Please",
+"A Mortician's Tale"
+],
+"fable": [
+[
+"Astrologaster",
+false
+],
+[
+"TOY BOX",
+false
+],
+[
+"Suzerain",
+false
+],
+[
+"Ministry of Order",
+false
+],
+[
+"CraftCraft: Fantasy Merchant Simulator",
+false
+],
+[
+"Henchman Story",
+false
+],
+[
+"OXENFREE II: Lost Signals",
+false
+],
+[
+"Dear Edmund",
+false
+],
+[
+"The Life and Suffering of Sir Brante",
+true
+],
+[
+"Headliner: NoviNews",
+false
+]
+],
+"merged": [
+[
+"Ministry of Order",
+false
+],
+[
+"Dear Edmund",
+false
+],
+[
+"TOY BOX",
+false
+],
+[
+"Astrologaster",
+false
+],
+[
+"Papers, Please",
+true
+],
+[
+"ROSETIA: A First Contact Simulation",
+false
+],
+[
+"Am I Nima",
+false
+],
+[
+"Slay the Princess — The Pristine Cut",
+false
+],
+[
+"Life is Strange - Episode 1",
+false
+],
+[
+"Suzerain",
+false
+]
+]
+},
+{
+"seed": "PIGFACE",
+"appid": 3341650,
+"header": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/3341650/b6faf725a1bd4a2ce06bad0e77f4c6ee6f75010a/header.jpg?t=1767632808",
+"golden": [
+"Cruelty Squad",
+"ULTRAKILL",
+"Anger Foot",
+"Turbo Overkill",
+"Severed Steel",
+"Blood West",
+"Forgive Me Father",
+"Gloomwood",
+"Post Void",
+"Hedon Bloodrite"
+],
+"fable": [
+[
+"Galvanized",
+false
+],
+[
+"COVEN",
+false
+],
+[
+"Trepang2",
+false
+],
+[
+"DOOM 64",
+false
+],
+[
+"Hellbound",
+false
+],
+[
+"CULTIC",
+false
+],
+[
+"PAPERHEAD EP.0",
+false
+],
+[
+"Ion Fury",
+false
+],
+[
+"Hellbound: Survival Mode",
+false
+],
+[
+"Nightmare of Decay",
+false
+]
+],
+"merged": [
+[
+"Galvanized",
+false
+],
+[
+"COVEN",
+false
+],
+[
+"ULTRAKILL",
+true
+],
+[
+"Compound Fracture",
+false
+],
+[
+"Dreadfire",
+false
+],
+[
+"Trepang2",
+false
+],
+[
+"Sophonce",
+false
+],
+[
+"DUSK",
+false
+],
+[
+"PAPERHEAD EP.0",
+false
+],
+[
+"DOOM 64",
+false
+]
+]
+},
+{
+"seed": "Mouthwashing",
+"appid": 2475490,
+"header": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2475490/header.jpg?t=1764947696",
+"golden": [
+"How Fish Is Made",
+"Sally Face - Episode One",
+"MementoMori",
+"LISA: The Painful",
+"Firewatch",
+"A Wolf in Autumn",
+"Fingerbones",
+"The Moon Sliver",
+"Iron Lung",
+"SOMA"
+],
+"fable": [
+[
+"First Session",
+false
+],
+[
+"Don't Play This",
+false
+],
+[
+"Dead Take",
+false
+],
+[
+"CH13: Rest Stop",
+false
+],
+[
+"The Park®",
+false
+],
+[
+"Witch's Doll",
+false
+],
+[
+"No, I'm not a Human",
+false
+],
+[
+"God's Basement",
+false
+],
+[
+"Psalm 5:9-13",
+false
+],
+[
+"How Fish Is Made",
+true
+]
+],
+"merged": [
+[
+"First Session",
+false
+],
+[
+"Don't Play This",
+false
+],
+[
+"Dead Take",
+false
+],
+[
+"CH13: Rest Stop",
+false
+],
+[
+"Taguan",
+false
+],
+[
+"Witch's Doll",
+false
+],
+[
+"SOMA",
+true
+],
+[
+"God's Basement",
+false
+],
+[
+"The Park®",
+false
+],
+[
+"No, I'm not a Human",
+false
+]
+]
+},
+{
+"seed": "Eating Nature",
+"appid": 2662730,
+"header": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/2662730/header.jpg?t=1729266062",
+"golden": [
+"Dear Esther: Landmark Edition",
+"ISLANDS: Non-Places",
+"The Ramp",
+"Tetrageddon Games",
+"Arctic Eggs",
+"Kairo",
+"About Fishing",
+"IBIS AM",
+"Cruelty Squad",
+"Diaries of a Spaceport Janitor"
+],
+"fable": [
+[
+"Fishy 3D",
+false
+],
+[
+"Tiny Lands",
+false
+],
+[
+"Alpaca Stacka",
+false
+],
+[
+"Adorable Adventures",
+false
+],
+[
+"Sizeable",
+false
+],
+[
+"Hela",
+false
+],
+[
+"Tchia",
+false
+],
+[
+"Bird Feather: Aquamarine World",
+false
+],
+[
+"Snake Pass",
+false
+],
+[
+"Trash Panda",
+false
+]
+],
+"merged": [
+[
+"Fishy 3D",
+false
+],
+[
+"Slime Rancher",
+false
+],
+[
+"A Short Hike",
+false
+],
+[
+"Alpaca Stacka",
+false
+],
+[
+"ABZU",
+false
+],
+[
+"IBIS AM",
+true
+],
+[
+"Slime Rancher 2",
+false
+],
+[
+"Placid Plastic Duck Simulator",
+false
+],
+[
+"Bugsnax",
+false
+],
+[
+"Hela",
+false
+]
+]
+}
+],
+"timeline": [
+{
+"m": 15.32,
+"lane": "bt",
+"who": "The old database",
+"kind": "result",
+"text": "Answer key exported: 8,648 lists from the LLM era."
+},
+{
+"m": 22.2,
+"lane": "bt",
+"who": "me",
+"kind": "prompt",
+"text": "[a screenshot from my phone: the handoff an agent had just written]"
+},
+{
+"m": 28.28,
+"lane": "bt",
+"who": "me",
+"kind": "prompt",
+"text": "before we think about that we need to plan and test the vectors etc. i do not want to relaunch with the AI suggestion pipeline even though it was good results wise. i want to use these as the golden set to train something that can suggest without it and i’d like to know what our options are and what does the plan here say"
+},
+{
+"m": 35.85,
+"lane": "bt",
+"who": "me",
+"kind": "prompt",
+"text": "ignore the old plan only this new one. yes let’s try that whatever you can do to cheaply or better FREE get the same quality do it. maybe we can design the prompt and assign this to sol or astra?"
+},
+{
+"m": 37.4,
+"lane": "sol",
+"who": "coordinator → Sol",
+"kind": "prompt",
+"text": "indiefindr: train an LLM-free recommender against the golden LLM slates"
+},
+{
+"m": 42.23,
+"lane": "bt",
+"who": "me",
+"kind": "prompt",
+"text": "ok to read prod"
+},
+{
+"m": 44.78,
+"lane": "sol",
+"who": "coordinator → Sol",
+"kind": "prompt",
+"text": "catalog is in place: data/catalog.json (123 MB). It's a read-only export of all 25,555 games_new rows from prod: {source, row_count, rows[]}. Each row has appid, title, short_description, long_description (Steam HTML), steam_release_date, release_date, is_ind…"
+},
+{
+"m": 44.85,
+"lane": "bt",
+"who": "me",
+"kind": "prompt",
+"text": "answer the workers question"
+},
+{
+"m": 45.55,
+"lane": "sol",
+"who": "Sol",
+"kind": "result",
+"text": "Flags the hole: 25,478 of 25,555 games have no tags."
+},
+{
+"m": 69.22,
+"lane": "bt",
+"who": "me",
+"kind": "prompt",
+"text": "i’ve been seeing people using fable to hand write weights for open weight models instead of training them — i wanna try this and this feels like a perfect case. how can we do it and give it to fable 5.2"
+},
+{
+"m": 70.28,
+"lane": "fable",
+"who": "coordinator → Fable",
+"kind": "prompt",
+"text": "indiefindr: a hand-written recommender (no training) vs the golden LLM slates"
+},
+{
+"m": 81.87,
+"lane": "fable",
+"who": "Fable",
+"kind": "result",
+"text": "First pass, nearly no tag data: 6.3% on validation."
+},
+{
+"m": 90.53,
+"lane": "bt",
+"who": "me",
+"kind": "prompt",
+"text": "are these writing something we can run for free on my hardware? on cloudflare? vercel? where what are the options."
+},
+{
+"m": 92.42,
+"lane": "bt",
+"who": "me",
+"kind": "prompt",
+"text": "i have a pro plan thinkhuman team on vercel"
+},
+{
+"m": 103.15,
+"lane": "sol",
+"who": "Sol",
+"kind": "result",
+"text": "Fine-tune #1 done: 1,911 steps in 37.5 minutes."
+},
+{
+"m": 108.8,
+"lane": "fable",
+"who": "coordinator → Fable",
+"kind": "prompt",
+"text": "Heads-up from the parent: Sol's report shows that **25,478 of the 25,555 catalog games have empty `steamspy_tags`, and 25,455 have no owner estimates.** The prod tag backfill never ran. Don't build a model that silently depends on tags. For now, drive the axe…"
+},
+{
+"m": 108.8,
+"lane": "sol",
+"who": "coordinator → Sol",
+"kind": "prompt",
+"text": "Good work. Next: the tag gap is an obvious data hole, so let's fix it. Free and read-only. Write locally only; no prod writes.\n\n1. **Backfill Steam user tags and a popularity signal for all 25,555 appids** into `data/steam_tags.json`, keyed by appid, holding …"
+},
+{
+"m": 119.98,
+"lane": "sol",
+"who": "Sol",
+"kind": "result",
+"text": "Steam backfill done in about 11 minutes. 25,316 games with tags, zero errors, $0."
+},
+{
+"m": 120.88,
+"lane": "sol",
+"who": "Sol",
+"kind": "result",
+"text": "Plain tag matching with real tags: 14.4%."
+},
+{
+"m": 142.82,
+"lane": "fable",
+"who": "Fable",
+"kind": "result",
+"text": "Deletes its own tag-importance table: \"my guess about which tags matter was wrong.\""
+},
+{
+"m": 142.93,
+"lane": "sol",
+"who": "Sol",
+"kind": "result",
+"text": "Tags + ranking model: 15.9% on holdout."
+},
+{
+"m": 143.2,
+"lane": "sol",
+"who": "coordinator → Sol",
+"kind": "prompt",
+"text": "Nice result. One obvious follow-up, one run, no sweep.\n\nRetriever recall@200 is about 40%, so the reranker can never see the other 60%. Make the candidate pool a **union**:\n- the top 200 by real-tag cosine, plus\n- the top 200 by fine-tuned BGE-small\n\nGive Lam…"
+},
+{
+"m": 149.98,
+"lane": "bt",
+"who": "me",
+"kind": "prompt",
+"text": "we should redesign and simplify the database then too seems like a great opportunity. \nalso which one is this? sol or fable?"
+},
+{
+"m": 153.28,
+"lane": "bt",
+"who": "me",
+"kind": "prompt",
+"text": "[db approach] picked: fresh project (Recommended)"
+},
+{
+"m": 153.6,
+"lane": "bt",
+"who": "me",
+"kind": "prompt",
+"text": "[collections] picked: drop it (Recommended)"
+},
+{
+"m": 153.87,
+"lane": "bt",
+"who": "me",
+"kind": "prompt",
+"text": "[new games] picked: nightly auto-ingest (Recommended)"
+},
+{
+"m": 159.28,
+"lane": "fable",
+"who": "Fable",
+"kind": "result",
+"text": "Settles on votes^0.3, by reasoning rather than taking the best probe."
+},
+{
+"m": 159.85,
+"lane": "bt",
+"who": "me",
+"kind": "prompt",
+"text": "i’m cool with your rules we had some prompts in the old one that hinted at the rules but whatever seems like the model doesn’t even need that?"
+},
+{
+"m": 187.85,
+"lane": "fable",
+"who": "Fable",
+"kind": "result",
+"text": "Scores the holdout once: 18.3%."
+},
+{
+"m": 193.53,
+"lane": "sol",
+"who": "coordinator → Sol",
+"kind": "prompt",
+"text": "Update: Fable's hand-written model (in `handwritten/`; see `WRITEUP.md`, `params.json`, `score.py`) scored **18.30% / 21.94%** on holdout. That beats tags + LambdaRank. Almost all of the gain comes from one choice: a **flattened tag vector**, with Steam tag v…"
+},
+{
+"m": 207.83,
+"lane": "sol",
+"who": "Sol",
+"kind": "result",
+"text": "Merged model: 20.8% on holdout."
+},
+{
+"m": 225.95,
+"lane": "bt",
+"who": "me",
+"kind": "prompt",
+"text": "122k full send and i need you to explain all this to me and help me write it up for btn0s.dev"
+}
+]
+}

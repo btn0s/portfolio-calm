@@ -55,7 +55,7 @@ export function ThoughtsReceipt() {
             </h2>
             <div className="h-px bg-black/5 flex-1" />
           </div>
-          <div className="receipt-thoughts space-y-8">
+          <div className="receipt-thoughts">
             <BlogPosts posts={posts} />
           </div>
         </section>
