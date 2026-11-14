@@ -135,9 +135,6 @@
     body {
       overflow: auto;
     }
-    body.dragging-horizontal {
-      overflow: hidden;
-    }
   }
   h1 {
     @apply font-mono;
