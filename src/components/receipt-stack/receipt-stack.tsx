@@ -1,10 +1,10 @@
 "use client";
 
 import { useRef, useState, useCallback, useEffect } from "react";
-import { motion, PanInfo, useDragControls, LayoutGroup, useReducedMotion } from "framer-motion";
+import { animate, motion, PanInfo, useDragControls, useMotionValue, LayoutGroup, useReducedMotion } from "framer-motion";
 import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { STACK_SPRING, getStackOffset } from "@/lib/motion/stack";
+import { STACK_SPRING, STACK_THROW_SPRING, getStackOffset, getStackThrow } from "@/lib/motion/stack";
 import { useSoundSettings } from "@/contexts/sound-context";
 import { useDragContext } from "@/contexts/drag-context";
 
@@ -72,7 +72,6 @@ const STACK_CONFIG = {
     flickVelocityThreshold: 50,
     intentThresholdPx: 8,
     verticalConeDegrees: 15,
-    horizontalVelocityRatio: 0.5,
     dragUnlockResetDelayMs: 50,
     dragElasticity: 1,
   },
@@ -100,6 +99,8 @@ const STACK_CONFIG = {
 } as const;
 
 // Derived constants
+// Only a gesture within verticalConeDegrees of straight up/down counts as a scroll; anything
+// flatter is a horizontal drag, both when a drag starts and when a released drag flips.
 const VERTICAL_CONE_RATIO =
   1 / Math.tan((STACK_CONFIG.gesture.verticalConeDegrees * Math.PI) / 180);
 
@@ -129,8 +130,14 @@ export function ReceiptStack({
   const [hasHover, setHasHover] = useState(false);
   const shouldReduceMotion = useReducedMotion();
 
-  const { route, isSubpage, lockStackInteractions, shouldHideStack } =
+  const { route: pathRoute, isSubpage, lockStackInteractions, shouldHideStack } =
     classifyPath(pathname);
+  // A flip shows immediately; the URL catches up behind it. Until it does, the stack is ordered
+  // by the flip's destination, so the cards never wait on navigation to start moving.
+  const [pendingFlip, setPendingFlip] = useState<{ from: string; to: RouteId } | null>(null);
+  const route = pendingFlip && pendingFlip.from === pathname ? pendingFlip.to : pathRoute;
+  // A flicked card's release velocities, used for the flip that starts on release.
+  const [thrown, setThrown] = useState<{ routeId: RouteId; x: number; y: number; rotate: number } | null>(null);
 
   // Detect if device supports hover (not touch-only)
   useEffect(() => {
@@ -168,6 +175,18 @@ export function ReceiptStack({
   const gestureStartRef = useRef<{ x: number; y: number; pointerId: number; isInteractive: boolean } | null>(null);
   const pointerUpTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const dragControls = useDragControls();
+  // Each card's translate, shared by drag and the stack animation, so a thrown card keeps its
+  // release velocity into the flip instead of snapping to center first.
+  const cardX: Record<RouteId, ReturnType<typeof useMotionValue<number>>> = {
+    home: useMotionValue(0),
+    thoughts: useMotionValue(0),
+    artifacts: useMotionValue(0),
+  };
+  const cardY: Record<RouteId, ReturnType<typeof useMotionValue<number>>> = {
+    home: useMotionValue(0),
+    thoughts: useMotionValue(0),
+    artifacts: useMotionValue(0),
+  };
   const dragConstraintsRef = useRef<HTMLDivElement>(null);
 
   const handlePointerDown = useCallback((e: React.PointerEvent) => {
@@ -265,8 +284,8 @@ export function ReceiptStack({
 
   // Load the other two stack routes up front so a flip doesn't wait on (and stall for) their code.
   useEffect(() => {
-    for (const r of STACK_ROUTES) if (r.id !== route) router.prefetch(r.href);
-  }, [route, router]);
+    for (const r of STACK_ROUTES) if (r.id !== pathRoute) router.prefetch(r.href);
+  }, [pathRoute, router]);
 
   const receiptMap: Record<RouteId, React.ReactNode> = {
     home: homeReceipt,
@@ -276,15 +295,15 @@ export function ReceiptStack({
 
   const showSpread = isHovered;
 
-  const rotateForward = () => {
-    const currentOrder = getOrderFromRoute(route);
-    const nextRoute = currentOrder[1];
-    // Reset scroll to top when rotating routes
-    if (typeof window !== "undefined") {
+  /** Flip the stack to `to` now and navigate there; every stack flip goes through here. */
+  const flipTo = useCallback(
+    (to: RouteId) => {
+      setPendingFlip({ from: pathname, to });
       window.scrollTo({ top: 0, behavior: "instant" });
-    }
-    router.push(hrefForRoute(nextRoute));
-  };
+      router.push(hrefForRoute(to));
+    },
+    [pathname, router]
+  );
 
   // Global arrow key handler for route switching
   useEffect(() => {
@@ -306,15 +325,11 @@ export function ReceiptStack({
       if (e.key === "ArrowRight") {
         e.preventDefault();
         playTransition("forward");
-        window.scrollTo({ top: 0, behavior: "instant" });
-        const nextRoute = getOrderFromRoute(route)[1];
-        router.push(hrefForRoute(nextRoute));
+        flipTo(getOrderFromRoute(route)[1]);
       } else if (e.key === "ArrowLeft") {
         e.preventDefault();
         playTransition("backward");
-        window.scrollTo({ top: 0, behavior: "instant" });
-        const previousRoute = getOrderFromRoute(route)[2];
-        router.push(hrefForRoute(previousRoute));
+        flipTo(getOrderFromRoute(route)[2]);
       }
     };
 
@@ -322,26 +337,30 @@ export function ReceiptStack({
     return () => {
       window.removeEventListener("keydown", handleGlobalKeyDown);
     };
-  }, [lockStackInteractions, playTransition, route, router]);
+  }, [lockStackInteractions, playTransition, route, flipTo]);
 
   const handleDragEnd = (_: unknown, info: PanInfo) => {
     const velocity = Math.sqrt(info.velocity.x ** 2 + info.velocity.y ** 2);
-    const isHorizontalEnough =
-      Math.abs(info.velocity.x) >
-      Math.abs(info.velocity.y) * STACK_CONFIG.gesture.horizontalVelocityRatio;
+    const isHorizontalEnough = Math.abs(info.velocity.y) < Math.abs(info.velocity.x) * VERTICAL_CONE_RATIO;
 
     if (velocity > STACK_CONFIG.gesture.flickVelocityThreshold && isHorizontalEnough) {
-      rotateForward();
+      // Thrown: the flip starts on release, and the card's spring to its back slot starts at the
+      // throw's velocity, so it flies out the side it was thrown toward and pulls in behind.
+      setThrown({ routeId: route, ...getStackThrow(info.velocity.x, info.velocity.y) });
+      flipTo(order[1]);
+      return;
     }
-    // Otherwise Framer Motion snaps back automatically
+    // Not a flick: spring back to center from wherever it was let go.
+    animate(cardX[route], 0, STACK_SPRING);
+    animate(cardY[route], 0, STACK_SPRING);
   };
 
   const bringToFront = useCallback(
     (routeId: RouteId) => {
       playSound("rustle");
-      router.push(hrefForRoute(routeId));
+      flipTo(routeId);
     },
-    [playSound, router]
+    [playSound, flipTo]
   );
 
   const handleCardClick = (e: React.MouseEvent, routeId: RouteId, position: number) => {
@@ -444,7 +463,9 @@ export function ReceiptStack({
     const position = order.indexOf(routeId);
     const isFront = position === 0;
     const offset = getStackOffset(position);
-    const breathe = showSpread && !isFront ? STACK_CONFIG.animation.hoverSpreadMultiplier : 1;
+    // A thrown card in flight keeps its target, so hovering the stack can't restart its throw.
+    const breathe =
+      showSpread && !isFront && thrown?.routeId !== routeId ? STACK_CONFIG.animation.hoverSpreadMultiplier : 1;
     const dragEnabled = canDrag(isFront, lockStackInteractions);
     const animation = getCardAnimation(isFront, isSubpage, offset, breathe, position);
     // Initial state for back cards should match final state without spread to prevent animation on mount
@@ -460,11 +481,15 @@ export function ReceiptStack({
         data-stack-route={routeId}
         data-stack-stage={isFront ? "front" : "back"}
         layout={shouldReduceMotion ? false : "position"}
-        style={getCardStyle(isFront, position, lockStackInteractions, touchAction)}
+        style={{
+          ...getCardStyle(isFront, position, lockStackInteractions, touchAction),
+          x: cardX[routeId],
+          y: cardY[routeId],
+        }}
         drag={dragEnabled}
         dragControls={dragEnabled ? dragControls : undefined}
         dragListener={false}
-        dragSnapToOrigin={true}
+        dragSnapToOrigin={false}
         dragElastic={STACK_CONFIG.gesture.dragElasticity}
         onPointerDown={dragEnabled ? handlePointerDown : undefined}
         onPointerMove={dragEnabled ? handlePointerMove : undefined}
@@ -473,7 +498,21 @@ export function ReceiptStack({
         onDragEnd={dragEnabled ? handleDragEnd : undefined}
         initial={initialAnimation}
         animate={animation}
-        transition={shouldReduceMotion ? { duration: 0.1 } : STACK_SPRING}
+        transition={
+          shouldReduceMotion
+            ? { duration: 0.1 }
+            : thrown?.routeId === routeId
+              ? {
+                  ...STACK_SPRING,
+                  x: { ...STACK_THROW_SPRING, velocity: thrown.x },
+                  y: { ...STACK_THROW_SPRING, velocity: thrown.y },
+                  rotate: { ...STACK_THROW_SPRING, velocity: thrown.rotate },
+                }
+              : STACK_SPRING
+        }
+        // The throw only shapes the flip it started with: cleared once the card lands (not
+        // mid-flight, where a re-render would re-measure the stack's layout).
+        onAnimationComplete={thrown?.routeId === routeId ? () => setThrown(null) : undefined}
         onClick={(e) => handleCardClick(e, routeId, position)}
         tabIndex={-1} // Front card is not tab-indexable - navigation via arrow keys only
         className={cn(
