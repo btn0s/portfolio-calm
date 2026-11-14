@@ -7,7 +7,6 @@ import { cn } from "@/lib/utils";
 import { STACK_SPRING, STACK_THROW_SPRING, getStackOffset, getStackThrow } from "@/lib/motion/stack";
 import { useSoundSettings } from "@/contexts/sound-context";
 import { useDragContext } from "@/contexts/drag-context";
-import { createTouchScroll } from "@/lib/touch-scroll";
 
 type RouteId = "home" | "thoughts" | "artifacts";
 
@@ -71,9 +70,8 @@ const STACK_CONFIG = {
   // Gesture tuning
   gesture: {
     flickVelocityThreshold: 50,
+    /** Must stay under iOS's scroll start (~10px): after that its scroll can't be cancelled. */
     intentThresholdPx: 8,
-    /** Touch decides later: a thumb's first few pixels are noisy and its swipes curve. */
-    touchIntentThresholdPx: 12,
     verticalConeDegrees: 30,
     dragUnlockResetDelayMs: 50,
     dragElasticity: 1,
@@ -153,12 +151,6 @@ export function ReceiptStack({
     return () => mediaQuery.removeEventListener("change", handleChange);
   }, []);
 
-  // On touch, the front card takes every gesture (touch-action: none) and scrolls the page itself
-  // when the gesture is near vertical, so only a near-vertical swipe scrolls and anything flatter
-  // drags the card. The browser's own pan-y would claim everything steeper than ~45°.
-  const [touchScroll] = useState(createTouchScroll);
-  useEffect(() => () => touchScroll.stop(), [touchScroll]);
-
   // "Intent Gatekeeper" - only unlock drag after confirming horizontal intent
   // Using refs instead of state to avoid React re-renders in the hot path
   const dragUnlockedRef = useRef(false);
@@ -166,6 +158,20 @@ export function ReceiptStack({
   const gestureStartRef = useRef<{ x: number; y: number; pointerId: number; isInteractive: boolean } | null>(null);
   const pointerUpTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const dragControls = useDragControls();
+  // Scrolling stays native (full refresh rate, iOS momentum and bounce); the stack only decides
+  // which gestures are drags. Once one is, its touchmoves are cancelled so the browser never
+  // scrolls it. Decided before iOS commits to a scroll (~10px), this overrides the browser's own
+  // ~45° split with the stack's vertical cone. Needs a non-passive listener, so not via React.
+  const stackRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const stack = stackRef.current;
+    if (!stack) return;
+    const holdDrag = (e: TouchEvent) => {
+      if (dragUnlockedRef.current && e.cancelable) e.preventDefault();
+    };
+    stack.addEventListener("touchmove", holdDrag, { passive: false });
+    return () => stack.removeEventListener("touchmove", holdDrag);
+  }, [shouldHideStack]);
   // Each card's translate, shared by drag and the stack animation, so a thrown card keeps its
   // release velocity into the flip instead of snapping to center first.
   const cardX: Record<RouteId, ReturnType<typeof useMotionValue<number>>> = {
@@ -204,31 +210,23 @@ export function ReceiptStack({
       if (!gestureStartRef.current) {
         return;
       }
-      if (scrollCommittedRef.current) {
-        touchScroll.move(e.clientY, e.timeStamp);
-        return;
-      }
-      if (dragUnlockedRef.current) {
+      if (dragUnlockedRef.current || scrollCommittedRef.current) {
         return;
       }
 
       const dx = Math.abs(e.clientX - gestureStartRef.current.x);
       const dy = Math.abs(e.clientY - gestureStartRef.current.y);
       const isTouchDevice = e.pointerType === "touch" || e.pointerType === "pen";
-      const intentThreshold = isTouchDevice
-        ? STACK_CONFIG.gesture.touchIntentThresholdPx
-        : STACK_CONFIG.gesture.intentThresholdPx;
 
-      if (Math.hypot(dx, dy) > intentThreshold) {
+      if (Math.hypot(dx, dy) > STACK_CONFIG.gesture.intentThresholdPx) {
         
         if (isTouchDevice) {
           const isNearlyPureVertical = dy > dx * VERTICAL_CONE_RATIO;
 
           if (isNearlyPureVertical) {
+            // Left to the browser: a native scroll.
             scrollCommittedRef.current = true;
-            // Consumed by the scroll: a link under the finger mustn't treat it as a tap.
-            confirmDrag(gestureStartRef.current.pointerId);
-            touchScroll.begin(gestureStartRef.current.y, e.clientY, e.timeStamp);
+            cancelDrag(gestureStartRef.current.pointerId);
             return;
           }
         }
@@ -246,7 +244,7 @@ export function ReceiptStack({
         dragControls.start(e, { snapToCursor: false });
       }
     },
-    [dragControls, confirmDrag, playTransition, touchScroll]
+    [dragControls, confirmDrag, cancelDrag, playTransition]
   );
 
   const handlePointerUp = useCallback((e?: React.PointerEvent) => {
@@ -259,7 +257,6 @@ export function ReceiptStack({
     if (pointerId !== undefined) {
       cancelDrag(pointerId);
     }
-    if (scrollCommittedRef.current && e) touchScroll.release(e.timeStamp);
 
     gestureStartRef.current = null;
     if (pointerUpTimeoutRef.current) clearTimeout(pointerUpTimeoutRef.current);
@@ -267,7 +264,7 @@ export function ReceiptStack({
       dragUnlockedRef.current = false;
       scrollCommittedRef.current = false;
     }, STACK_CONFIG.gesture.dragUnlockResetDelayMs);
-  }, [cancelDrag, touchScroll]);
+  }, [cancelDrag]);
 
   // A gesture that scrolled or dragged isn't a tap: don't let it click a link it ended on.
   const handleClickCapture = (e: React.MouseEvent) => {
@@ -454,7 +451,7 @@ export function ReceiptStack({
     // Every card moves on every flip: keep each on its own compositor layer so the motion is
     // composited, not repainted (clip-path, noise texture and blend modes) every frame.
     willChange: "transform",
-    touchAction: isFront && !lockStackInteractions ? ("none" as const) : undefined,
+    touchAction: isFront && !lockStackInteractions ? ("pan-y" as const) : undefined,
     boxShadow: getCardShadow(isFront),
   });
 
@@ -564,7 +561,7 @@ export function ReceiptStack({
       
       {/* No transformed ancestor: back cards are viewport-fixed, while the front card
           supplies page height. Stable route keys preserve every receipt subtree on flips. */}
-      <div className={cn(
+      <div ref={stackRef} className={cn(
         "relative flex flex-col items-center justify-center [--collapsed-stage-height:648px] md:[--collapsed-stage-height:848px]",
         !isSubpage && "pb-12 min-h-[600px] md:min-h-[800px]"
       )}>
