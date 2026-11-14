@@ -206,6 +206,11 @@ export async function prepareRecipeSamples(
   return buffers;
 }
 
+/** Decode (once, cached) one recorded compact sound, for live voices that read from it. */
+export async function loadCompactBuffer(audioContext: BaseAudioContext, name: CompactSoundName) {
+  return createCompactBuffer(audioContext, name, await prepareCompactPcm(name));
+}
+
 function renderRecipe(
   audioContext: BaseAudioContext,
   destination: AudioNode,

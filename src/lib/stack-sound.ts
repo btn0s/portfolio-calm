@@ -14,10 +14,33 @@ import type { SynthLayer, SynthRecipe } from "@/lib/synth-recipes";
  * flick's release speed scales intensity. Grab and settle reuse the same layers for drags.
  */
 
+/** The stack's three papers (each receipt's ReceiptShell variant). */
+export type Paper = "dossier" | "stationery" | "blueprint";
+
+/**
+ * How each paper colours the shared paper material: pitch (playback rate), brightness (filter
+ * frequencies), crackle (sharp transients), slide (sustained friction), hiss (airy friction noise)
+ * and body (the low thump of the sheet landing).
+ */
+export const PAPER_PROFILES: Record<
+  Paper,
+  { rate: number; brightness: number; crackle: number; slide: number; hiss: number; body: number; bodyHz: number }
+> = {
+  // Heavy card stock: lower, duller, a solid thwap and little crinkle.
+  dossier: { rate: 0.82, brightness: 0.65, crackle: 0.55, slide: 1.15, hiss: 0.7, body: 2.2, bodyHz: 120 },
+  // Soft writing paper: a light, airy slide.
+  stationery: { rate: 1.0, brightness: 0.9, crackle: 0.7, slide: 0.85, hiss: 1.4, body: 0.8, bodyHz: 165 },
+  // Large drafting paper: crisp and bright, a papery snap.
+  blueprint: { rate: 1.16, brightness: 1.4, crackle: 1.4, slide: 1.0, hiss: 1.0, body: 0.5, bodyHz: 210 },
+};
+
 export type StackSoundEvent =
   | {
       kind: "flip";
       direction: "forward" | "backward";
+      /** The card leaving the front (crack and slide) and the card arriving there (landing). */
+      from: Paper;
+      to: Paper;
       intensity?: number;
       /**
        * A drag flick: the card is thrown toward `pan` (-1 left, 1 right) and arrives behind the
@@ -26,9 +49,9 @@ export type StackSoundEvent =
       throw?: { landsAt: number; pan: number };
     }
   /** Drag confirmed: the card is picked up. */
-  | { kind: "grab" }
+  | { kind: "grab"; paper: Paper }
   /** Drag released without a flip: the card drops back onto the pile. */
-  | { kind: "settle" };
+  | { kind: "settle"; paper: Paper };
 
 const SOURCE = "paperRustle";
 
@@ -55,7 +78,7 @@ const LAND_SLICE = { from: 6.252, gain: 0.55 };
 const GRAB_SLICE = { from: 0.376, gain: 1.2 };
 
 /** Overall level, in line with the other UI sounds (click/rustle sit at 0.15). */
-const STACK_GAIN = 0.16;
+export const STACK_GAIN = 0.16;
 /** Back-slot x offset (px) that maps to a full ±1 pan; keeps the image subtle. */
 const PAN_WIDTH_PX = 220;
 
@@ -75,7 +98,8 @@ const pickSlide = roundRobin(SLIDE_SLICES);
 const clamp = (value: number, min: number, max: number) =>
   Math.min(max, Math.max(min, value));
 
-function landLayers(at: number, level: number, pan: number): SynthLayer[] {
+function landLayers(at: number, level: number, pan: number, paper: Paper): SynthLayer[] {
+  const p = PAPER_PROFILES[paper];
   return [
     {
       kind: "sample",
@@ -84,15 +108,19 @@ function landLayers(at: number, level: number, pan: number): SynthLayer[] {
       offset: at,
       envelope: { kind: "attackRelease", attack: 0.003, release: 0.11, peak: LAND_SLICE.gain * level },
       // Muffled: the sheet lands flat, there's no crisp edge to it.
-      filter: { type: "lowpass", frequency: { initial: 2600, glideTo: 1400 }, q: 0.5 },
-      playbackRate: { min: 0.86, max: 0.94 },
+      filter: {
+        type: "lowpass",
+        frequency: { initial: 2600 * p.brightness, glideTo: 1400 * p.brightness },
+        q: 0.5,
+      },
+      playbackRate: { min: 0.86 * p.rate, max: 0.94 * p.rate },
       pan: { initial: pan },
     },
     {
       kind: "tone",
       offset: at,
-      envelope: { kind: "attackRelease", attack: 0.004, release: 0.07, peak: 0.12 * level },
-      frequency: { initial: 150, glideTo: 85 },
+      envelope: { kind: "attackRelease", attack: 0.004, release: 0.07, peak: 0.06 * p.body * level },
+      frequency: { initial: p.bodyHz, glideTo: p.bodyHz * 0.57 },
       pan: { initial: pan },
     },
   ];
@@ -105,6 +133,7 @@ export function stackSoundRecipe(
   const timeline = getStackSpringTimeline();
 
   if (event.kind === "grab") {
+    const p = PAPER_PROFILES[event.paper];
     return {
       duration: 0.2,
       startDelay: 0,
@@ -116,9 +145,9 @@ export function stackSoundRecipe(
           sample: SOURCE,
           from: GRAB_SLICE.from,
           offset: 0,
-          envelope: { kind: "attackRelease", attack: 0.004, release: 0.09, peak: GRAB_SLICE.gain * 0.6 },
-          filter: { type: "highpass", frequency: { initial: 1200 }, q: 0.6 },
-          playbackRate: { min: 1.02, max: 1.1 },
+          envelope: { kind: "attackRelease", attack: 0.004, release: 0.09, peak: GRAB_SLICE.gain * 0.6 * p.crackle ** 0.5 },
+          filter: { type: "highpass", frequency: { initial: 1200 * p.brightness }, q: 0.6 },
+          playbackRate: { min: 1.02 * p.rate, max: 1.1 * p.rate },
         },
       ],
     };
@@ -131,7 +160,7 @@ export function stackSoundRecipe(
       startDelay: 0,
       masterGain: STACK_GAIN,
       noiseSources: [],
-      layers: landLayers(timeline.landedAt * 0.8, 0.7, 0),
+      layers: landLayers(timeline.landedAt * 0.8, 0.7, 0, event.paper),
     };
   }
 
@@ -146,8 +175,10 @@ export function stackSoundRecipe(
   const releasePan = event.throw ? clamp(event.throw.pan, -1, 1) * 0.6 : fromPan;
   const landedAt = event.throw ? Math.max(event.throw.landsAt, timeline.landedAt) : timeline.landedAt;
   const peakSpeedAt = event.throw ? Math.min(timeline.peakSpeedAt, landedAt / 3) : timeline.peakSpeedAt;
-  const rate = forward ? { min: 1.0, max: 1.06 } : { min: 0.92, max: 0.98 };
-  const slidePeak = slide.gain * intensity;
+  const leaving = PAPER_PROFILES[event.from];
+  const directionRate = forward ? 1.03 : 0.95;
+  const rate = { min: (directionRate - 0.03) * leaving.rate, max: (directionRate + 0.03) * leaving.rate };
+  const slidePeak = slide.gain * intensity * leaving.slide;
 
   return {
     duration: landedAt + 0.3,
@@ -160,8 +191,8 @@ export function stackSoundRecipe(
         sample: SOURCE,
         from: crack.from,
         offset: 0,
-        envelope: { kind: "attackRelease", attack: 0.002, release: 0.05, peak: crack.gain * intensity },
-        filter: { type: "highpass", frequency: { initial: 900 }, q: 0.5 },
+        envelope: { kind: "attackRelease", attack: 0.002, release: 0.05, peak: crack.gain * intensity * leaving.crackle },
+        filter: { type: "highpass", frequency: { initial: 900 * leaving.brightness }, q: 0.5 },
         playbackRate: rate,
         pan: { initial: releasePan },
       },
@@ -183,7 +214,7 @@ export function stackSoundRecipe(
           ],
         },
         // Thinner as it slows down.
-        filter: { type: "highpass", frequency: { initial: 400, glideTo: 1100 }, q: 0.5 },
+        filter: { type: "highpass", frequency: { initial: 400 * leaving.brightness, glideTo: 1100 * leaving.brightness }, q: 0.5 },
         playbackRate: rate,
         pan: { initial: releasePan, glideTo: fromPan * 0.2 },
       },
@@ -196,18 +227,18 @@ export function stackSoundRecipe(
           kind: "attackRelease",
           attack: peakSpeedAt,
           release: landedAt - peakSpeedAt,
-          peak: 0.16 * intensity * intensity,
+          peak: 0.16 * intensity * intensity * leaving.hiss,
         },
         filter: {
           type: "bandpass",
           frequency: forward
-            ? { initial: 2200 * intensity, glideTo: 750 }
-            : { initial: 1500 * intensity, glideTo: 600 },
+            ? { initial: 2200 * intensity * leaving.brightness, glideTo: 750 * leaving.brightness }
+            : { initial: 1500 * intensity * leaving.brightness, glideTo: 600 * leaving.brightness },
           q: 0.9,
         },
         pan: { initial: releasePan, glideTo: 0 },
       },
-      ...landLayers(landedAt, 0.75 + 0.25 * intensity, fromPan * 0.15),
+      ...landLayers(landedAt, 0.75 + 0.25 * intensity, fromPan * 0.15, event.to),
     ],
   };
 }

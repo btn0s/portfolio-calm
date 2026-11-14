@@ -16,7 +16,7 @@ import {
   renderSynthRecipeOffline,
 } from "@/lib/synth-audio";
 import { useSoundSettings } from "@/contexts/sound-context";
-import type { StackSoundEvent } from "@/lib/stack-sound";
+import type { Paper, StackSoundEvent } from "@/lib/stack-sound";
 import { flickIntensity, stackSoundRecipe } from "@/lib/stack-sound";
 
 declare global {
@@ -60,16 +60,34 @@ async function benchmarkSynthPreparation() {
   return { elapsedMs, maxEventLoopGapMs, timerTicks };
 }
 
-const STACK_EVENTS: Array<{ key: string; label: string; note: string; events: StackSoundEvent[] }> = [
-  { key: "flip-forward", label: "Flip forward", note: "Arrow right, or clicking the card just behind", events: [{ kind: "flip", direction: "forward" }] },
-  { key: "flip-backward", label: "Flip back", note: "Arrow left, or clicking the card at the back", events: [{ kind: "flip", direction: "backward" }] },
-  { key: "flick-soft", label: "Lazy drag flick", note: "Released at ~300 px/s", events: [{ kind: "flip", direction: "forward", intensity: flickIntensity(300) }] },
-  { key: "flick-hard", label: "Hard drag flick", note: "Released at ~1800 px/s", events: [{ kind: "flip", direction: "forward", intensity: flickIntensity(1800) }] },
-  { key: "flick-thrown", label: "Thrown to the right", note: "Hard flick: crack on release, the card's flight out and back, then the pat behind the pile", events: [{ kind: "flip", direction: "forward", intensity: flickIntensity(1800), throw: { landsAt: 0.5, pan: 1 } }] },
-  { key: "grab", label: "Grab", note: "A drag is confirmed: the card is picked up", events: [{ kind: "grab" }] },
-  { key: "settle", label: "Settle", note: "Released without a flip: the card drops back", events: [{ kind: "settle" }] },
-  { key: "rapid", label: "Four quick flips", note: "Repeats never reuse the same paper slice back to back", events: [0, 1, 2, 3].map(() => ({ kind: "flip", direction: "forward" }) as const) },
+type StackAudition = { key: string; label: string; note: string } & (
+  | { events: StackSoundEvent[] }
+  /** A scripted drag of this paper: live friction through a speed curve, then the drop. */
+  | { drag: Paper }
+);
+
+const flip = (from: Paper, to: Paper, extra: Partial<Extract<StackSoundEvent, { kind: "flip" }>> = {}) =>
+  ({ kind: "flip", direction: "forward", from, to, ...extra }) as const;
+
+const STACK_EVENTS: StackAudition[] = [
+  { key: "flip-home", label: "Flip: home → thoughts", note: "Dossier leaves, stationery lands", events: [flip("dossier", "stationery")] },
+  { key: "flip-thoughts", label: "Flip: thoughts → artifacts", note: "Stationery leaves, blueprint lands", events: [flip("stationery", "blueprint")] },
+  { key: "flip-artifacts", label: "Flip: artifacts → home", note: "Blueprint leaves, dossier lands", events: [flip("blueprint", "dossier")] },
+  { key: "flip-backward", label: "Flip back: thoughts → home", note: "Arrow left, or clicking the card at the back", events: [flip("stationery", "dossier", { direction: "backward" })] },
+  { key: "drag-dossier", label: "Drag the dossier (home)", note: "Live friction: speeds up, slows, speeds up, stops, drops back", drag: "dossier" },
+  { key: "drag-stationery", label: "Drag the stationery (thoughts)", note: "Same drag on soft writing paper", drag: "stationery" },
+  { key: "drag-blueprint", label: "Drag the blueprint (artifacts)", note: "Same drag on crisp drafting paper", drag: "blueprint" },
+  { key: "flick-soft", label: "Lazy drag flick", note: "Released at ~300 px/s", events: [flip("dossier", "stationery", { intensity: flickIntensity(300) })] },
+  { key: "flick-hard", label: "Hard drag flick", note: "Released at ~1800 px/s", events: [flip("dossier", "stationery", { intensity: flickIntensity(1800) })] },
+  { key: "flick-thrown", label: "Thrown to the right", note: "Crack on release, the card's flight out and back, then the pat behind the pile", events: [flip("dossier", "stationery", { intensity: flickIntensity(1800), throw: { landsAt: 0.5, pan: 1 } })] },
+  { key: "rapid", label: "Around the stack, quickly", note: "Three papers in turn; repeats never reuse the same slice back to back", events: [flip("dossier", "stationery"), flip("stationery", "blueprint"), flip("blueprint", "dossier"), flip("dossier", "stationery")] },
 ];
+
+/** Speed (px/s) and x offset over a scripted drag: speeds up, slows, speeds up again, stops. */
+function scriptedDrag(t: number) {
+  const speed = t < 0.35 ? (t / 0.35) * 1400 : t < 0.8 ? 1400 - ((t - 0.35) / 0.45) * 1200 : t < 1.1 ? 200 + ((t - 0.8) / 0.3) * 800 : t < 1.4 ? 1000 * (1 - (t - 1.1) / 0.3) : 0;
+  return { speed, x: Math.sin(t * 3) * 160 };
+}
 
 const SOUND_GROUPS: Array<{
   label: string;
@@ -130,7 +148,7 @@ function PlayButton({
 }
 
 export function AudioAudition() {
-  const { engine, setEngine, playStack } = useSoundSettings();
+  const { engine, setEngine, playStack, startFriction } = useSoundSettings();
   const [playing, setPlaying] = useState<string | null>(null);
 
   useEffect(() => {
@@ -194,7 +212,7 @@ export function AudioAudition() {
         <div>
           <h2 className="text-balance text-lg font-bold">Receipt stack</h2>
           <p className="mt-1 text-pretty text-xs leading-5 text-muted-foreground">
-            Layered paper flick, air and landing, timed off the stack&apos;s spring: the swell peaks at the card&apos;s top speed and the pat lands when the card does. Uses the live sound setting, so unmute first.
+            Each receipt is its own paper: home a heavy dossier, thoughts soft stationery, artifacts crisp blueprint. Flips are timed off the stack&apos;s spring, leaving paper first and arriving paper landing. Drags are live friction that follows the card&apos;s speed. Uses the live sound setting, so unmute first.
           </p>
         </div>
         <div className="overflow-hidden rounded-xl shadow-[0_0_0_1px_rgba(255,255,255,0.08)]">
@@ -212,11 +230,24 @@ export function AudioAudition() {
               <PlayButton
                 active={playing === item.key}
                 onPlay={() =>
-                  audition(item.key, () =>
-                    item.events.forEach((event, i) =>
-                      window.setTimeout(() => playStack(event), i * 380),
-                    ),
-                  )
+                  audition(item.key, () => {
+                    if ("events" in item) {
+                      item.events.forEach((event, i) => window.setTimeout(() => playStack(event), i * 380));
+                      return;
+                    }
+                    playStack({ kind: "grab", paper: item.drag });
+                    const voice = startFriction(item.drag);
+                    const start = performance.now();
+                    const follow = (now: number) => {
+                      const t = (now - start) / 1000;
+                      const { speed, x } = scriptedDrag(t);
+                      voice.update(speed, x);
+                      if (t < 1.55) return void requestAnimationFrame(follow);
+                      voice.stop();
+                      playStack({ kind: "settle", paper: item.drag });
+                    };
+                    requestAnimationFrame(follow);
+                  })
                 }
               >
                 Play

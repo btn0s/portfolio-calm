@@ -10,11 +10,13 @@ import {
   setAudioEngine,
   playPaperRustle,
   playStackSound,
+  startStackFriction,
   primeAudio,
   DEFAULT_AUDIO_ENGINE,
   type AudioEngine,
 } from "@/lib/audio";
-import type { StackSoundEvent } from "@/lib/stack-sound";
+import type { Paper, StackSoundEvent } from "@/lib/stack-sound";
+import type { PaperFriction } from "@/lib/paper-friction";
 
 export type SoundCategory = "interaction" | "intro" | "ambient" | "transition";
 export type RouteId = "home" | "thoughts" | "artifacts";
@@ -28,6 +30,8 @@ type SoundContextType = {
   playIntro: (route: RouteId) => void;
   /** Receipt stack sound, timed to the stack's motion. */
   playStack: (event: StackSoundEvent) => void;
+  /** Live paper friction for a dragged card: update with its speed each frame, stop on release. */
+  startFriction: (paper: Paper) => PaperFriction;
   engine: AudioEngine;
   setEngine: (engine: AudioEngine) => void;
 };
@@ -86,6 +90,8 @@ export const SoundProvider = ({ children }: { children: React.ReactNode }) => {
     // Intros removed for now
   }, []);
 
+  const startFriction = useCallback((paper: Paper) => startStackFriction(paper), []);
+
   const playStack = useCallback((event: StackSoundEvent) => {
     playStackSound(event);
   }, []);
@@ -103,6 +109,7 @@ export const SoundProvider = ({ children }: { children: React.ReactNode }) => {
         playSound,
         playIntro,
         playStack,
+        startFriction,
         engine,
         setEngine,
       }}
