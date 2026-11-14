@@ -265,6 +265,11 @@ export function ReceiptStack({
 
   const order = getOrderFromRoute(route);
 
+  // Load the other two stack routes up front so a flip doesn't wait on (and stall for) their code.
+  useEffect(() => {
+    for (const r of STACK_ROUTES) if (r.id !== route) router.prefetch(r.href);
+  }, [route, router]);
+
   const receiptMap: Record<RouteId, React.ReactNode> = {
     home: homeReceipt,
     thoughts: thoughtsReceipt,
@@ -443,15 +448,16 @@ export function ReceiptStack({
     isInBackStage: boolean,
     position: number,
     lockStackInteractions: boolean,
-    touchAction: "pan-y" | "none",
-    wantsWillChange: boolean
+    touchAction: "pan-y" | "none"
   ) => ({
     zIndex: STACK_CONFIG.style.baseZIndex - position,
     position: isInBackStage ? ("absolute" as const) : ("relative" as const),
     top: isInBackStage ? 0 : undefined,
     left: isInBackStage ? 0 : undefined,
     right: isInBackStage ? 0 : undefined,
-    willChange: wantsWillChange ? "transform" : "auto",
+    // Every card moves on every flip: keep each on its own compositor layer so the motion is
+    // composited, not repainted (clip-path, noise texture and blend modes) every frame.
+    willChange: "transform",
     touchAction: isFront && !lockStackInteractions ? touchAction : undefined,
     boxShadow: getCardShadow(isFront),
   });
@@ -464,8 +470,6 @@ export function ReceiptStack({
     const isFront = position === 0;
     const offset = getStackOffset(position);
     const breathe = showSpread && !isFront ? STACK_CONFIG.animation.hoverSpreadMultiplier : 1;
-    // Only apply willChange when actively animating (front card dragable or back cards spreading)
-    const wantsWillChange = (isFront && !lockStackInteractions) || showSpread;
     const dragEnabled = canDrag(isFront, lockStackInteractions);
     const animation = getCardAnimation(isFront, isSubpage, offset, breathe, position);
     // Initial state for back cards should match final state without spread to prevent animation on mount
@@ -482,7 +486,7 @@ export function ReceiptStack({
         data-stack-stage={isInBackStage ? "back" : "front"}
         layoutId={routeId}
         layout={isFront ? "position" : false}
-        style={getCardStyle(isFront, isInBackStage, position, lockStackInteractions, touchAction, wantsWillChange)}
+        style={getCardStyle(isFront, isInBackStage, position, lockStackInteractions, touchAction)}
         drag={dragEnabled}
         dragControls={dragEnabled ? dragControls : undefined}
         dragListener={false}
