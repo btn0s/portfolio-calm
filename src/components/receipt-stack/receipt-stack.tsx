@@ -96,7 +96,6 @@ const STACK_CONFIG = {
   style: {
     frontCardShadow: "0 12px 24px rgba(0,0,0,0.2)",
     backCardShadow: "0 4px 8px rgba(0,0,0,0.1)",
-    baseZIndex: 3,
   },
 } as const;
 
@@ -128,7 +127,6 @@ export function ReceiptStack({
   // Only state needed for rendering: touchAction needs to update when intent is confirmed
   const [touchAction, setTouchAction] = useState<"pan-y" | "none">("pan-y");
   const [hasHover, setHasHover] = useState(false);
-  const frontCardRef = useRef<HTMLDivElement>(null);
   const shouldReduceMotion = useReducedMotion();
 
   const { route, isSubpage, lockStackInteractions, shouldHideStack } =
@@ -388,7 +386,7 @@ export function ReceiptStack({
     }
     if (isFront) {
       return isSubpage
-        ? { x: 0, rotate: 0, scale: 1 }
+        ? { x: 0, y: hasHover && isFrontCardHovered ? "-0.5rem" : 0, rotate: 0, scale: 1 }
         : { x: 0, y: 0, rotate: 0, scale: 1 };
     }
     // When collapsed (isSubpage), back cards have no rotation or offset
@@ -401,34 +399,6 @@ export function ReceiptStack({
       y: offset.y * breathe,
       rotate: offset.rotate * breathe,
       scale: 1 - position * STACK_CONFIG.animation.scaleReductionPerPosition,
-    };
-  };
-
-  const getBackStageContainerClassName = (isSubpage: boolean) => {
-    const baseClasses = "fixed z-10";
-    return isSubpage
-      // On subpages the stack slides out of view, but this box stays where it was: let clicks fall
-      // through it to the page, and only the (moved) stack itself catch them.
-      ? cn(baseClasses, "pointer-events-none bottom-0 left-0 right-0 px-4 w-full md:left-1/2 md:right-auto md:-translate-x-1/2 md:max-w-xl md:px-0")
-      : cn(baseClasses, "top-28 left-0 right-0 w-full max-w-xl mx-auto");
-  };
-
-  const getFrontSlotClassName = (isSubpage: boolean) => {
-    const baseClasses = "z-20 w-full max-w-xl mx-auto";
-    return isSubpage
-      ? cn(baseClasses, "fixed left-0 right-0 px-4 md:left-1/2 md:right-auto md:-translate-x-1/2 md:px-0")
-      : cn(baseClasses, "relative mt-0");
-  };
-
-  const getFrontSlotStyle = (isSubpage: boolean) => {
-    return isSubpage
-      ? { top: "calc(100dvh - 1.5rem)" }
-      : undefined;
-  };
-
-  const getFrontSlotAnimation = (isSubpage: boolean, hasHover: boolean, isFrontCardHovered: boolean) => {
-    return {
-      y: isSubpage && hasHover && isFrontCardHovered ? "-0.5rem" : 0,
     };
   };
 
@@ -445,16 +415,20 @@ export function ReceiptStack({
 
   const getCardStyle = (
     isFront: boolean,
-    isInBackStage: boolean,
     position: number,
     lockStackInteractions: boolean,
     touchAction: "pan-y" | "none"
   ) => ({
-    zIndex: STACK_CONFIG.style.baseZIndex - position,
-    position: isInBackStage ? ("absolute" as const) : ("relative" as const),
-    top: isInBackStage ? 0 : undefined,
-    left: isInBackStage ? 0 : undefined,
-    right: isInBackStage ? 0 : undefined,
+    zIndex: isFront ? 20 : 10 - position,
+    position: isFront && !isSubpage ? ("relative" as const) : ("fixed" as const),
+    top: isSubpage
+      ? (isFront
+        ? "calc(100dvh - 1.5rem)"
+        // The old bottom-anchored stage included its minimum height plus 3rem padding.
+        : shouldReduceMotion ? "calc(100dvh - var(--collapsed-stage-height))" : "100dvh")
+      : isFront ? undefined : "7rem",
+    left: isFront && !isSubpage ? undefined : 0,
+    right: isFront && !isSubpage ? undefined : 0,
     // Every card moves on every flip: keep each on its own compositor layer so the motion is
     // composited, not repainted (clip-path, noise texture and blend modes) every frame.
     willChange: "transform",
@@ -465,8 +439,9 @@ export function ReceiptStack({
   const canDrag = (isFront: boolean, lockStackInteractions: boolean) =>
     isFront && !lockStackInteractions;
 
-  // Render a single card with shared layout
-  const renderCard = (routeId: RouteId, position: number, isInBackStage: boolean) => {
+  // A route always owns the same card; layout projects position changes without remounting it.
+  const renderCard = (routeId: RouteId) => {
+    const position = order.indexOf(routeId);
     const isFront = position === 0;
     const offset = getStackOffset(position);
     const breathe = showSpread && !isFront ? STACK_CONFIG.animation.hoverSpreadMultiplier : 1;
@@ -483,10 +458,9 @@ export function ReceiptStack({
         data-stack-active={isFront && !isSubpage ? "true" : "false"}
         data-stack-position={position}
         data-stack-route={routeId}
-        data-stack-stage={isInBackStage ? "back" : "front"}
-        layoutId={routeId}
-        layout={isFront ? "position" : false}
-        style={getCardStyle(isFront, isInBackStage, position, lockStackInteractions, touchAction)}
+        data-stack-stage={isFront ? "front" : "back"}
+        layout={shouldReduceMotion ? false : "position"}
+        style={getCardStyle(isFront, position, lockStackInteractions, touchAction)}
         drag={dragEnabled}
         dragControls={dragEnabled ? dragControls : undefined}
         dragListener={false}
@@ -502,7 +476,13 @@ export function ReceiptStack({
         transition={shouldReduceMotion ? { duration: 0.1 } : STACK_SPRING}
         onClick={(e) => handleCardClick(e, routeId, position)}
         tabIndex={-1} // Front card is not tab-indexable - navigation via arrow keys only
-        className={getCardClassName(isFront, lockStackInteractions)}
+        className={cn(
+          getCardClassName(isFront, lockStackInteractions),
+          "mx-auto max-w-xl",
+          isSubpage && "max-w-[calc(100%-2rem)] md:max-w-xl"
+        )}
+        onMouseEnter={() => !isFront && setIsHovered(true)}
+        onMouseLeave={() => !isFront && setIsHovered(false)}
         aria-label={isFront && !lockStackInteractions ? `Current page: ${ROUTE_NAMES[routeId]}. Use arrow keys to navigate between pages.` : undefined}
       >
         {/* Paint layer: contains clip-path and texture, not animated */}
@@ -517,6 +497,16 @@ export function ReceiptStack({
         >
           {receiptMap[routeId]}
         </div>
+        {isSubpage && (
+          <button
+            type="button"
+            className="absolute inset-0 z-10 cursor-pointer outline-none rounded-sm focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[#0047ab]"
+            onClick={handleOverlayClick}
+            onMouseEnter={() => isFront && hasHover && setIsFrontCardHovered(true)}
+            onMouseLeave={() => isFront && hasHover && setIsFrontCardHovered(false)}
+            aria-label={`Go to ${ROUTE_NAMES[order[0]]} page`}
+          />
+        )}
       </motion.div>
     );
   };
@@ -529,87 +519,14 @@ export function ReceiptStack({
         className="fixed top-28 left-6 right-6 bottom-6 pointer-events-none"
       />
       
-      {/* BackStage: Fixed container for back cards */}
-      <div className={getBackStageContainerClassName(isSubpage)}>
-        <motion.div
-          className="pointer-events-auto flex flex-col items-center justify-center isolate pb-12 min-h-[600px] md:min-h-[800px]"
-          initial={{
-            y: shouldReduceMotion ? 0 : (isSubpage ? "100%" : 0),
-          }}
-          animate={{
-            y: shouldReduceMotion ? 0 : (isSubpage ? "100%" : 0),
-          }}
-          transition={shouldReduceMotion ? { duration: 0.1 } : STACK_SPRING}
-        >
-          <div
-            className="relative w-full max-w-xl flex items-center justify-center"
-            style={{ minHeight: "inherit" }}
-            onMouseEnter={() => setIsHovered(true)}
-            onMouseLeave={() => setIsHovered(false)}
-          >
-            {/* Back slots - render cards that are NOT front */}
-            {order.map((routeId, position) => {
-              if (position === 0) return null; // Front card goes in FrontSlot
-              return (
-                <div key={`back-slot-${routeId}`} className="absolute inset-0">
-                  {renderCard(routeId, position, true)}
-                </div>
-              );
-            })}
-            
-            {/* Stack-area overlay for subpages - intercepts clicks to navigate back */}
-            {lockStackInteractions && (
-              <button
-                type="button"
-                className={cn(
-                  "absolute inset-0 z-10 cursor-pointer outline-none rounded-sm",
-                  "focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[#0047ab]"
-                )}
-                onClick={handleOverlayClick}
-                aria-label={`Go to ${ROUTE_NAMES[order[0]]} page`}
-              />
-            )}
-          </div>
-        </motion.div>
+      {/* No transformed ancestor: back cards are viewport-fixed, while the front card
+          supplies page height. Stable route keys preserve every receipt subtree on flips. */}
+      <div className={cn(
+        "relative flex flex-col items-center justify-center [--collapsed-stage-height:648px] md:[--collapsed-stage-height:848px]",
+        !isSubpage && "pb-12 min-h-[600px] md:min-h-[800px]"
+      )}>
+        {STACK_ROUTE_IDS.map(renderCard)}
       </div>
-
-      {/* FrontSlot: In-flow container for front card - this moves with page scroll */}
-      <motion.div
-        ref={frontCardRef}
-        className={getFrontSlotClassName(isSubpage)}
-        style={getFrontSlotStyle(isSubpage)}
-        animate={shouldReduceMotion ? { y: 0 } : getFrontSlotAnimation(isSubpage, hasHover, isFrontCardHovered)}
-        transition={shouldReduceMotion ? { duration: 0.1 } : STACK_SPRING}
-      >
-        <div className="flex flex-col items-center justify-center pb-12 min-h-[600px] md:min-h-[800px]">
-          <div className="relative w-full max-w-xl flex items-center justify-center">
-            {/* Front card - only render if position is 0 */}
-            {order.map((routeId, position) => {
-              if (position !== 0) return null;
-              return (
-                <div key={`front-slot-${routeId}`} className="w-full">
-                  {renderCard(routeId, position, false)}
-                </div>
-              );
-            })}
-            
-            {/* Front card overlay for subpages - intercepts clicks to navigate back */}
-            {isSubpage && (
-              <button
-                type="button"
-                className={cn(
-                  "absolute inset-0 z-10 cursor-pointer outline-none rounded-sm",
-                  "focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[#0047ab]"
-                )}
-                onClick={handleOverlayClick}
-                onMouseEnter={() => hasHover && setIsFrontCardHovered(true)}
-                onMouseLeave={() => hasHover && setIsFrontCardHovered(false)}
-                aria-label={`Go to ${ROUTE_NAMES[order[0]]} page`}
-              />
-            )}
-          </div>
-        </div>
-      </motion.div>
     </LayoutGroup>
   );
 }
