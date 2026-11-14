@@ -70,8 +70,9 @@ const STACK_CONFIG = {
   // Gesture tuning
   gesture: {
     flickVelocityThreshold: 50,
+    /** Must stay under iOS's scroll start (~10px): after that its scroll can't be cancelled. */
     intentThresholdPx: 8,
-    verticalConeDegrees: 15,
+    verticalConeDegrees: 30,
     dragUnlockResetDelayMs: 50,
     dragElasticity: 1,
   },
@@ -86,7 +87,6 @@ const STACK_CONFIG = {
 
   // Layout breakpoints and dimensions
   layout: {
-    mobileBreakpoint: 768,
     minHeightMobile: 600,
     minHeightDesktop: 800,
   },
@@ -125,8 +125,6 @@ export function ReceiptStack({
   const { registerPotentialDrag, confirmDrag, cancelDrag } = useDragContext();
   const [isHovered, setIsHovered] = useState(false);
   const [isFrontCardHovered, setIsFrontCardHovered] = useState(false);
-  // Only state needed for rendering: touchAction needs to update when intent is confirmed
-  const [touchAction, setTouchAction] = useState<"pan-y" | "none">("pan-y");
   const [hasHover, setHasHover] = useState(false);
   const shouldReduceMotion = useReducedMotion();
 
@@ -153,21 +151,6 @@ export function ReceiptStack({
     return () => mediaQuery.removeEventListener("change", handleChange);
   }, []);
 
-  // Lock scroll during horizontal drag
-  useEffect(() => {
-    if (touchAction === "none" && typeof window !== "undefined") {
-      const isMobile = window.matchMedia(
-        `(max-width: ${STACK_CONFIG.layout.mobileBreakpoint}px)`
-      ).matches;
-      if (isMobile) {
-        document.body.classList.add("dragging-horizontal");
-        return () => {
-          document.body.classList.remove("dragging-horizontal");
-        };
-      }
-    }
-  }, [touchAction]);
-
   // "Intent Gatekeeper" - only unlock drag after confirming horizontal intent
   // Using refs instead of state to avoid React re-renders in the hot path
   const dragUnlockedRef = useRef(false);
@@ -175,6 +158,20 @@ export function ReceiptStack({
   const gestureStartRef = useRef<{ x: number; y: number; pointerId: number; isInteractive: boolean } | null>(null);
   const pointerUpTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const dragControls = useDragControls();
+  // Scrolling stays native (full refresh rate, iOS momentum and bounce); the stack only decides
+  // which gestures are drags. Once one is, its touchmoves are cancelled so the browser never
+  // scrolls it. Decided before iOS commits to a scroll (~10px), this overrides the browser's own
+  // ~45° split with the stack's vertical cone. Needs a non-passive listener, so not via React.
+  const stackRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const stack = stackRef.current;
+    if (!stack) return;
+    const holdDrag = (e: TouchEvent) => {
+      if (dragUnlockedRef.current && e.cancelable) e.preventDefault();
+    };
+    stack.addEventListener("touchmove", holdDrag, { passive: false });
+    return () => stack.removeEventListener("touchmove", holdDrag);
+  }, [shouldHideStack]);
   // Each card's translate, shared by drag and the stack animation, so a thrown card keeps its
   // release velocity into the flip instead of snapping to center first.
   const cardX: Record<RouteId, ReturnType<typeof useMotionValue<number>>> = {
@@ -219,17 +216,15 @@ export function ReceiptStack({
 
       const dx = Math.abs(e.clientX - gestureStartRef.current.x);
       const dy = Math.abs(e.clientY - gestureStartRef.current.y);
+      const isTouchDevice = e.pointerType === "touch" || e.pointerType === "pen";
 
-      if (
-        dx > STACK_CONFIG.gesture.intentThresholdPx ||
-        dy > STACK_CONFIG.gesture.intentThresholdPx
-      ) {
-        const isTouchDevice = e.pointerType === "touch" || e.pointerType === "pen";
+      if (Math.hypot(dx, dy) > STACK_CONFIG.gesture.intentThresholdPx) {
         
         if (isTouchDevice) {
           const isNearlyPureVertical = dy > dx * VERTICAL_CONE_RATIO;
 
           if (isNearlyPureVertical) {
+            // Left to the browser: a native scroll.
             scrollCommittedRef.current = true;
             cancelDrag(gestureStartRef.current.pointerId);
             return;
@@ -239,7 +234,6 @@ export function ReceiptStack({
         // Horizontal drag detected - confirm drag and prevent link clicks
         dragUnlockedRef.current = true;
         confirmDrag(gestureStartRef.current.pointerId);
-        setTouchAction("none");
         playTransition("forward");
         
         // Prevent default to stop link navigation when dragging from a link
@@ -269,9 +263,16 @@ export function ReceiptStack({
     pointerUpTimeoutRef.current = setTimeout(() => {
       dragUnlockedRef.current = false;
       scrollCommittedRef.current = false;
-      setTouchAction("pan-y");
     }, STACK_CONFIG.gesture.dragUnlockResetDelayMs);
   }, [cancelDrag]);
+
+  // A gesture that scrolled or dragged isn't a tap: don't let it click a link it ended on.
+  const handleClickCapture = (e: React.MouseEvent) => {
+    if (dragUnlockedRef.current || scrollCommittedRef.current) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+  };
 
   // Cleanup pending timeout on unmount
   useEffect(() => {
@@ -435,8 +436,7 @@ export function ReceiptStack({
   const getCardStyle = (
     isFront: boolean,
     position: number,
-    lockStackInteractions: boolean,
-    touchAction: "pan-y" | "none"
+    lockStackInteractions: boolean
   ) => ({
     zIndex: isFront ? 20 : 10 - position,
     position: isFront && !isSubpage ? ("relative" as const) : ("fixed" as const),
@@ -451,7 +451,7 @@ export function ReceiptStack({
     // Every card moves on every flip: keep each on its own compositor layer so the motion is
     // composited, not repainted (clip-path, noise texture and blend modes) every frame.
     willChange: "transform",
-    touchAction: isFront && !lockStackInteractions ? touchAction : undefined,
+    touchAction: isFront && !lockStackInteractions ? ("pan-y" as const) : undefined,
     boxShadow: getCardShadow(isFront),
   });
 
@@ -482,7 +482,7 @@ export function ReceiptStack({
         data-stack-stage={isFront ? "front" : "back"}
         layout={shouldReduceMotion ? false : "position"}
         style={{
-          ...getCardStyle(isFront, position, lockStackInteractions, touchAction),
+          ...getCardStyle(isFront, position, lockStackInteractions),
           x: cardX[routeId],
           y: cardY[routeId],
         }}
@@ -495,6 +495,7 @@ export function ReceiptStack({
         onPointerMove={dragEnabled ? handlePointerMove : undefined}
         onPointerUp={dragEnabled ? (e) => handlePointerUp(e) : undefined}
         onPointerCancel={dragEnabled ? (e) => handlePointerUp(e) : undefined}
+        onClickCapture={dragEnabled ? handleClickCapture : undefined}
         onDragEnd={dragEnabled ? handleDragEnd : undefined}
         initial={initialAnimation}
         animate={animation}
@@ -560,7 +561,7 @@ export function ReceiptStack({
       
       {/* No transformed ancestor: back cards are viewport-fixed, while the front card
           supplies page height. Stable route keys preserve every receipt subtree on flips. */}
-      <div className={cn(
+      <div ref={stackRef} className={cn(
         "relative flex flex-col items-center justify-center [--collapsed-stage-height:648px] md:[--collapsed-stage-height:848px]",
         !isSubpage && "pb-12 min-h-[600px] md:min-h-[800px]"
       )}>
