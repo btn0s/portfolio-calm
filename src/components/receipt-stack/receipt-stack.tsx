@@ -72,7 +72,9 @@ const STACK_CONFIG = {
   gesture: {
     flickVelocityThreshold: 50,
     intentThresholdPx: 8,
-    verticalConeDegrees: 15,
+    /** Touch decides later: a thumb's first few pixels are noisy and its swipes curve. */
+    touchIntentThresholdPx: 12,
+    verticalConeDegrees: 30,
     dragUnlockResetDelayMs: 50,
     dragElasticity: 1,
   },
@@ -212,12 +214,12 @@ export function ReceiptStack({
 
       const dx = Math.abs(e.clientX - gestureStartRef.current.x);
       const dy = Math.abs(e.clientY - gestureStartRef.current.y);
+      const isTouchDevice = e.pointerType === "touch" || e.pointerType === "pen";
+      const intentThreshold = isTouchDevice
+        ? STACK_CONFIG.gesture.touchIntentThresholdPx
+        : STACK_CONFIG.gesture.intentThresholdPx;
 
-      if (
-        dx > STACK_CONFIG.gesture.intentThresholdPx ||
-        dy > STACK_CONFIG.gesture.intentThresholdPx
-      ) {
-        const isTouchDevice = e.pointerType === "touch" || e.pointerType === "pen";
+      if (Math.hypot(dx, dy) > intentThreshold) {
         
         if (isTouchDevice) {
           const isNearlyPureVertical = dy > dx * VERTICAL_CONE_RATIO;
