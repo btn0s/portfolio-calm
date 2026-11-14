@@ -1,5 +1,6 @@
 import type { SynthSoundName } from "@/lib/synth-recipes";
 import { primeAudioContext, warmAudioContext } from "@/lib/audio-context";
+import { stackSoundRecipe, type StackSoundEvent } from "@/lib/stack-sound";
 
 export const SOUND_URLS = {
   ambientArtifacts: "/assets/audio/ambient-artifacts.mp3",
@@ -20,7 +21,7 @@ export const SOUND_URLS = {
 
 export type SoundName = keyof typeof SOUND_URLS;
 export type AudioEngine = "sample" | "synth";
-export type SoundPlaybackOptions = { rate?: number; maxMs?: number };
+export type SoundPlaybackOptions = { rate?: number; maxMs?: number; startMs?: number };
 export const DEFAULT_AUDIO_ENGINE: AudioEngine = "synth";
 
 export function supportsSynthPlayback() {
@@ -52,10 +53,15 @@ export function resolveStoredAudioEngine(
     : DEFAULT_AUDIO_ENGINE;
 }
 
+/**
+ * The rustle recording opens with ~340ms of near-silence before the paper moves; start on the
+ * gesture so the sound lands with the interaction, and stop once its first gesture is over.
+ */
 export function getPaperRustlePlaybackOptions() {
   return {
     rate: 1,
-    maxMs: 1_000,
+    startMs: 340,
+    maxMs: 480,
   } satisfies SoundPlaybackOptions;
 }
 
@@ -163,7 +169,7 @@ class AudioManager {
     const el = pool[idx];
     this.poolIndex.set(name, (idx + 1) % pool.length);
     
-    el.currentTime = 0;
+    el.currentTime = (options?.startMs ?? 0) / 1_000;
     el.playbackRate =
       typeof options?.rate === "number"
       && Number.isFinite(options.rate)
@@ -236,6 +242,24 @@ class AudioManager {
     return this.engine;
   }
 
+  /** Receipt-stack sound, shaped by the motion it accompanies (see lib/stack-sound). */
+  playStack(event: StackSoundEvent) {
+    if (!this.initialized) this.init();
+    if (this.muted || !this.initialized) return;
+
+    if (this.engine === "synth" && supportsSynthPlayback()) {
+      void primeAudioContext();
+      void loadSynthModule()
+        .then(({ playSynthRecipe }) => playSynthRecipe(stackSoundRecipe(event)))
+        .then((played) => {
+          if (!played && event.kind === "flip") this.playSample("paperRustle", getPaperRustlePlaybackOptions());
+        });
+      return;
+    }
+    // Sample engine: the trimmed rustle is the closest single recording.
+    if (event.kind === "flip") this.playSample("paperRustle", getPaperRustlePlaybackOptions());
+  }
+
   toggle() {
     this.setMuted(!this.muted);
     return this.muted;
@@ -254,6 +278,10 @@ export function playDrop() {
 
 export function playPaperRustle() {
   audio.play("paperRustle", getPaperRustlePlaybackOptions());
+}
+
+export function playStackSound(event: StackSoundEvent) {
+  audio.playStack(event);
 }
 
 export function playSwipeForward() {

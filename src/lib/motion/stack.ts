@@ -24,6 +24,39 @@ export function getStackOffset(position: number) {
 }
 
 /**
+ * Key moments of a STACK_SPRING move from rest (unit mass, the Framer Motion default), so
+ * anything that accompanies the motion (sound) can follow the actual spring instead of a
+ * guessed duration. Times are in seconds.
+ */
+export function getStackSpringTimeline(spring = STACK_SPRING) {
+  const dt = 1 / 2000;
+  let x = 1; // remaining distance (fraction of the move)
+  let v = 0;
+  let t = 0;
+  let peakSpeed = 0;
+  let peakSpeedAt = 0;
+  let landedAt = 0;
+  let settledAt = 0;
+  while (t < 2) {
+    const a = -spring.stiffness * x - spring.damping * v;
+    v += a * dt;
+    x += v * dt;
+    t += dt;
+    if (Math.abs(v) > peakSpeed) {
+      peakSpeed = Math.abs(v);
+      peakSpeedAt = t;
+    }
+    // "Landed": within 10% of the target, the moment the eye reads it as arrived.
+    if (!landedAt && Math.abs(x) < 0.1) landedAt = t;
+    if (!settledAt && Math.abs(x) < 0.01 && Math.abs(v) < 0.05) {
+      settledAt = t;
+      break;
+    }
+  }
+  return { peakSpeedAt, landedAt, settledAt: settledAt || t };
+}
+
+/**
  * A flicked card's flip: a looser spring than STACK_SPRING that starts at the release velocity
  * (boosted, so a flick reads as a throw), carrying the card out the side it was thrown toward
  * before it pulls in behind the stack. One continuous motion: no stop before the flip.

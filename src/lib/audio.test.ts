@@ -22,10 +22,11 @@ describe("audio engine defaults", () => {
     expect(getSoundVolume("paperRustle")).toBe(0.15);
   });
 
-  it("keeps the exact paper waveform at source rate and caps it to one second", () => {
+  it("starts the paper rustle on its first gesture, at source rate", () => {
     expect(getPaperRustlePlaybackOptions()).toEqual({
       rate: 1,
-      maxMs: 1_000,
+      startMs: 340,
+      maxMs: 480,
     });
   });
 

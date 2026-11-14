@@ -4,7 +4,8 @@ import { useRef, useState, useCallback, useEffect } from "react";
 import { animate, motion, PanInfo, useDragControls, useMotionValue, LayoutGroup, useReducedMotion } from "framer-motion";
 import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { STACK_SPRING, STACK_THROW_SPRING, getStackOffset, getStackThrow } from "@/lib/motion/stack";
+import { STACK_SPRING, STACK_THROW_SPRING, getStackOffset, getStackThrow, getStackThrowLanding } from "@/lib/motion/stack";
+import { flickIntensity } from "@/lib/stack-sound";
 import { useSoundSettings } from "@/contexts/sound-context";
 import { useDragContext } from "@/contexts/drag-context";
 
@@ -121,7 +122,7 @@ export function ReceiptStack({
 }: ReceiptStackProps) {
   const pathname = usePathname();
   const router = useRouter();
-  const { playTransition, playSound } = useSoundSettings();
+  const { playStack, playSound } = useSoundSettings();
   const { registerPotentialDrag, confirmDrag, cancelDrag } = useDragContext();
   const [isHovered, setIsHovered] = useState(false);
   const [isFrontCardHovered, setIsFrontCardHovered] = useState(false);
@@ -234,7 +235,7 @@ export function ReceiptStack({
         // Horizontal drag detected - confirm drag and prevent link clicks
         dragUnlockedRef.current = true;
         confirmDrag(gestureStartRef.current.pointerId);
-        playTransition("forward");
+        playStack({ kind: "grab" });
         
         // Prevent default to stop link navigation when dragging from a link
         if (gestureStartRef.current.isInteractive) {
@@ -244,7 +245,7 @@ export function ReceiptStack({
         dragControls.start(e, { snapToCursor: false });
       }
     },
-    [dragControls, confirmDrag, cancelDrag, playTransition]
+    [dragControls, confirmDrag, cancelDrag, playStack]
   );
 
   const handlePointerUp = useCallback((e?: React.PointerEvent) => {
@@ -325,11 +326,11 @@ export function ReceiptStack({
 
       if (e.key === "ArrowRight") {
         e.preventDefault();
-        playTransition("forward");
+        playStack({ kind: "flip", direction: "forward" });
         flipTo(getOrderFromRoute(route)[1]);
       } else if (e.key === "ArrowLeft") {
         e.preventDefault();
-        playTransition("backward");
+        playStack({ kind: "flip", direction: "backward" });
         flipTo(getOrderFromRoute(route)[2]);
       }
     };
@@ -338,7 +339,7 @@ export function ReceiptStack({
     return () => {
       window.removeEventListener("keydown", handleGlobalKeyDown);
     };
-  }, [lockStackInteractions, playTransition, route, flipTo]);
+  }, [lockStackInteractions, playStack, route, flipTo]);
 
   const handleDragEnd = (_: unknown, info: PanInfo) => {
     const velocity = Math.sqrt(info.velocity.x ** 2 + info.velocity.y ** 2);
@@ -347,21 +348,33 @@ export function ReceiptStack({
     if (velocity > STACK_CONFIG.gesture.flickVelocityThreshold && isHorizontalEnough) {
       // Thrown: the flip starts on release, and the card's spring to its back slot starts at the
       // throw's velocity, so it flies out the side it was thrown toward and pulls in behind.
-      setThrown({ routeId: route, ...getStackThrow(info.velocity.x, info.velocity.y) });
+      const throwVelocity = getStackThrow(info.velocity.x, info.velocity.y);
+      playStack({
+        kind: "flip",
+        direction: "forward",
+        intensity: flickIntensity(velocity),
+        throw: {
+          landsAt: getStackThrowLanding(cardX[route].get(), getStackOffset(2).x, throwVelocity.x),
+          pan: Math.sign(info.velocity.x),
+        },
+      });
+      setThrown({ routeId: route, ...throwVelocity });
       flipTo(order[1]);
       return;
     }
-    // Not a flick: spring back to center from wherever it was let go.
+    // Not a flick: spring back to center from wherever it was let go, and land on the pile.
     animate(cardX[route], 0, STACK_SPRING);
     animate(cardY[route], 0, STACK_SPRING);
+    playStack({ kind: "settle" });
   };
 
   const bringToFront = useCallback(
-    (routeId: RouteId) => {
-      playSound("rustle");
+    (routeId: RouteId, position: number) => {
+      // The card right behind is the next page (forward); the one at the back is the previous.
+      playStack({ kind: "flip", direction: position === 1 ? "forward" : "backward" });
       flipTo(routeId);
     },
-    [playSound, flipTo]
+    [playStack, flipTo]
   );
 
   const handleCardClick = (e: React.MouseEvent, routeId: RouteId, position: number) => {
@@ -377,7 +390,7 @@ export function ReceiptStack({
     
     if (position === 0) return; // Front card is not clickable on its own page - navigation via drag/arrow keys only
 
-    bringToFront(routeId);
+    bringToFront(routeId, position);
   };
 
 

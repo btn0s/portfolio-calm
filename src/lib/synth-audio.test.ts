@@ -8,15 +8,17 @@ import {
 } from "@/lib/synth-audio";
 
 describe("browser synth capture", () => {
-  it("resolves gain, rate, and a wall-clock playback cap", () => {
+  it("resolves gain, rate, start offset, and a wall-clock playback cap", () => {
     expect(resolveSynthPlaybackOptions({
       gain: 0.18,
       rate: 1.15,
       maxMs: 1_000,
+      startMs: 330,
     })).toEqual({
       gain: 0.18,
       playbackRate: 1.15,
       maximumDurationSeconds: 1,
+      startSeconds: 0.33,
     });
   });
 
@@ -25,10 +27,12 @@ describe("browser synth capture", () => {
       gain: Number.NaN,
       rate: 0,
       maxMs: -1,
+      startMs: -5,
     })).toEqual({
       gain: 1,
       playbackRate: 1,
       maximumDurationSeconds: null,
+      startSeconds: 0,
     });
   });
 
@@ -49,13 +53,14 @@ describe("browser synth capture", () => {
         gain: 0.15,
         playbackRate: 1,
         maximumDurationSeconds: 1,
+        startSeconds: 0.33,
       },
       4.25,
     );
 
     expect(source.playbackRate.value).toBe(1);
     expect(gain.gain.value).toBe(0.15);
-    expect(source.start).toHaveBeenCalledOnce();
+    expect(source.start).toHaveBeenCalledWith(4.25, 0.33);
     expect(source.stop).toHaveBeenCalledWith(5.25);
   });
 
