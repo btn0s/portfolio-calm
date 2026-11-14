@@ -140,17 +140,21 @@ function scheduleAutomation(
   automation: SynthAutomation,
   envelopeDuration: number,
   random: () => number,
+  exponentialGlide = true,
 ) {
   parameter.setValueAtTime(resolveSynthValue(automation.initial, random), start);
 
   if (automation.glideTo !== undefined) {
-    parameter.exponentialRampToValueAtTime(
-      Math.max(
-        MIN_EXPONENTIAL_VALUE,
-        resolveSynthValue(automation.glideTo, random),
-      ),
-      start + envelopeDuration,
-    );
+    const target = resolveSynthValue(automation.glideTo, random);
+    if (exponentialGlide) {
+      parameter.exponentialRampToValueAtTime(
+        Math.max(MIN_EXPONENTIAL_VALUE, target),
+        start + envelopeDuration,
+      );
+    } else {
+      // Signed parameters (pan) can't ramp exponentially.
+      parameter.linearRampToValueAtTime(target, start + envelopeDuration);
+    }
     return;
   }
 
@@ -180,11 +184,34 @@ function createNoiseBuffer(
   return buffer;
 }
 
+/** Recorded source buffers for a recipe's sample layers, keyed by compact sound name. */
+export type SynthSampleBuffers = ReadonlyMap<string, AudioBuffer>;
+
+function sampleNames(recipe: SynthRecipe) {
+  const names = new Set<string>();
+  for (const layer of recipe.layers) if (layer.kind === "sample") names.add(layer.sample);
+  return names;
+}
+
+/** Decode (once, cached) the recorded material a recipe's sample layers read from. */
+export async function prepareRecipeSamples(
+  audioContext: BaseAudioContext,
+  recipe: SynthRecipe,
+): Promise<SynthSampleBuffers> {
+  const buffers = new Map<string, AudioBuffer>();
+  for (const name of sampleNames(recipe)) {
+    if (!isCompactSound(name)) throw new TypeError(`Unknown sample source: ${name}`);
+    buffers.set(name, createCompactBuffer(audioContext, name, await prepareCompactPcm(name)));
+  }
+  return buffers;
+}
+
 function renderRecipe(
   audioContext: BaseAudioContext,
   destination: AudioNode,
   recipe: SynthRecipe,
   random: () => number,
+  samples: SynthSampleBuffers = new Map(),
 ) {
   const start = audioContext.currentTime + recipe.startDelay;
   const master = audioContext.createGain();
@@ -215,17 +242,28 @@ function renderRecipe(
   for (const layer of recipe.layers) {
     const layerStart = start + resolveSynthValue(layer.offset, random);
     const stopTail = layer.stopTail ?? 0.03;
+    // Noise is generated before the envelope so the random stream matches fitted recipes.
+    const noiseBuffer = layer.kind === "noise" ? getBuffer(layer.source) : null;
+    const gain = audioContext.createGain();
+    const envelopeDuration = scheduleEnvelope(
+      gain.gain,
+      layerStart,
+      layer.envelope,
+      random,
+    );
+    const stopAt = layerStart + envelopeDuration + stopTail;
+
+    // gain -> (pan) -> master
+    if (layer.pan) {
+      const panner = audioContext.createStereoPanner();
+      scheduleAutomation(panner.pan, layerStart, layer.pan, envelopeDuration, random, false);
+      gain.connect(panner).connect(master);
+    } else {
+      gain.connect(master);
+    }
 
     if (layer.kind === "tone") {
       const oscillator = audioContext.createOscillator();
-      const gain = audioContext.createGain();
-      const envelopeDuration = scheduleEnvelope(
-        gain.gain,
-        layerStart,
-        layer.envelope,
-        random,
-      );
-
       oscillator.type = layer.oscillator ?? "sine";
       scheduleAutomation(
         oscillator.frequency,
@@ -234,39 +272,44 @@ function renderRecipe(
         envelopeDuration,
         random,
       );
-      oscillator.connect(gain).connect(master);
+      oscillator.connect(gain);
       oscillator.start(layerStart);
-      oscillator.stop(layerStart + envelopeDuration + stopTail);
+      oscillator.stop(stopAt);
       continue;
     }
 
     const source = audioContext.createBufferSource();
-    const filter = audioContext.createBiquadFilter();
-    const gain = audioContext.createGain();
-    source.buffer = getBuffer(layer.source);
-    const envelopeDuration = scheduleEnvelope(
-      gain.gain,
-      layerStart,
-      layer.envelope,
-      random,
-    );
-
-    filter.type = layer.filter.type;
-    scheduleAutomation(
-      filter.frequency,
-      layerStart,
-      layer.filter.frequency,
-      envelopeDuration,
-      random,
-    );
-    filter.Q.value = resolveSynthValue(layer.filter.q, random);
+    let input: AudioNode = gain;
+    if (layer.filter) {
+      const filter = audioContext.createBiquadFilter();
+      filter.type = layer.filter.type;
+      scheduleAutomation(
+        filter.frequency,
+        layerStart,
+        layer.filter.frequency,
+        envelopeDuration,
+        random,
+      );
+      filter.Q.value = resolveSynthValue(layer.filter.q, random);
+      filter.connect(gain);
+      input = filter;
+    }
     source.playbackRate.value = resolveSynthValue(
       layer.playbackRate ?? 1,
       random,
     );
-    source.connect(filter).connect(gain).connect(master);
-    source.start(layerStart);
-    source.stop(layerStart + envelopeDuration + stopTail);
+    source.connect(input);
+
+    if (layer.kind === "sample") {
+      const buffer = samples.get(layer.sample);
+      if (!buffer) throw new TypeError(`Sample source not prepared: ${layer.sample}`);
+      source.buffer = buffer;
+      source.start(layerStart, layer.from);
+    } else {
+      source.buffer = noiseBuffer;
+      source.start(layerStart);
+    }
+    source.stop(stopAt);
   }
 
   return master;
@@ -278,21 +321,25 @@ export function renderSynthRecipe(
   destination: AudioNode,
   recipe: SynthRecipe,
   random: () => number = Math.random,
+  samples?: SynthSampleBuffers,
 ) {
   assertSynthRecipe(recipe);
-  return renderRecipe(audioContext, destination, recipe, random);
+  return renderRecipe(audioContext, destination, recipe, random, samples);
 }
 
 export interface SynthPlaybackOptions {
   rate?: number;
   maxMs?: number;
   gain?: number;
+  /** Read position into a recorded (compact) sound, in milliseconds. */
+  startMs?: number;
 }
 
 export interface ResolvedSynthPlaybackOptions {
   playbackRate: number;
   maximumDurationSeconds: number | null;
   gain: number;
+  startSeconds: number;
 }
 
 export function resolveSynthPlaybackOptions(
@@ -317,6 +364,12 @@ export function resolveSynthPlaybackOptions(
       && options.gain >= 0
         ? options.gain
         : 1,
+    startSeconds:
+      typeof options.startMs === "number"
+      && Number.isFinite(options.startMs)
+      && options.startMs > 0
+        ? options.startMs / 1_000
+        : 0,
   };
 }
 
@@ -328,7 +381,7 @@ export function scheduleCompactPlayback(
 ) {
   source.playbackRate.value = options.playbackRate;
   gain.gain.value = options.gain;
-  source.start();
+  source.start(currentTime, options.startSeconds);
   if (options.maximumDurationSeconds !== null) {
     source.stop(currentTime + options.maximumDurationSeconds);
   }
@@ -341,42 +394,50 @@ export function playSynth(
   const audioContext = getAudioContext();
   if (!audioContext) return Promise.resolve(false);
 
-  const recipe = SYNTH_RECIPES[name];
-  const play = () => {
-    if (isCompactSound(name)) {
-      return playPreparedCompact(audioContext, name, options);
-    }
-    const resolved = resolveSynthPlaybackOptions(options);
-    const output = audioContext.createGain();
-    output.gain.value = resolved.gain;
-    output.connect(audioContext.destination);
-    try {
-      const master = renderRecipe(
-        audioContext,
-        output,
-        recipe,
-        createSeededRandom(recipe.seed ?? DEFAULT_SEED),
-      );
-      window.setTimeout(
-        () => {
-          master.disconnect();
-          output.disconnect();
-        },
-        Math.max(1800, (recipe.duration + 0.1) * 1000),
-      );
-      return Promise.resolve(true);
-    } catch {
-      output.disconnect();
-      // Audio feedback is progressive enhancement.
-      return Promise.resolve(false);
-    }
-  };
-
-  if (audioContext.state === "running") {
-    return play();
+  if (isCompactSound(name)) {
+    const play = () => playPreparedCompact(audioContext, name, options);
+    return audioContext.state === "running"
+      ? play()
+      : audioContext.resume().then(play, () => false);
   }
+  const recipe = SYNTH_RECIPES[name];
+  return playSynthRecipe(recipe, {
+    gain: options.gain,
+    random: createSeededRandom(recipe.seed ?? DEFAULT_SEED),
+  });
+}
 
-  return audioContext.resume().then(play, () => false);
+/**
+ * Play any recipe live, including runtime-built ones (sound events shaped by the motion they
+ * accompany). Recorded material for sample layers is decoded once and cached.
+ */
+export async function playSynthRecipe(
+  recipe: SynthRecipe,
+  options: { gain?: number; random?: () => number } = {},
+) {
+  const audioContext = getAudioContext();
+  if (!audioContext) return false;
+  try {
+    assertSynthRecipe(recipe);
+    // Resume first (inside the gesture's task), then fetch cached sample buffers.
+    const resumed = audioContext.state === "running" ? Promise.resolve() : audioContext.resume();
+    const [samples] = await Promise.all([prepareRecipeSamples(audioContext, recipe), resumed]);
+    const output = audioContext.createGain();
+    output.gain.value = resolveSynthPlaybackOptions({ gain: options.gain }).gain;
+    output.connect(audioContext.destination);
+    const master = renderRecipe(audioContext, output, recipe, options.random ?? Math.random, samples);
+    window.setTimeout(
+      () => {
+        master.disconnect();
+        output.disconnect();
+      },
+      Math.max(1800, (recipe.duration + 0.1) * 1000),
+    );
+    return true;
+  } catch {
+    // Audio feedback is progressive enhancement.
+    return false;
+  }
 }
 
 function createCompactBuffer(
@@ -470,6 +531,7 @@ export async function renderSynthRecipeOffline(
     offline.destination,
     recipe,
     createSeededRandom(options.seed ?? recipe.seed ?? DEFAULT_SEED),
+    await prepareRecipeSamples(offline, recipe),
   );
   return offline.startRendering();
 }

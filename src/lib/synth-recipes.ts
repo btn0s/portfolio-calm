@@ -61,6 +61,8 @@ export interface SynthToneLayer {
   envelope: SynthEnvelope;
   frequency: SynthAutomation;
   oscillator?: OscillatorType;
+  /** Stereo position, -1 (left) to 1 (right), automated over the envelope. */
+  pan?: SynthAutomation;
   stopTail?: number;
 }
 
@@ -77,10 +79,29 @@ export interface SynthNoiseLayer {
   envelope: SynthEnvelope;
   filter: SynthFilterRecipe;
   playbackRate?: SynthValue;
+  pan?: SynthAutomation;
   stopTail?: number;
 }
 
-export type SynthLayer = SynthToneLayer | SynthNoiseLayer;
+/**
+ * A slice of a recorded sound (one of the exact-PCM compact sounds), shaped like any other
+ * layer. Lets a recipe layer real material (paper, a click) with synthesized texture.
+ */
+export interface SynthSampleLayer {
+  kind: "sample";
+  /** Compact sound name whose PCM is the source. */
+  sample: string;
+  /** Read position in the source, in seconds. */
+  from: number;
+  offset: SynthValue;
+  envelope: SynthEnvelope;
+  filter?: SynthFilterRecipe;
+  playbackRate?: SynthValue;
+  pan?: SynthAutomation;
+  stopTail?: number;
+}
+
+export type SynthLayer = SynthToneLayer | SynthNoiseLayer | SynthSampleLayer;
 
 export interface SynthNoiseSource {
   id: string;
@@ -386,17 +407,22 @@ function validateFiniteNumber(
   }
 }
 
-function validateValue(value: unknown, path: string, errors: string[]) {
+function validateValue(
+  value: unknown,
+  path: string,
+  errors: string[],
+  minimum = 0,
+) {
   if (typeof value === "number") {
-    validateFiniteNumber(value, path, errors);
+    validateFiniteNumber(value, path, errors, minimum);
     return;
   }
   if (!isObject(value)) {
     errors.push(`${path} must be a number or { min, max } range`);
     return;
   }
-  validateFiniteNumber(value.min, `${path}.min`, errors);
-  validateFiniteNumber(value.max, `${path}.max`, errors);
+  validateFiniteNumber(value.min, `${path}.min`, errors, minimum);
+  validateFiniteNumber(value.max, `${path}.max`, errors, minimum);
   if (
     typeof value.min === "number" &&
     typeof value.max === "number" &&
@@ -406,7 +432,12 @@ function validateValue(value: unknown, path: string, errors: string[]) {
   }
 }
 
-function validatePoints(value: unknown, path: string, errors: string[]) {
+function validatePoints(
+  value: unknown,
+  path: string,
+  errors: string[],
+  minimum = 0,
+) {
   if (!Array.isArray(value) || value.length === 0) {
     errors.push(`${path} must be a non-empty array`);
     return;
@@ -418,24 +449,29 @@ function validatePoints(value: unknown, path: string, errors: string[]) {
       return;
     }
     validateValue(point.offset, `${pointPath}.offset`, errors);
-    validateValue(point.value, `${pointPath}.value`, errors);
+    validateValue(point.value, `${pointPath}.value`, errors, minimum);
     if (!(["set", "linear", "exponential"] as unknown[]).includes(point.curve)) {
       errors.push(`${pointPath}.curve is invalid`);
     }
   });
 }
 
-function validateAutomation(value: unknown, path: string, errors: string[]) {
+function validateAutomation(
+  value: unknown,
+  path: string,
+  errors: string[],
+  minimum = 0,
+) {
   if (!isObject(value)) {
     errors.push(`${path} must be an object`);
     return;
   }
-  validateValue(value.initial, `${path}.initial`, errors);
+  validateValue(value.initial, `${path}.initial`, errors, minimum);
   if (value.glideTo !== undefined) {
-    validateValue(value.glideTo, `${path}.glideTo`, errors);
+    validateValue(value.glideTo, `${path}.glideTo`, errors, minimum);
   }
   if (value.points !== undefined) {
-    validatePoints(value.points, `${path}.points`, errors);
+    validatePoints(value.points, `${path}.points`, errors, minimum);
   }
   if (value.glideTo !== undefined && value.points !== undefined) {
     errors.push(`${path} cannot contain both glideTo and points`);
@@ -518,6 +554,9 @@ export function validateSynthRecipe(value: unknown): SynthRecipeValidation {
       if (layer.stopTail !== undefined) {
         validateFiniteNumber(layer.stopTail, `${path}.stopTail`, errors);
       }
+      if (layer.pan !== undefined) {
+        validateAutomation(layer.pan, `${path}.pan`, errors, -1);
+      }
 
       if (layer.kind === "tone") {
         validateAutomation(layer.frequency, `${path}.frequency`, errors);
@@ -536,6 +575,24 @@ export function validateSynthRecipe(value: unknown): SynthRecipeValidation {
             errors,
           );
           validateValue(layer.filter.q, `${path}.filter.q`, errors);
+        }
+        if (layer.playbackRate !== undefined) {
+          validateValue(layer.playbackRate, `${path}.playbackRate`, errors);
+        }
+        return;
+      }
+      if (layer.kind === "sample") {
+        if (typeof layer.sample !== "string" || layer.sample.length === 0) {
+          errors.push(`${path}.sample must be a non-empty string`);
+        }
+        validateFiniteNumber(layer.from, `${path}.from`, errors);
+        if (layer.filter !== undefined) {
+          if (!isObject(layer.filter)) {
+            errors.push(`${path}.filter must be an object`);
+          } else {
+            validateAutomation(layer.filter.frequency, `${path}.filter.frequency`, errors);
+            validateValue(layer.filter.q, `${path}.filter.q`, errors);
+          }
         }
         if (layer.playbackRate !== undefined) {
           validateValue(layer.playbackRate, `${path}.playbackRate`, errors);

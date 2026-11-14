@@ -9,10 +9,12 @@ import {
   getAudioEngine,
   setAudioEngine,
   playPaperRustle,
+  playStackSound,
   primeAudio,
   DEFAULT_AUDIO_ENGINE,
   type AudioEngine,
 } from "@/lib/audio";
+import type { StackSoundEvent } from "@/lib/stack-sound";
 
 export type SoundCategory = "interaction" | "intro" | "ambient" | "transition";
 export type RouteId = "home" | "thoughts" | "artifacts";
@@ -24,7 +26,8 @@ type SoundContextType = {
   toggleMute: () => void;
   playSound: (sound: InteractionSound, alt?: boolean) => void;
   playIntro: (route: RouteId) => void;
-  playTransition: (direction: "forward" | "backward") => void;
+  /** Receipt stack sound, timed to the stack's motion. */
+  playStack: (event: StackSoundEvent) => void;
   engine: AudioEngine;
   setEngine: (engine: AudioEngine) => void;
 };
@@ -83,8 +86,8 @@ export const SoundProvider = ({ children }: { children: React.ReactNode }) => {
     // Intros removed for now
   }, []);
 
-  const playTransition = useCallback(() => {
-    playPaperRustle();
+  const playStack = useCallback((event: StackSoundEvent) => {
+    playStackSound(event);
   }, []);
 
   const setEngine = useCallback((nextEngine: AudioEngine) => {
@@ -99,7 +102,7 @@ export const SoundProvider = ({ children }: { children: React.ReactNode }) => {
         toggleMute,
         playSound,
         playIntro,
-        playTransition,
+        playStack,
         engine,
         setEngine,
       }}
