@@ -24,6 +24,16 @@ export function getAudioContext(): AudioContext | null {
   return context;
 }
 
+// Creating an AudioContext starts the audio device: ~140ms of blocking main-thread work on macOS.
+// Do it while the page is idle, not inside the first key/pointer event (which would freeze the first
+// stack flip). It starts suspended; primeAudioContext() resumes it inside the gesture.
+export function warmAudioContext() {
+  if (typeof window === "undefined" || context) return;
+  const create = () => void getAudioContext();
+  if ("requestIdleCallback" in window) window.requestIdleCallback(create, { timeout: 3000 });
+  else setTimeout(create, 1000);
+}
+
 function startSilentUnlock(audioContext: AudioContext) {
   if (primedContexts.has(audioContext)) return;
 

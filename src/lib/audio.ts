@@ -1,5 +1,5 @@
 import type { SynthSoundName } from "@/lib/synth-recipes";
-import { primeAudioContext } from "@/lib/audio-context";
+import { primeAudioContext, warmAudioContext } from "@/lib/audio-context";
 
 export const SOUND_URLS = {
   ambientArtifacts: "/assets/audio/ambient-artifacts.mp3",
@@ -96,6 +96,7 @@ class AudioManager {
     this.initialized = true;
     if (this.engine === "synth" && supportsSynthPlayback()) {
       void prepareSelectedSynthEngine();
+      if (!this.muted) warmAudioContext();
     }
   }
 
