@@ -5,7 +5,8 @@ import { animate, motion, PanInfo, useDragControls, useMotionValue, LayoutGroup,
 import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { STACK_SPRING, STACK_THROW_SPRING, getStackOffset, getStackThrow, getStackThrowLanding } from "@/lib/motion/stack";
-import { flickIntensity } from "@/lib/stack-sound";
+import { flickIntensity, type Paper } from "@/lib/stack-sound";
+import type { PaperFriction } from "@/lib/paper-friction";
 import { useSoundSettings } from "@/contexts/sound-context";
 import { useDragContext } from "@/contexts/drag-context";
 
@@ -30,6 +31,13 @@ const STACK_ROUTES: StackRoute[] = [
     match: (p) => p === "/artifacts" || p.startsWith("/artifacts/"),
   },
 ];
+
+/** Each receipt's paper (its ReceiptShell variant), which colours the sounds it makes. */
+const ROUTE_PAPER: Record<RouteId, Paper> = {
+  home: "dossier",
+  thoughts: "stationery",
+  artifacts: "blueprint",
+};
 
 const ROUTE_NAMES: Record<RouteId, string> = {
   home: "home",
@@ -122,7 +130,7 @@ export function ReceiptStack({
 }: ReceiptStackProps) {
   const pathname = usePathname();
   const router = useRouter();
-  const { playStack, playSound } = useSoundSettings();
+  const { playStack, playSound, startFriction } = useSoundSettings();
   const { registerPotentialDrag, confirmDrag, cancelDrag } = useDragContext();
   const [isHovered, setIsHovered] = useState(false);
   const [isFrontCardHovered, setIsFrontCardHovered] = useState(false);
@@ -235,7 +243,6 @@ export function ReceiptStack({
         // Horizontal drag detected - confirm drag and prevent link clicks
         dragUnlockedRef.current = true;
         confirmDrag(gestureStartRef.current.pointerId);
-        playStack({ kind: "grab" });
         
         // Prevent default to stop link navigation when dragging from a link
         if (gestureStartRef.current.isInteractive) {
@@ -245,7 +252,7 @@ export function ReceiptStack({
         dragControls.start(e, { snapToCursor: false });
       }
     },
-    [dragControls, confirmDrag, cancelDrag, playStack]
+    [dragControls, confirmDrag, cancelDrag]
   );
 
   const handlePointerUp = useCallback((e?: React.PointerEvent) => {
@@ -326,12 +333,14 @@ export function ReceiptStack({
 
       if (e.key === "ArrowRight") {
         e.preventDefault();
-        playStack({ kind: "flip", direction: "forward" });
-        flipTo(getOrderFromRoute(route)[1]);
+        const [front, next] = getOrderFromRoute(route);
+        playStack({ kind: "flip", direction: "forward", from: ROUTE_PAPER[front], to: ROUTE_PAPER[next] });
+        flipTo(next);
       } else if (e.key === "ArrowLeft") {
         e.preventDefault();
-        playStack({ kind: "flip", direction: "backward" });
-        flipTo(getOrderFromRoute(route)[2]);
+        const [front, , previous] = getOrderFromRoute(route);
+        playStack({ kind: "flip", direction: "backward", from: ROUTE_PAPER[front], to: ROUTE_PAPER[previous] });
+        flipTo(previous);
       }
     };
 
@@ -341,7 +350,42 @@ export function ReceiptStack({
     };
   }, [lockStackInteractions, playStack, route, flipTo]);
 
+  // While a card is dragged, paper friction follows its speed every frame (lib/paper-friction).
+  const dragSoundRef = useRef<{ voice: PaperFriction; frame: number } | null>(null);
+  const stopDragSound = () => {
+    const sound = dragSoundRef.current;
+    if (!sound) return;
+    cancelAnimationFrame(sound.frame);
+    sound.voice.stop();
+    dragSoundRef.current = null;
+  };
+  const startDragSound = (routeId: RouteId) => {
+    stopDragSound();
+    const paper = ROUTE_PAPER[routeId];
+    playStack({ kind: "grab", paper });
+    const x = cardX[routeId];
+    const y = cardY[routeId];
+    const sound = { voice: startFriction(paper), frame: 0 };
+    const follow = () => {
+      sound.voice.update(Math.hypot(x.getVelocity(), y.getVelocity()), x.get());
+      sound.frame = requestAnimationFrame(follow);
+    };
+    sound.frame = requestAnimationFrame(follow);
+    dragSoundRef.current = sound;
+  };
+  useEffect(
+    () => () => {
+      const sound = dragSoundRef.current;
+      if (sound) {
+        cancelAnimationFrame(sound.frame);
+        sound.voice.stop();
+      }
+    },
+    []
+  );
+
   const handleDragEnd = (_: unknown, info: PanInfo) => {
+    stopDragSound();
     const velocity = Math.sqrt(info.velocity.x ** 2 + info.velocity.y ** 2);
     const isHorizontalEnough = Math.abs(info.velocity.y) < Math.abs(info.velocity.x) * VERTICAL_CONE_RATIO;
 
@@ -352,6 +396,8 @@ export function ReceiptStack({
       playStack({
         kind: "flip",
         direction: "forward",
+        from: ROUTE_PAPER[route],
+        to: ROUTE_PAPER[order[1]],
         intensity: flickIntensity(velocity),
         throw: {
           landsAt: getStackThrowLanding(cardX[route].get(), getStackOffset(2).x, throwVelocity.x),
@@ -365,17 +411,19 @@ export function ReceiptStack({
     // Not a flick: spring back to center from wherever it was let go, and land on the pile.
     animate(cardX[route], 0, STACK_SPRING);
     animate(cardY[route], 0, STACK_SPRING);
-    playStack({ kind: "settle" });
+    playStack({ kind: "settle", paper: ROUTE_PAPER[route] });
   };
 
-  const bringToFront = useCallback(
-    (routeId: RouteId, position: number) => {
-      // The card right behind is the next page (forward); the one at the back is the previous.
-      playStack({ kind: "flip", direction: position === 1 ? "forward" : "backward" });
-      flipTo(routeId);
-    },
-    [playStack, flipTo]
-  );
+  const bringToFront = (routeId: RouteId, position: number) => {
+    // The card right behind is the next page (forward); the one at the back is the previous.
+    playStack({
+      kind: "flip",
+      direction: position === 1 ? "forward" : "backward",
+      from: ROUTE_PAPER[route],
+      to: ROUTE_PAPER[routeId],
+    });
+    flipTo(routeId);
+  };
 
   const handleCardClick = (e: React.MouseEvent, routeId: RouteId, position: number) => {
     // Disable card clicks when interactions are locked
@@ -509,6 +557,7 @@ export function ReceiptStack({
         onPointerUp={dragEnabled ? (e) => handlePointerUp(e) : undefined}
         onPointerCancel={dragEnabled ? (e) => handlePointerUp(e) : undefined}
         onClickCapture={dragEnabled ? handleClickCapture : undefined}
+        onDragStart={dragEnabled ? () => startDragSound(routeId) : undefined}
         onDragEnd={dragEnabled ? handleDragEnd : undefined}
         initial={initialAnimation}
         animate={animation}

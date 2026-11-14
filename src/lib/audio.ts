@@ -1,6 +1,7 @@
 import type { SynthSoundName } from "@/lib/synth-recipes";
 import { primeAudioContext, warmAudioContext } from "@/lib/audio-context";
-import { stackSoundRecipe, type StackSoundEvent } from "@/lib/stack-sound";
+import { stackSoundRecipe, type Paper, type StackSoundEvent } from "@/lib/stack-sound";
+import type { PaperFriction } from "@/lib/paper-friction";
 
 export const SOUND_URLS = {
   ambientArtifacts: "/assets/audio/ambient-artifacts.mp3",
@@ -260,6 +261,30 @@ class AudioManager {
     if (event.kind === "flip") this.playSample("paperRustle", getPaperRustlePlaybackOptions());
   }
 
+  /**
+   * Live paper friction for a card being dragged (see lib/paper-friction): feed it the card's speed
+   * every frame, stop it on release. Synth engine only; silent while it loads.
+   */
+  startStackFriction(paper: Paper): PaperFriction {
+    if (!this.initialized) this.init();
+    if (this.muted || !this.initialized || this.engine !== "synth" || !supportsSynthPlayback()) {
+      return { update() {}, stop() {} };
+    }
+    void primeAudioContext();
+    let voice: PaperFriction | null = null;
+    let stopped = false;
+    void import("@/lib/paper-friction").then(({ startPaperFriction }) => {
+      if (!stopped) voice = startPaperFriction(paper);
+    });
+    return {
+      update: (speed, x) => voice?.update(speed, x),
+      stop: () => {
+        stopped = true;
+        voice?.stop();
+      },
+    };
+  }
+
   toggle() {
     this.setMuted(!this.muted);
     return this.muted;
@@ -282,6 +307,10 @@ export function playPaperRustle() {
 
 export function playStackSound(event: StackSoundEvent) {
   audio.playStack(event);
+}
+
+export function startStackFriction(paper: Paper) {
+  return audio.startStackFriction(paper);
 }
 
 export function playSwipeForward() {

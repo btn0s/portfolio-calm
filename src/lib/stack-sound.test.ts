@@ -1,16 +1,18 @@
 import { describe, expect, it } from "vitest";
 
-import { stackSoundRecipe, type StackSoundEvent } from "@/lib/stack-sound";
+import { stackSoundRecipe, type Paper, type StackSoundEvent } from "@/lib/stack-sound";
 import { validateSynthRecipe } from "@/lib/synth-recipes";
 
 describe("stack sound", () => {
   it("builds a valid recipe for every stack event", () => {
-    const events: StackSoundEvent[] = [
-      { kind: "flip", direction: "forward" },
-      { kind: "flip", direction: "backward", intensity: 1.4 },
-      { kind: "grab" },
-      { kind: "settle" },
-    ];
+    const papers: Paper[] = ["dossier", "stationery", "blueprint"];
+    const events: StackSoundEvent[] = papers.flatMap((paper): StackSoundEvent[] => [
+      { kind: "flip", direction: "forward", from: paper, to: "stationery" },
+      { kind: "flip", direction: "backward", from: "blueprint", to: paper, intensity: 1.4 },
+      { kind: "flip", direction: "forward", from: paper, to: "dossier", throw: { landsAt: 0.5, pan: -1 } },
+      { kind: "grab", paper },
+      { kind: "settle", paper },
+    ]);
     for (const event of events) {
       expect(validateSynthRecipe(stackSoundRecipe(event)).errors).toEqual([]);
     }
@@ -18,7 +20,7 @@ describe("stack sound", () => {
 
   it("never plays the same paper slice on two flips in a row", () => {
     const from = (seed: number) => {
-      const layer = stackSoundRecipe({ kind: "flip", direction: "forward" }, () => seed).layers[0];
+      const layer = stackSoundRecipe({ kind: "flip", direction: "forward", from: "dossier", to: "stationery" }, () => seed).layers[0];
       return layer.kind === "sample" ? layer.from : null; // crack layer
     };
     // A constant random source would pick the same slice every time without the guard.
